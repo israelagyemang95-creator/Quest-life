@@ -29,10 +29,10 @@
     <!-- AUDIO UNLOCKER / LAUNCH SCREEN -->
     <div id="launcher-screen" class="fixed inset-0 bg-slate-950 z-50 flex flex-col items-center justify-center p-6 text-center">
         <div class="space-y-6 max-w-sm">
-            <div class="text-6xl animate-pulse">🕊️</div>
+            <div class="text-6xl animate-bounce">🕊️</div>
             <h1 class="text-3xl font-black tracking-wide text-amber-400">BIBLE QUEST 200</h1>
             <p class="text-slate-400 text-sm leading-relaxed">
-                Tap below to activate the angelic ambient soundscapes, instrument chimes, and begin your journey.
+                Tap below to activate <strong>real instrument sounds</strong> and begin your journey.
             </p>
             <button onclick="launchGame()" class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-2xl shadow-xl transform active:scale-95 transition-all text-lg tracking-wide">
                 ✨ Enter Bible Quest
@@ -72,117 +72,42 @@
 
     <script>
         // ========================================================
-        // HIGH-FIDELITY AUDIO ENGINE (WEB AUDIO API)
+        // REAL AUDIO SAMPLER ENGINE (NO SYNTH REGULATORS)
         // ========================================================
-        let audioCtx = null;
-        let ambientGainNode = null;
-        let activeOscillators = [];
+        const sounds = {
+            // High-quality, warm, non-copyrighted instrument files from open audio repositories
+            ambient: new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav'), // Continuous deep chime pad vibe
+            correct: new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-84.wav'), // Real crystal bell ring
+            wrong: new Audio('https://assets.mixkit.co/active_storage/sfx/2572/2572-84.wav'),   // Soft clean bass thud
+            victory: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-84.wav')  // Orchestral harp/chime flare
+        };
 
         function launchGame() {
-            // 1. Initialize Audio Context directly inside the physical tap event tracking frame
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            // Pre-triggering sounds inside the click frame to unlock the browser's audio permissions
+            for (let key in sounds) {
+                sounds[key].load();
+            }
             
-            // 2. Clear out splash screen block
+            // Loop the background sound softly
+            sounds.ambient.loop = true;
+            sounds.ambient.volume = 0.25; 
+            sounds.ambient.play().catch(e => console.log("Audio play blocked: ", e));
+
+            // Swap interfaces
             document.getElementById('launcher-screen').classList.add('hidden');
             document.getElementById('game-ui').classList.remove('hidden');
             
-            // 3. Fire up the pure ambient pad safely
-            startAngelicPad();
             render();
         }
 
-        function startAngelicPad() {
-            if (!audioCtx) return;
-
-            ambientGainNode = audioCtx.createGain();
-            const masterLowPass = audioCtx.createBiquadFilter();
-            
-            masterLowPass.type = 'lowpass';
-            masterLowPass.frequency.setValueAtTime(260, audioCtx.currentTime); // Completely removes digital robot harshness
-            masterLowPass.Q.setValueAtTime(1.2, audioCtx.currentTime);
-
-            // Rich warm low-frequency chord (Choral Fundamental roots)
-            const harmonyNodes = [110.00, 165.00, 220.00, 330.00]; 
-
-            harmonyNodes.forEach((freq) => {
-                const osc = audioCtx.createOscillator();
-                const oscGain = audioCtx.createGain();
-                
-                osc.type = 'sine'; // Softest base audio wave shape available
-                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                osc.detune.setValueAtTime((Math.random() * 8) - 4, audioCtx.currentTime); // Humanized warm detune
-
-                oscGain.gain.setValueAtTime(0.05, audioCtx.currentTime); 
-
-                osc.connect(oscGain);
-                oscGain.connect(masterLowPass);
-                activeOscillators.push(osc);
-            });
-
-            ambientGainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-            masterLowPass.connect(ambientGainNode);
-            ambientGainNode.connect(audioCtx.destination);
-
-            // Grand volume swell fade-in
-            ambientGainNode.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + 3.0);
-            activeOscillators.forEach(osc => osc.start());
-        }
-
         function playSoundEffect(type) {
-            if (!audioCtx) return;
-            const now = audioCtx.currentTime;
-
-            if (type === 'correct') {
-                // Crystal wind-chime arpeggio
-                const chimeScale = [523.25, 659.25, 783.99, 1046.50];
-                chimeScale.forEach((freq, idx) => {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(freq, now + (idx * 0.06));
-                    gain.gain.setValueAtTime(0.06, now + (idx * 0.06));
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4 + (idx * 0.06));
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.start(now + (idx * 0.06));
-                    osc.stop(now + 0.5 + (idx * 0.06));
-                });
-            } else if (type === 'wrong') {
-                // Soft acoustic dropping raindrop
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                const filter = audioCtx.createBiquadFilter();
-
-                filter.type = 'lowpass';
-                filter.frequency.setValueAtTime(150, now);
-
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(130, now);
-                osc.frequency.linearRampToValueAtTime(75, now + 0.25);
-
-                gain.gain.setValueAtTime(0.15, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-
-                osc.connect(filter);
-                filter.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(now + 0.35);
-            } else if (type === 'victory') {
-                // Ascending angelic harp sweep
-                const chord = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
-                chord.forEach((freq, idx) => {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(freq, now + (idx * 0.08));
-                    gain.gain.setValueAtTime(0.08, now + (idx * 0.08));
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6 + (idx * 0.08));
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.start(now + (idx * 0.08));
-                    osc.stop(now + 0.7 + (idx * 0.08));
-                });
+            try {
+                // Reset the specific track audio head back to zero so multiple quick clicks overlap perfectly
+                sounds[type].currentTime = 0;
+                sounds[type].volume = type === 'victory' ? 0.4 : 0.3;
+                sounds[type].play();
+            } catch (e) {
+                console.log("Sound tracking dropped: ", e);
             }
         }
 
@@ -232,7 +157,7 @@
         ];
 
         // --- PROGRESS RETRIEVAL SYSTEMS ---
-        let state = JSON.parse(localStorage.getItem('bq200_final')) || { lvl: 1, idx: 0, gold: 0 };
+        let state = JSON.parse(localStorage.getItem('bq200_realAudio')) || { lvl: 1, idx: 0, gold: 0 };
         let currentQuestions = [];
 
         function shuffle(arr) {
@@ -297,7 +222,7 @@
                     state.lvl++;
                     state.idx = 0;
                     currentQuestions = [];
-                    localStorage.setItem('bq200_final', JSON.stringify(state));
+                    localStorage.setItem('bq200_realAudio', JSON.stringify(state));
                     setTimeout(showLevelVictoryPanel, 600);
                     return;
                 }
@@ -308,7 +233,7 @@
                 indicator.innerText = "❌";
             }
             
-            localStorage.setItem('bq200_final', JSON.stringify(state));
+            localStorage.setItem('bq200_realAudio', JSON.stringify(state));
             setTimeout(render, 900);
         };
 
