@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QuestLife - Dashboard</title>
-    <!-- Tailwind CSS CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -19,18 +18,16 @@
         }
     </script>
     <style>
-        /* Smooth gradient animation for the background */
         body {
             background: linear-gradient(-45deg, #0f172a, #1e1b4b, #311042, #0f172a);
             background-size: 400% 400%;
-            animation: gradient BG 15s ease infinite;
+            animation: gradientBG 15s ease infinite;
         }
         @keyframes gradientBG {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
-        /* Glassmorphism utility blur */
         .glass-card {
             background: rgba(15, 23, 42, 0.4);
             backdrop-filter: blur(12px);
@@ -41,15 +38,12 @@
 </head>
 <body class="min-h-screen text-slate-100 font-sans antialiased flex justify-center items-start p-4 sm:p-8">
 
-    <!-- MAIN DASHBOARD CONTAINER -->
     <div class="w-full max-w-md space-y-6">
         
-        <!-- 1. HERO STATUS MODULE (Character Profile) -->
+        <!-- 1. HERO STATUS MODULE -->
         <div class="glass-card rounded-2xl p-5 shadow-2xl space-y-4">
-            <!-- Header Row -->
             <div class="flex justify-between items-center">
                 <div class="flex items-center space-x-3">
-                    <!-- Glowing Avatar Frame -->
                     <div class="w-12 h-12 rounded-full border-2 border-cyan-400 bg-slate-800 flex items-center justify-center font-bold text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.3)]">
                         Lvl 1
                     </div>
@@ -58,75 +52,67 @@
                         <p class="text-xs text-slate-400">Class: Shadow Developer</p>
                     </div>
                 </div>
-                <!-- Gold Balance -->
-                <div class="bg-yellow-500/10 border border-yellow-500/30 px-3 py-1.5 rounded-full flex items-center space-x-1.5 shadow-[0_0_10px_rgba(234,179,8,0.1)]">
+                <div class="bg-yellow-500/10 border border-yellow-500/30 px-3 py-1.5 rounded-full flex items-center space-x-1.5">
                     <span class="text-base">🪙</span>
                     <span class="font-bold text-sm text-yellow-400 tracking-wider">125 GP</span>
                 </div>
             </div>
 
-            <!-- Health & Experience Gauges -->
             <div class="space-y-3 pt-2">
-                <!-- HP Bar (Health Points) -->
                 <div class="space-y-1">
                     <div class="flex justify-between text-xs font-semibold px-0.5">
                         <span class="text-rose-400 flex items-center gap-1">❤️ HP (Health)</span>
                         <span class="text-rose-300">80 / 100</span>
                     </div>
                     <div class="w-full h-3 bg-slate-950/60 rounded-full overflow-hidden border border-rose-950/50 p-[1.5px]">
-                        <div class="h-full bg-gradient-to-r from-rose-600 to-rose-400 rounded-full shadow-[0_0_10px_rgba(244,63,94,0.5)]" style="width: 80%"></div>
+                        <div class="h-full bg-gradient-to-r from-rose-600 to-rose-400 rounded-full" style="width: 80%"></div>
                     </div>
                 </div>
 
-                <!-- XP Bar (Experience Points) -->
                 <div class="space-y-1">
                     <div class="flex justify-between text-xs font-semibold px-0.5">
                         <span class="text-emerald-400 flex items-center gap-1">✨ XP (Experience)</span>
                         <span class="text-emerald-300">45%</span>
                     </div>
                     <div class="w-full h-3 bg-slate-950/60 rounded-full overflow-hidden border border-emerald-950/50 p-[1.5px]">
-                        <div class="h-full bg-gradient-to-r from-emerald-600 to-cyan-400 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" style="width: 45%"></div>
+                        <div class="h-full bg-gradient-to-r from-emerald-600 to-cyan-400 rounded-full" style="width: 45%"></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 2. ACTIVE QUEST LOG (To-Do List) -->
+        <!-- 2. ACTIVE QUEST LOG -->
         <div class="space-y-3">
             <h3 class="text-sm font-bold uppercase tracking-widest text-slate-400 px-1">Active Quests</h3>
-            
             <div class="space-y-2.5">
-                <!-- Quest Item: Easy -->
-                <div class="glass-card rounded-xl p-4 flex items-center justify-between border-l-4 border-l-emerald-500 transition-all hover:translate-x-1 duration-200">
+                <div class="glass-card rounded-xl p-4 flex items-center justify-between border-l-4 border-l-emerald-500">
                     <div class="flex items-center space-x-3.5">
-                        <input type="checkbox" class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-0 focus:ring-offset-0 cursor-pointer accent-emerald-500">
+                        <input type="checkbox" class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-emerald-500 accent-emerald-500">
                         <div>
                             <p class="font-medium text-sm">Drink 2L of water</p>
-                            <p class="text-[10px] text-emerald-400 font-medium uppercase tracking-wider mt-0.5">+5 XP | +2 Gold</p>
+                            <p class="text-[10px] text-emerald-400 font-medium uppercase mt-0.5">+5 XP | +2 Gold</p>
                         </div>
                     </div>
                     <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded">Easy</span>
                 </div>
 
-                <!-- Quest Item: Medium -->
-                <div class="glass-card rounded-xl p-4 flex items-center justify-between border-l-4 border-l-amber-500 transition-all hover:translate-x-1 duration-200">
+                <div class="glass-card rounded-xl p-4 flex items-center justify-between border-l-4 border-l-amber-500">
                     <div class="flex items-center space-x-3.5">
-                        <input type="checkbox" class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-0 focus:ring-offset-0 cursor-pointer accent-amber-500">
+                        <input type="checkbox" class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-amber-500 accent-amber-500">
                         <div>
                             <p class="font-medium text-sm">Read 1 chapter of a book</p>
-                            <p class="text-[10px] text-amber-400 font-medium uppercase tracking-wider mt-0.5">+15 XP | +8 Gold</p>
+                            <p class="text-[10px] text-amber-400 font-medium uppercase mt-0.5">+15 XP | +8 Gold</p>
                         </div>
                     </div>
                     <span class="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded">Medium</span>
                 </div>
 
-                <!-- Quest Item: Hard / Boss Fight -->
-                <div class="glass-card rounded-xl p-4 flex items-center justify-between border-l-4 border-l-rose-500 transition-all hover:translate-x-1 duration-200">
+                <div class="glass-card rounded-xl p-4 flex items-center justify-between border-l-4 border-l-rose-500">
                     <div class="flex items-center space-x-3.5">
-                        <input type="checkbox" class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-rose-500 focus:ring-0 focus:ring-offset-0 cursor-pointer accent-rose-500">
+                        <input type="checkbox" class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-rose-500 accent-rose-500">
                         <div>
                             <p class="font-medium text-sm">Hit gym / Workout for 45 mins</p>
-                            <p class="text-[10px] text-rose-400 font-medium uppercase tracking-wider mt-0.5">+30 XP | +20 Gold</p>
+                            <p class="text-[10px] text-rose-400 font-medium uppercase mt-0.5">+30 XP | +20 Gold</p>
                         </div>
                     </div>
                     <span class="text-xs bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded">Hard</span>
@@ -136,135 +122,79 @@
 
         <!-- 3. QUICK-ADD CONSOLE -->
         <div class="glass-card rounded-xl p-3 flex items-center space-x-2">
-            <input type="text" placeholder="Add a new quest..." class="w-full bg-slate-950/40 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 transition-colors">
-            <button class="bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-600 hover:to-indigo-700 font-bold text-sm px-4 py-2 rounded-lg transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:shadow-[0_0_20px_rgba(6,182,212,0.5)] active:scale-95">
-    <!-- 4. APP ENGINE (DYNAMIC GAMIFICATION LOGIC) -->
-    <script>
-        // Set up the character's initial game state variables
-        let playerState = {
-            level: 1,
-            xp: 45,         // Starts at 45% as shown on the UI
-            gold: 125,      // Starts at 125 Gold
-            hp: 80          // Starts at 80 HP
-        };
-
-        // Select the HTML elements we need to manipulate dynamically
-        const levelBadge = document.querySelector('.w-12.h-12'); // Selects the level circle
-        const goldText = document.querySelector('.text-yellow-400'); // Selects gold text
-        const xpBar = document.querySelector('.bg-gradient-to-r.from-emerald-600'); // Selects green progress bar
-        const xpText = document.querySelector('.text-emerald-300'); // Selects XP status text
-
-        // Find all checkboxes inside our quest items
-        const questCheckboxes = document.querySelectorAll('input[type="checkbox"]');
-
-        questCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                if (this.checked) {
-                    // 1. Identify which task was completed and look up its rewards
-                    let xpReward = 0;
-                    let goldReward = 0;
-                    const card = this.closest('.glass-card');
-                    const difficultyTag = card.querySelector('span').textContent.trim();
-
-                    if (difficultyTag === 'Easy') {
-                        xpReward = 5;
-                        goldReward = 2;
-                    } else if (difficultyTag === 'Medium') {
-                        xpReward = 15;
-                        goldReward = 8;
-                    } else if (difficultyTag === 'Hard') {
-                        xpReward = 30;
-                        goldReward = 20;
-                    }
-
-                    // 2. Apply rewards to the player state
-                    playerState.gold += goldReward;
-                    playerState.xp += xpReward;
-
-                    // 3. Visual Feedback: Strike through text and dim card
-                    const taskText = card.querySelector('p.font-medium');
-                    taskText.classList.add('line-through', 'text-slate-500');
-                    card.style.opacity = '0.6';
-
-                    // 4. Level Up verification routine
-                    if (playerState.xp >= 100) {
-                        playerState.level += 1;
-                        playerState.xp = playerState.xp - 100; // Keep the remaining XP overflow
-                        alert(`✨ LEVEL UP! You have reached Level ${playerState.level}! Your health has been restored! ✨`);
-                        playerState.hp = 100; // Max heal on level up
-                    }
-
-                    // 5. Instantly update the UI layout on screen
-                    goldText.textContent = `${playerState.gold} GP`;
-                    levelBadge.textContent = `Lvl ${playerState.level}`;
-                    xpText.textContent = `${playerState.xp}%`;
-                    xpBar.style.width = `${playerState.xp}%`;
-                }
-            });
-        });
-    </script>
-            
-                
-        // Select the Input and Add Button
-        const questInput = document.querySelector('input[type="text"]');
-        const addButton = document.querySelector('button');
-        const questList = document.querySelector('.space-y-2.5');
-
-        addButton.addEventListener('click', () => {
-            const taskName = questInput.value.trim();
-            
-            if (taskName !== "") {
-                // Create a new Quest Card (defaulting to Medium difficulty)
-                const newQuest = document.createElement('div');
-                newQuest.className = "glass-card rounded-xl p-4 flex items-center justify-between border-l-4 border-l-amber-500 transition-all hover:translate-x-1 duration-200";
-                
-                newQuest.innerHTML = `
-                    <div class="flex items-center space-x-3.5">
-                        <input type="checkbox" class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-0 focus:ring-offset-0 cursor-pointer accent-amber-500">
-                        <div>
-                            <p class="font-medium text-sm">${taskName}</p>
-                            <p class="text-[10px] text-amber-400 font-medium uppercase tracking-wider mt-0.5">+15 XP | +8 Gold</p>
-                        </div>
-                    </div>
-                    <span class="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded">Medium</span>
-                `;
-
-                // Add the new quest to the list
-                questList.appendChild(newQuest);
-                
-                // Clear the input box
-                questInput.value = "";
-
-                // Re-run the listener so the new checkbox also gives XP!
-                attachCheckboxListener(newQuest.querySelector('input'));
-            }
-        });
-
-        // Small function to handle the XP logic for new items
-        function attachCheckboxListener(checkbox) {
-            checkbox.addEventListener('change', function() {
-                if (this.checked) {
-                    playerState.gold += 8;
-                    playerState.xp += 15;
-                    
-                    const card = this.closest('.glass-card');
-                    card.querySelector('p.font-medium').classList.add('line-through', 'text-slate-500');
-                    card.style.opacity = '0.6';
-
-                    // Update UI
-                    goldText.textContent = `${playerState.gold} GP`;
-                    xpText.textContent = `${playerState.xp}%`;
-                    xpBar.style.width = `${playerState.xp}%`;
-                }
-            });
-        }
-
+            <input type="text" placeholder="Add a new quest..." class="w-full bg-slate-950/40 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50">
+            <button class="bg-gradient-to-r from-cyan-500 to-indigo-600 font-bold text-sm px-4 py-2 rounded-lg active:scale-95">
                 Add
             </button>
         </div>
 
     </div>
 
+    <!-- 4. APP ENGINE (COMBINED JAVASCRIPT LOGIC) -->
+    <script>
+        let playerState = { level: 1, xp: 45, gold: 125, hp: 80 };
+
+        const levelBadge = document.querySelector('.w-12.h-12');
+        const goldText = document.querySelector('.text-yellow-400');
+        const xpBar = document.querySelector('.bg-gradient-to-r.from-emerald-600');
+        const xpText = document.querySelector('.text-emerald-300');
+        const questInput = document.querySelector('input[type="text"]');
+        const addButton = document.querySelector('button');
+        const questList = document.querySelector('.space-y-2.5');
+
+        function handleCompletion(checkbox, xpReward, goldReward) {
+            if (checkbox.checked) {
+                playerState.gold += goldReward;
+                playerState.xp += xpReward;
+
+                const card = checkbox.closest('.glass-card');
+                card.querySelector('p.font-medium').classList.add('line-through', 'text-slate-500');
+                card.style.opacity = '0.6';
+
+                if (playerState.xp >= 100) {
+                    playerState.level += 1;
+                    playerState.xp -= 100;
+                    alert(`✨ LEVEL UP! Level ${playerState.level}! ✨`);
+                }
+
+                goldText.textContent = `${playerState.gold} GP`;
+                levelBadge.textContent = `Lvl ${playerState.level}`;
+                xpText.textContent = `${playerState.xp}%`;
+                xpBar.style.width = `${playerState.xp}%`;
+            }
+        }
+
+        addButton.addEventListener('click', () => {
+            const taskName = questInput.value.trim();
+            if (taskName !== "") {
+                const newQuest = document.createElement('div');
+                newQuest.className = "glass-card rounded-xl p-4 flex items-center justify-between border-l-4 border-l-amber-500 transition-all hover:translate-x-1";
+                newQuest.innerHTML = `
+                    <div class="flex items-center space-x-3.5">
+                        <input type="checkbox" class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-amber-500 accent-amber-500">
+                        <div>
+                            <p class="font-medium text-sm">${taskName}</p>
+                            <p class="text-[10px] text-amber-400 font-medium uppercase mt-0.5">+15 XP | +8 Gold</p>
+                        </div>
+                    </div>
+                    <span class="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded">Medium</span>
+                `;
+                questList.appendChild(newQuest);
+                questInput.value = "";
+                
+                newQuest.querySelector('input').addEventListener('change', function() {
+                    handleCompletion(this, 15, 8);
+                });
+            }
+        });
+
+        document.querySelectorAll('input[type="checkbox"]').forEach(box => {
+            box.addEventListener('change', function() {
+                const difficulty = this.closest('.glass-card').querySelector('span').textContent.trim();
+                let rewards = difficulty === 'Easy' ? [5, 2] : difficulty === 'Hard' ? [30, 20] : [15, 8];
+                handleCompletion(this, rewards[0], rewards[1]);
+            });
+        });
+    </script>
 </body>
 </html>
-
