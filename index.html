@@ -3,96 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuestLife - Live</title>
+    <title>QuestLife Junior</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: #0f172a; color: white; font-family: sans-serif; }
-        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        /* Bright, magical background */
+        body { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; 
+        }
+        .kid-card { 
+            background: rgba(255, 255, 255, 0.2); 
+            backdrop-filter: blur(15px); 
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .progress-round { border-radius: 50px; }
     </style>
 </head>
 <body class="p-4 flex justify-center">
 
     <div class="w-full max-w-md space-y-6">
-        <div class="glass-card rounded-2xl p-5 shadow-2xl">
-            <div class="flex justify-between items-center mb-4">
-                <div class="flex items-center space-x-3">
-                    <div id="lvl-badge" class="w-12 h-12 rounded-full border-2 border-cyan-400 flex items-center justify-center font-bold text-cyan-400">Lvl 1</div>
-                    <h2 class="font-bold">Player One</h2>
+        <div class="kid-card p-6 text-center space-y-4">
+            <div class="flex justify-around items-center">
+                <div id="lvl-badge" class="w-16 h-16 rounded-full bg-yellow-400 border-4 border-white flex items-center justify-center font-black text-2xl text-blue-900 shadow-lg">1</div>
+                <div>
+                    <h2 class="font-black text-2xl italic tracking-wide">HERO ONE</h2>
+                    <p class="text-yellow-300 font-bold">⭐ <span id="gold-val">125</span> Coins</p>
                 </div>
-                <div class="text-yellow-400 font-bold">🪙 <span id="gold-val">125</span> GP</div>
             </div>
 
             <div class="space-y-3">
-                <div>
-                    <div class="flex justify-between text-xs mb-1"><span>❤️ Health</span><span id="hp-txt">80/100</span></div>
-                    <div class="w-full h-2 bg-slate-800 rounded-full"><div id="hp-bar" class="h-full bg-rose-500 rounded-full transition-all" style="width: 80%"></div></div>
+                <div class="w-full h-6 bg-blue-900/50 progress-round overflow-hidden border-2 border-white">
+                    <div id="xp-bar" class="h-full bg-gradient-to-r from-green-400 to-cyan-300 transition-all shadow-[0_0_15px_#4ade80]" style="width: 45%"></div>
                 </div>
-                <div>
-                    <div class="flex justify-between text-xs mb-1"><span>✨ Experience</span><span id="xp-txt">45%</span></div>
-                    <div class="w-full h-2 bg-slate-800 rounded-full"><div id="xp-bar" class="h-full bg-emerald-500 rounded-full transition-all" style="width: 45%"></div></div>
-                </div>
+                <p class="text-xs font-bold uppercase">Experience: <span id="xp-txt">45%</span></p>
             </div>
         </div>
 
-        <div id="quest-container" class="space-y-3">
-            <div class="glass-card rounded-xl p-4 flex items-center justify-between border-l-4 border-emerald-500">
-                <div class="flex items-center space-x-3">
-                    <input type="checkbox" onclick="completeTask(this, 5, 2)" class="w-5 h-5">
-                    <p class="text-sm">Drink 2L of water</p>
+        <div id="quest-container" class="space-y-4">
+            <h3 class="font-black text-xl text-center">My Missions! 🚀</h3>
+            <div class="kid-card p-4 flex items-center justify-between border-b-4 border-green-400">
+                <div class="flex items-center space-x-4">
+                    <input type="checkbox" onclick="completeTask(this, 10, 5)" class="w-6 h-6 rounded-full accent-green-400">
+                    <p class="font-bold">💧 Drink Water 🥤</p>
                 </div>
-                <span class="text-xs text-emerald-400">Easy</span>
+                <button onclick="this.parentElement.remove()" class="text-xl hover:scale-125 transition-transform">🗑️</button>
             </div>
         </div>
 
-        <div class="glass-card rounded-xl p-3 flex space-x-2">
-            <input type="text" id="task-input" placeholder="New quest..." class="w-full bg-transparent border-none focus:outline-none text-sm">
-            <button onclick="addNewQuest()" class="bg-cyan-600 px-4 py-2 rounded-lg font-bold text-sm">Add</button>
+        <div class="kid-card p-4 flex flex-col space-y-3">
+            <input type="text" id="task-input" placeholder="Type a new mission here..." class="w-full p-3 rounded-xl bg-white/20 border-2 border-white/30 placeholder-white/70 font-bold focus:outline-none">
+            <button onclick="addNewQuest()" class="bg-yellow-400 hover:bg-yellow-300 text-blue-900 font-black py-3 rounded-xl text-lg shadow-lg active:scale-95 transition-all">
+                ADD MISSION! ✨
+            </button>
         </div>
     </div>
 
     <script>
-        // CORE DATA
-        let stats = { lvl: 1, xp: 45, gold: 125, hp: 80 };
+        let stats = { lvl: 1, xp: 45, gold: 125 };
+        const icons = ["⚔️", "🛡️", "🧪", "🎨", "🧩", "📖", "⚽", "🍎"];
 
-        // UPDATE SCREEN FUNCTION
         function refreshUI() {
-            document.getElementById('lvl-badge').innerText = "Lvl " + stats.lvl;
+            document.getElementById('lvl-badge').innerText = stats.lvl;
             document.getElementById('gold-val').innerText = stats.gold;
             document.getElementById('xp-txt').innerText = stats.xp + "%";
             document.getElementById('xp-bar').style.width = stats.xp + "%";
-            document.getElementById('hp-txt').innerText = stats.hp + "/100";
-            document.getElementById('hp-bar').style.width = stats.hp + "%";
         }
 
-        // TASK COMPLETION LOGIC
         function completeTask(el, xpGain, goldGain) {
             if(el.checked) {
                 stats.xp += xpGain;
                 stats.gold += goldGain;
-                el.parentElement.parentElement.style.opacity = "0.5";
+                
+                // Visual feedback: Shrink and fade
+                const card = el.parentElement.parentElement;
+                card.style.transform = "scale(0.95)";
+                card.style.opacity = "0.6";
                 el.disabled = true;
 
                 if(stats.xp >= 100) {
                     stats.lvl++;
                     stats.xp -= 100;
-                    alert("🎉 LEVEL UP TO " + stats.lvl + "!");
+                    alert("🌟 SUPER LEVEL UP! You are now Level " + stats.lvl + "! 🌟");
                 }
                 refreshUI();
             }
         }
 
-        // ADD NEW QUEST LOGIC
         function addNewQuest() {
             let val = document.getElementById('task-input').value;
             if(val) {
+                let randomIcon = icons[Math.floor(Math.random() * icons.length)];
                 let div = document.createElement('div');
-                div.className = "glass-card rounded-xl p-4 flex items-center justify-between border-l-4 border-amber-500";
+                div.className = "kid-card p-4 flex items-center justify-between border-b-4 border-blue-400 animate-bounce-in";
                 div.innerHTML = `
-                    <div class="flex items-center space-x-3">
-                        <input type="checkbox" onclick="completeTask(this, 15, 8)" class="w-5 h-5">
-                        <p class="text-sm">${val}</p>
+                    <div class="flex items-center space-x-4">
+                        <input type="checkbox" onclick="completeTask(this, 15, 10)" class="w-6 h-6 rounded-full accent-blue-400">
+                        <p class="font-bold">${val} ${randomIcon}</p>
                     </div>
-                    <span class="text-xs text-amber-400">Medium</span>`;
+                    <button onclick="this.parentElement.remove()" class="text-xl hover:scale-125 transition-transform">🗑️</button>`;
+                
                 document.getElementById('quest-container').appendChild(div);
                 document.getElementById('task-input').value = "";
             }
