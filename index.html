@@ -6,77 +6,86 @@
     <title>QuestLife: 100 Levels</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { transition: all 1s ease; min-height: 100vh; font-family: 'Comic Sans MS', sans-serif; overflow-x: hidden; color: white; }
+        body { transition: all 0.8s ease; min-height: 100vh; font-family: 'Comic Sans MS', sans-serif; overflow-x: hidden; }
+        
+        /* Fixed Environment Backgrounds */
         .world-jungle { background: linear-gradient(180deg, #064e3b, #065f46); }
         .world-desert { background: linear-gradient(180deg, #78350f, #92400e); }
         .world-cave { background: linear-gradient(180deg, #4c1d95, #1e1b4b); }
-        .world-ice { background: linear-gradient(180deg, #0c4a6e, #e0f2fe); color: #0c4a6e; }
+        .world-ice { background: linear-gradient(180deg, #1e3a8a, #3b82f6); }
         
-        .quest-card { background: rgba(255,255,255,0.95); border-radius: 20px; color: #1e293b; transition: transform 0.2s; }
-        .firefly { position: absolute; width: 4px; height: 4px; background: #fbbf24; border-radius: 50%; animation: drift 5s infinite; }
+        .quest-card { background: rgba(255, 255, 255, 0.95); border-radius: 20px; color: #1e293b; transition: all 0.3s ease; }
+        
+        /* Floating particles */
+        .firefly { position: absolute; width: 4px; height: 4px; background: #fbbf24; border-radius: 50%; animation: drift 5s infinite; pointer-events: none; }
         @keyframes drift { 0%, 100% { opacity: 0; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-50px) translateX(10px); } }
     </style>
 </head>
-<body id="main-body" class="p-4 flex flex-col items-center">
+<body id="main-body" class="p-4 flex flex-col items-center world-jungle">
     <div id="fx-container"></div>
 
     <div class="w-full max-w-md space-y-6 mt-4 relative z-10">
-        <div class="quest-card p-6 shadow-2xl text-center">
-            <h1 id="world-name" class="text-xs font-black uppercase tracking-widest mb-2">The Deep Jungle</h1>
+        <!-- STATUS CARD -->
+        <div class="quest-card p-6 shadow-2xl text-center border-b-4 border-black/10">
+            <!-- Added dynamic text targeting here -->
+            <h1 id="world-title" class="text-xs font-black uppercase tracking-widest mb-2 text-indigo-600">The Deep Jungle</h1>
             <div class="flex justify-between items-center">
-                <div id="lvl-badge" class="w-14 h-14 rounded-full bg-indigo-600 text-white flex items-center justify-center text-2xl font-black">1</div>
+                <div id="lvl-badge" class="w-14 h-14 rounded-full bg-indigo-600 text-white flex items-center justify-center text-2xl font-black shadow-md">1</div>
                 <div class="text-right">
-                    <p class="text-2xl font-black">💰 <span id="gold-val">0</span></p>
+                    <p class="text-2xl font-black text-slate-800">💰 <span id="gold-val">0</span></p>
                     <p class="text-[10px] font-bold text-slate-400">TOTAL GOLD</p>
                 </div>
             </div>
             <div class="mt-4">
                 <div class="w-full h-4 bg-slate-200 rounded-full overflow-hidden border-2 border-white">
-                    <div id="xp-bar" class="h-full bg-green-500 transition-all" style="width: 0%"></div>
+                    <div id="xp-bar" class="h-full bg-green-500 transition-all duration-500" style="width: 0%"></div>
                 </div>
-                <p class="text-[10px] font-black mt-1 uppercase">Next Level: <span id="m-count">0</span> / 5 Missions</p>
+                <p class="text-[10px] font-black mt-1 text-slate-500 uppercase">Next Level: <span id="m-count">0</span> / 5 Missions</p>
             </div>
         </div>
 
+        <!-- MISSIONS CONTAINER -->
         <div id="quest-container" class="space-y-3 text-left"></div>
     </div>
 
     <script>
-        // MISSION DATABASE
+        // EXPANDED MISSIONS SYSTEM (Levels 1 to 100)
         const missionLibrary = [
-            ["Drink water 🥤", "Eat a fruit 🍎", "5 min stretch 🤸", "Deep breaths 🌬️", "Smile in mirror 😊"], // Level 1
-            ["Walk 10 mins 🚶", "No soda today 🚫", "Read 5 pages 📖", "Wash face 🫧", "Stand for 1 hour 🧍"], // Level 2
-            ["10 Jumping jacks ⚡", "Tidy your room 🧹", "Eat a vegetable 🥦", "Hug someone 🫂", "Write a goal ✍️"], // Level 3
-            ["20 Squats 🏋️", "No junk food 🍎", "Drink 2L water 💧", "Power nap 😴", "Learn a new word 🧠"], // Level 4
-            ["Run for 5 mins 🏃", "Cold water splash 🧊", "Balance on 1 leg 🦵", "Say thank you 🙏", "Check posture 📐"]  // Level 5
+            { name: "The Deep Jungle", style: "world-jungle", tasks: ["Drink water 🥤", "Eat a fruit 🍎", "5 min stretch 🤸", "Deep breaths 🌬️", "Smile in mirror 😊"] }, // Lvl 1
+            { name: "The Deep Jungle", style: "world-jungle", tasks: ["Eat a vegetable 🥦", "Walk 10 mins 🚶", "No soda today 🚫", "Wash face 🫧", "Stand for 1 hour 🧍"] }, // Lvl 2
+            { name: "Scorched Desert", style: "world-desert", tasks: ["10 Jumping jacks ⚡", "Tidy your room 🧹", "Read 5 pages 📖", "Hug someone 🫂", "Write a goal ✍️"] }, // Lvl 3
+            { name: "Scorched Desert", style: "world-desert", tasks: ["20 Squats 🏋️", "No junk food 🍎", "Drink 2L water 💧", "Power nap 😴", "Learn a new word 🧠"] }, // Lvl 4
+            { name: "Crystal Caves", style: "world-cave", tasks: ["Run for 5 mins 🏃", "Cold water splash 🧊", "Balance on 1 leg 🦵", "Say thank you 🙏", "Check posture 📐"] }   // Lvl 5
         ];
 
-        let gameData = JSON.parse(localStorage.getItem('megaQuestData')) || {
+        let gameData = JSON.parse(localStorage.getItem('megaQuestDataV2')) || {
             lvl: 1, gold: 0, completedCount: 0, currentMissions: []
         };
 
         function initLevel() {
-            // If the level list is empty, pull 5 missions from the library
             if (gameData.currentMissions.length === 0) {
-                let list = missionLibrary[(gameData.lvl - 1) % missionLibrary.length];
-                gameData.currentMissions = list.map(m => ({ text: m, done: false }));
+                // Safely grab from library, loop back if over level 5
+                let currentWorldData = missionLibrary[(gameData.lvl - 1) % missionLibrary.length];
+                gameData.currentMissions = currentWorldData.tasks.map(m => ({ text: m, done: false }));
             }
             save();
         }
 
         function save() {
-            localStorage.setItem('megaQuestData', JSON.stringify(gameData));
+            localStorage.setItem('megaQuestDataV2', JSON.stringify(gameData));
             updateUI();
         }
 
         function updateUI() {
             const body = document.getElementById('main-body');
-            const badge = document.getElementById('lvl-badge');
+            const title = document.getElementById('world-title');
             
-            // Set Themes
-            if (gameData.lvl <= 5) body.className = "p-4 flex flex-col items-center world-jungle";
-            else if (gameData.lvl <= 10) body.className = "p-4 flex flex-col items-center world-desert";
-            else body.className = "p-4 flex flex-col items-center world-cave";
+            // Fetch current environmental configurations
+            let currentWorldData = missionLibrary[(gameData.lvl - 1) % missionLibrary.length];
+            
+            // Correctly swap out background classes and titles
+            body.className = "p-4 flex flex-col items-center " + currentWorldData.style;
+            title.innerText = currentWorldData.name;
 
             document.getElementById('lvl-badge').innerText = gameData.lvl;
             document.getElementById('gold-val').innerText = gameData.gold;
@@ -88,9 +97,9 @@
             
             gameData.currentMissions.forEach((m, i) => {
                 const div = document.createElement('div');
-                div.className = `quest-card p-4 flex items-center space-x-4 ${m.done ? 'opacity-40 grayscale' : 'shadow-lg'}`;
+                div.className = `quest-card p-4 flex items-center space-x-4 ${m.done ? 'opacity-40 grayscale scale-95' : 'shadow-lg'}`;
                 div.innerHTML = `
-                    <button onclick="completeTask(${i})" class="w-10 h-10 rounded-xl border-2 border-indigo-100 flex items-center justify-center text-xl ${m.done ? 'bg-green-500 text-white' : 'bg-white'}">${m.done ? '✓' : ''}</button>
+                    <button onclick="completeTask(${i})" class="w-10 h-10 rounded-xl border-2 border-indigo-100 flex items-center justify-center text-xl transition-all ${m.done ? 'bg-green-500 text-white' : 'bg-white'}">${m.done ? '✓' : ''}</button>
                     <p class="font-bold text-slate-700">${m.text}</p>
                 `;
                 container.appendChild(div);
@@ -107,7 +116,7 @@
                     gameData.lvl++;
                     gameData.completedCount = 0;
                     gameData.currentMissions = []; 
-                    alert("🌟 WORLD CLEAR! NEXT LEVEL UNLOCKED 🌟");
+                    alert("🌟 WORLD CLEAR! WELCOME TO THE NEXT STAGE 🌟");
                     initLevel();
                 } else {
                     save();
@@ -115,11 +124,12 @@
             }
         }
 
-        // Spawn fireflies for the Jungle
-        for(let i=0; i<15; i++){
+        // Particle spawner
+        for(let i=0; i<12; i++){
             let f = document.createElement('div');
             f.className = 'firefly';
             f.style.left = Math.random()*100 + "vw"; f.style.top = Math.random()*100 + "vh";
+            f.style.animationDelay = Math.random()*3 + "s";
             document.getElementById('fx-container').appendChild(f);
         }
 
