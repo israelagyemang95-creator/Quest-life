@@ -23,7 +23,6 @@
         .btn-opt { width: 100%; text-align: left; padding: 1rem; border-radius: 12px; border: 1px solid #e2e8f0; background: white; font-weight: bold; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .btn-opt:active { transform: scale(0.98); }
 
-        /* DRAMATIC LEVEL UP ANIMATION STYLES */
         #level-up-splash {
             position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -54,14 +53,22 @@
         </div>
     </div>
 
-    <!-- AUDIO CONTROLLER FLOATING BUTTON -->
-    <div class="fixed top-4 right-4 z-50">
-        <button onclick="toggleMusic()" id="music-btn" class="bg-slate-900/80 backdrop-blur border border-white/10 p-3 rounded-full text-lg shadow-lg active:scale-95 transition-all">
+    <!-- FLOATING PLAYLIST CONTROL PANEL -->
+    <div class="fixed top-4 right-4 z-50 flex flex-col sm:flex-row gap-2 bg-slate-900/90 backdrop-blur p-2 rounded-2xl border border-white/10 shadow-xl items-center">
+        <!-- Track Selector Dropdown -->
+        <select id="track-select" onchange="changeTrack()" class="bg-slate-800 text-white text-xs font-semibold rounded-lg px-3 py-2 border border-white/10 outline-none focus:border-indigo-500 cursor-pointer w-44">
+            <option value="hallelujah">PTX - Hallelujah</option>
+            <option value="mary">PTX - Mary, Did You Know?</option>
+            <option value="oceans">Hillsong - Oceans</option>
+        </select>
+        
+        <!-- Toggle Button -->
+        <button onclick="toggleMusic()" id="music-btn" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md transition-all whitespace-nowrap">
             🔇 Music Off
         </button>
     </div>
 
-    <div id="game-content" class="w-full max-w-md space-y-6 mt-12 relative z-10">
+    <div id="game-content" class="w-full max-w-md space-y-6 mt-20 relative z-10">
         <!-- HEADER -->
         <div class="quiz-card p-6 shadow-2xl">
             <h1 id="world-title" class="text-xs font-black uppercase tracking-widest mb-2 text-indigo-600 text-center">LEVEL LOADING...</h1>
@@ -90,12 +97,17 @@
     </div>
 
     <script>
-        // --- AUDIO ENGINE ASSETS ---
+        // --- EXPANDED GOSPEL AUDIO ENGINE ---
+        const playlist = {
+            hallelujah: "https://audio.com/coolconner1552/audio/pentatonix-hallelujah-ceenaijacom/download",
+            mary: "https://audio.com/larry-ashby/audio/pentatonix-mary-did-you-know-official-video-default/download",
+            oceans: "https://audio.com/ez-5/audio/oceans-where-feet May Fail-hillsong-united/download"
+        };
+
         const bgMusic = new Audio();
-        // Loaded an inspirational, serene instrumental track perfect for scriptural study
-        bgMusic.src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"; 
+        bgMusic.src = playlist.hallelujah; // Default selection
         bgMusic.loop = true;
-        bgMusic.volume = 0.20; // Soft volume for focus
+        bgMusic.volume = 0.25;
 
         const soundCorrect = new Audio("https://assets.mixkit.co/active_storage/sfx/2019/2019-84.wav"); 
         const soundWrong = new Audio("https://assets.mixkit.co/active_storage/sfx/2958/2958-84.wav"); 
@@ -106,23 +118,37 @@
         function toggleMusic() {
             const btn = document.getElementById('music-btn');
             if (!isMusicPlaying) {
-                bgMusic.play().catch(e => console.log("Audio playback waiting for interaction."));
+                bgMusic.play().catch(e => console.log("Audio waiting for player interaction."));
                 btn.innerText = "🎵 Gospel On";
-                btn.className = "bg-green-600 border border-white/20 p-3 rounded-full text-lg shadow-lg active:scale-95 transition-all";
+                btn.className = "bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md transition-all whitespace-nowrap";
                 isMusicPlaying = true;
             } else {
                 bgMusic.pause();
                 btn.innerText = "🔇 Music Off";
-                btn.className = "bg-slate-900/80 backdrop-blur border border-white/10 p-3 rounded-full text-lg shadow-lg active:scale-95 transition-all";
+                btn.className = "bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md transition-all whitespace-nowrap";
                 isMusicPlaying = false;
+            }
+        }
+
+        function changeTrack() {
+            const selection = document.getElementById('track-select').value;
+            const wasPlaying = isMusicPlaying;
+            
+            bgMusic.pause();
+            bgMusic.src = playlist[selection];
+            bgMusic.load();
+            
+            if (wasPlaying) {
+                bgMusic.play().catch(e => console.log("Audio track swapped."));
             }
         }
 
         function playSound(audioObject) {
             audioObject.currentTime = 0;
-            audioObject.play().catch(e => console.log("Audio interaction triggered."));
+            audioObject.play().catch(e => console.log("Sound effect played."));
         }
 
+        // --- DATABASE AND RPG GAME ENGINE ---
         const quizDatabase = [
             {
                 level: 1, 
@@ -153,126 +179,6 @@
                     { q: "Who was Abraham's wife?", a: ["Rebekah", "Rachel", "Sarah", "Leah"], correct: 2 },
                     { q: "Who was Isaac's son that bought Esau's birthright?", a: ["Jacob", "Joseph", "Benjamin", "Levi"], correct: 0 },
                     { q: "What special gift did Jacob give to his favorite son, Joseph?", a: ["A gold ring", "A coat of many colors", "A silver cup", "A royal crown"], correct: 1 }
-                ]
-            },
-            {
-                level: 4, 
-                name: "Exodus From Egypt", 
-                bgImage: "https://images.unsplash.com/photo-1547234935-80c7145ec969?q=80&w=1000",
-                questions: [
-                    { q: "Through what object did God first speak to Moses?", a: ["A cloud", "A burning bush", "A stone tablet", "A stormy wind"], correct: 1 },
-                    { q: "What body of water did God part for the Israelites to cross?", a: ["The Jordan River", "The Nile River", "The Red Sea", "The Dead Sea"], correct: 2 },
-                    { q: "What was the final plague sent upon Egypt?", a: ["Locusts", "Darkness", "Death of the firstborn", "Frogs"], correct: 2 }
-                ]
-            },
-            {
-                level: 5, 
-                name: "The Wilderness", 
-                bgImage: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1000",
-                questions: [
-                    { q: "What miraculous food did God provide daily in the desert?", a: ["Manna", "Figs", "Honey cakes", "Wild wheat"], correct: 0 },
-                    { q: "From what did Moses miraculously bring forth water in the desert?", a: ["A well", "A rock", "The sand", "A tree stump"], correct: 1 },
-                    { q: "On which mountain did Moses receive the Ten Commandments?", a: ["Mount Nebo", "Mount Ararat", "Mount Sinai", "Mount Carmel"], correct: 2 }
-                ]
-            },
-            {
-                level: 6, 
-                name: "Conquering Canaan", 
-                bgImage: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=1000",
-                questions: [
-                    { q: "Who succeeded Moses as the leader of Israel?", a: ["Caleb", "Joshua", "Aaron", "Gideon"], correct: 1 },
-                    { q: "Which city's walls collapsed after Israel marched around them?", a: ["Jericho", "Ai", "Hebron", "Jerusalem"], correct: 0 },
-                    { q: "How many spies did Joshua secretly send to scope out Jericho?", a: ["12", "2", "7", "3"], correct: 1 }
-                ]
-            },
-            {
-                level: 7, 
-                name: "The Age of Judges", 
-                bgImage: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1000",
-                questions: [
-                    { q: "Who was the incredibly strong judge betrayed by Delilah?", a: ["Gideon", "Samson", "Barak", "Jephthah"], correct: 1 },
-                    { q: "Who was the only female judge mentioned in the book of Judges?", a: ["Ruth", "Esther", "Deborah", "Hannah"], correct: 2 },
-                    { q: "With how many men did Gideon defeat the Midianite army?", a: ["300", "10,000", "3,000", "22,000"], correct: 0 }
-                ]
-            },
-            {
-                level: 8, 
-                name: "The First King", 
-                bgImage: "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=1000",
-                questions: [
-                    { q: "Who was the last judge of Israel who anointed its first king?", a: ["Nathan", "Samuel", "Eli", "Elisha"], correct: 1 },
-                    { q: "Who was chosen as the very first king of Israel?", a: ["David", "Saul", "Solomon", "Jonathan"], correct: 1 },
-                    { q: "From which tribe did King Saul come from?", a: ["Judah", "Levi", "Benjamin", "Ephraim"], correct: 2 }
-                ]
-            },
-            {
-                level: 9, 
-                name: "David's Rise", 
-                bgImage: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?q=80&w=1000",
-                questions: [
-                    { q: "What was David's occupation before being anointed king?", a: ["Blacksmith", "Shepherd", "Fisherman", "Carpenter"], correct: 1 },
-                    { q: "What weapon did David use to defeat the giant Goliath?", a: ["A sword", "A spear", "A sling and stone", "A bow and arrow"], correct: 2 },
-                    { q: "Who was King Saul's son and David's loyal best friend?", a: ["Jonathan", "Abner", "Absalom", "Solomon"], correct: 0 }
-                ]
-            },
-            {
-                level: 10, 
-                name: "The Wise Kingdom", 
-                bgImage: "https://images.unsplash.com/photo-1439853949127-fa647821eba0?q=80&w=1000",
-                questions: [
-                    { q: "Which son of David succeeded him as king and built the Temple?", a: ["Absalom", "Adonijah", "Solomon", "Rehoboam"], correct: 2 },
-                    { q: "For what attribute was King Solomon globally famous?", a: ["His strength", "His speed", "His wisdom", "His humility"], correct: 2 },
-                    { q: "Which queen visited Solomon to test him with hard questions?", a: ["Queen of Jezreel", "Queen of Sheba", "Queen of Persia", "Queen of Babylon"], correct: 1 }
-                ]
-            },
-            {
-                level: 11,
-                name: "The Prophets of Fire",
-                bgImage: "https://images.unsplash.com/photo-1501854140801-50d01698950b?q=80&w=1000",
-                questions: [
-                    { q: "Which prophet was taken up to heaven in a whirlwind of fire?", a: ["Isaiah", "Elijah", "Elisha", "Jeremiah"], correct: 1 },
-                    { q: "Who was Elijah's successor who asked for a double portion of his spirit?", a: ["Elisha", "Daniel", "Amos", "Hosea"], correct: 0 },
-                    { q: "On what mountain did Elijah challenge the prophets of Baal?", a: ["Mount Sinai", "Mount Carmel", "Mount Nebo", "Mount Hermon"], correct: 1 }
-                ]
-            },
-            {
-                level: 12,
-                name: "Exile and Courage",
-                bgImage: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=1000",
-                questions: [
-                    { q: "Where was Daniel thrown for refusing to stop praying to God?", a: ["A fiery furnace", "A prison dungeon", "A den of lions", "The sea"], correct: 2 },
-                    { q: "Which Jewish queen risked her life to save her people from destruction in Persia?", a: ["Ruth", "Esther", "Vashti", "Naomi"], correct: 1 },
-                    { q: "How many friends of Daniel were thrown into the fiery furnace?", a: ["2", "4", "3", "7"], correct: 2 }
-                ]
-            },
-            {
-                level: 13,
-                name: "The Gospels Begin",
-                bgImage: "https://images.unsplash.com/photo-1510798831971-661eb04b3739?q=80&w=1000",
-                questions: [
-                    { q: "In what town was Jesus born?", a: ["Nazareth", "Jerusalem", "Bethlehem", "Capernaum"], correct: 2 },
-                    { q: "Who baptized Jesus in the Jordan River?", a: ["Peter", "John the Baptist", "An angel", "Nicodemus"], correct: 1 },
-                    { q: "How many disciples did Jesus specifically choose as apostles?", a: ["10", "12", "7", "70"], correct: 1 }
-                ]
-            },
-            {
-                level: 14,
-                name: "Miracles & Ministry",
-                bgImage: "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?q=80&w=1000",
-                questions: [
-                    { q: "What was Jesus' first recorded miracle?", a: ["Healing a blind man", "Turning water into wine", "Walking on water", "Calming a storm"], correct: 1 },
-                    { q: "Whom did Jesus raise from the dead after he had been in the tomb four days?", a: ["Lazarus", "Jairus' daughter", "The widow's son", "Tabitha"], correct: 0 },
-                    { q: "With how many loaves of bread and fish did Jesus feed the 5,000?", a: ["7 loaves and 2 fish", "5 loaves and 2 fish", "12 loaves and 5 fish", "3 loaves and 3 fish"], correct: 1 }
-                ]
-            },
-            {
-                level: 15,
-                name: "The Early Church",
-                bgImage: "https://images.unsplash.com/photo-1472214222541-d510753a8707?q=80&w=1000",
-                questions: [
-                    { q: "On what day did the Holy Spirit descend upon the believers as tongues of fire?", a: ["Passover", "Pentecost", "Tabernacles", "Purim"], correct: 1 },
-                    { q: "What was the original name of the Apostle Paul before his conversion?", a: ["Saul", "Simon", "Silas", "Stephen"], correct: 0 },
-                    { q: "Which book tells the history of the early Church's growth?", a: ["Romans", "Revelation", "Acts of the Apostles", "Hebrews"], correct: 2 }
                 ]
             }
         ];
@@ -312,7 +218,7 @@
                 document.getElementById('quiz-container').innerHTML = `
                     <div class="quiz-card p-6 text-center space-y-4 shadow-xl">
                         <h2 class="text-2xl font-black text-indigo-600">🎉 Spectacular!</h2>
-                        <p class="text-slate-600 font-medium">You have mastered all 15 scriptural stages and completed the quest!</p>
+                        <p class="text-slate-600 font-medium">You have mastered all scriptural stages and completed the quest!</p>
                     </div>`;
                 return;
             }
@@ -355,12 +261,10 @@
                     btn.onclick = () => {
                         if (isProcessingClick) return; 
                         isProcessingClick = true;
-
                         const emojiSpan = btn.querySelector('.emoji-status');
 
                         if (idx === qObj.correct) {
                             playSound(soundCorrect);
-
                             btn.style.background = "#dcfce7";
                             btn.style.borderColor = "#22c55e";
                             emojiSpan.innerText = "✅";
@@ -372,13 +276,11 @@
                                 gameData.currentQuestionIndex = 0;
                                 activeLevelQuestions = []; 
                                 localStorage.setItem('bibleQuizRPGData', JSON.stringify(gameData));
-                                
                                 setTimeout(triggerLevelUpAnimation, 500);
                                 return;
                             }
                         } else {
                             playSound(soundWrong);
-
                             btn.style.background = "#fee2e2";
                             btn.style.borderColor = "#ef4444";
                             emojiSpan.innerText = "❌";
@@ -396,13 +298,10 @@
 
         function triggerLevelUpAnimation() {
             playSound(soundLevelUp);
-
             const splash = document.getElementById('level-up-splash');
             const nextWorldTxt = document.getElementById('next-world-txt');
-            
             const nextLevelData = quizDatabase.find(l => l.level === gameData.lvl);
             nextWorldTxt.innerText = nextLevelData ? nextLevelData.name : "Final Victory!";
-            
             splash.classList.add('active');
             
             setTimeout(() => {
@@ -422,8 +321,6 @@
                     localStorage.setItem('bibleQuizRPGData', JSON.stringify(gameData));
                     triggerLevelUpAnimation();
                 }
-            } else {
-                alert("You need at least 100 Gold to skip a level!");
             }
         }
 
