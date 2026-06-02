@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bible Quest: 100 Levels</title>
+    <title>Bible Quest</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         #bg-overlay {
             position: fixed; inset: 0;
-            background-color: #1e1b4b; /* Safe fallback color */
+            background-color: #0f172a;
             background-size: cover; background-position: center;
             transition: background-image 1s ease-in-out;
             z-index: 0;
@@ -18,76 +18,79 @@
             background: linear-gradient(180deg, rgba(0,0,0,0.5), rgba(0,0,0,0.8));
             z-index: 1;
         }
-        body { min-height: 100vh; font-family: sans-serif; overflow-x: hidden; }
-        .quiz-card { background: rgba(255, 255, 255, 0.95); border-radius: 20px; color: #1e293b; z-index: 10; position: relative; }
-        
-        #level-up-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.9);
-            display: flex; align-items: center; justify-content: center;
-            z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.5s;
-        }
-        #level-up-overlay.active { opacity: 1; pointer-events: auto; }
+        body { min-height: 100vh; background: #0f172a; color: white; font-family: sans-serif; }
+        .quiz-card { background: rgba(255, 255, 255, 0.95); border-radius: 20px; color: #1e293b; position: relative; z-index: 10; }
+        .btn-opt { width: 100%; text-align: left; padding: 1rem; border-radius: 12px; border: 1px solid #e2e8f0; background: white; font-weight: bold; transition: all 0.2s; shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .btn-opt:active { transform: scale(0.98); }
     </style>
 </head>
 <body class="p-4 flex flex-col items-center">
     <div id="bg-overlay"></div>
     <div id="bg-tint"></div>
 
-    <div id="level-up-overlay">
-        <div class="text-center text-white">
-            <h1 class="text-5xl font-black text-amber-400 animate-bounce">LEVEL UP!</h1>
-            <p id="next-world-txt" class="text-xl mt-2 font-bold"></p>
-        </div>
-    </div>
-
     <div id="game-content" class="w-full max-w-md space-y-6 mt-4 relative z-10">
         <div class="quiz-card p-6 shadow-2xl">
-            <h1 id="world-title" class="text-xs font-black uppercase tracking-widest mb-2 text-indigo-600 text-center">Loading...</h1>
+            <h1 id="world-title" class="text-xs font-black uppercase tracking-widest mb-2 text-indigo-600 text-center">LEVEL LOADING...</h1>
             <div class="flex justify-between items-center">
                 <div id="lvl-badge" class="w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xl font-black shadow-md">1</div>
                 <div class="text-right">
                     <p class="text-2xl font-black text-slate-800">💰 <span id="gold-val">100</span></p>
-                    <p class="text-[10px] font-bold text-slate-400">GOLD BALANCE</p>
                 </div>
             </div>
-            <div class="mt-4">
-                <div class="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
-                    <div id="xp-bar" class="h-full bg-green-500 transition-all duration-500" style="width: 0%"></div>
-                </div>
+            <div class="mt-4 w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                <div id="xp-bar" class="h-full bg-green-500 transition-all duration-500" style="width: 0%"></div>
             </div>
         </div>
 
-        <div id="quiz-container" class="space-y-4"></div>
+        <div id="quiz-container" class="space-y-4">
+            <div class="quiz-card p-6 text-center italic text-slate-400">Initializing Scripture Quest...</div>
+        </div>
         
-        <button onclick="triggerReset()" class="w-full text-center text-xs text-white/50 hover:text-white mt-10">
-            Reset Game Progress
-        </button>
+        <button onclick="triggerReset()" class="w-full text-center text-xs text-white/30 mt-10">Reset Progress</button>
     </div>
 
-    <script src="questions.js"></script>
     <script>
+        // ALL DATA IN ONE PLACE TO PREVENT LOADING ERRORS
+        const quizDatabase = [
+            {
+                level: 1, 
+                name: "Genesis Beginnings", 
+                bgImage: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1000",
+                questions: [
+                    { q: "Who was the first man created?", a: ["Noah", "Adam", "Abraham", "Moses"], correct: 1 },
+                    { q: "What did Noah build to survive the flood?", a: ["A tower", "A castle", "An ark", "A temple"], correct: 2 },
+                    { q: "How many commandments did God give Moses?", a: ["5", "12", "7", "10"], correct: 3 },
+                    { q: "Who was swallowed by a great fish?", a: ["Jonah", "Peter", "Daniel", "Paul"], correct: 0 }
+                ]
+            },
+            {
+                level: 2, 
+                name: "The Great Flood", 
+                bgImage: "https://images.unsplash.com/photo-1433086966358-54859d0ed716?q=80&w=1000",
+                questions: [
+                    { q: "How many days did it rain during the flood?", a: ["7", "40", "100", "3"], correct: 1 },
+                    { q: "Which bird did Noah first send out?", a: ["Dove", "Raven", "Eagle", "Sparrow"], correct: 1 },
+                    { q: "What was the sign of God's promise?", a: ["Star", "Rainbow", "Cloud", "Fire"], correct: 1 }
+                ]
+            }
+        ];
+
         let gameData = JSON.parse(localStorage.getItem('bibleQuizRPGData')) || {
             lvl: 1, gold: 100, currentQuestionIndex: 0
         };
 
-        function getCurrentLevelData() {
-            return quizDatabase.find(l => l.level === gameData.lvl) || quizDatabase[0];
-        }
-
         function updateUI() {
-            const levelData = getCurrentLevelData();
-            const bgOverlay = document.getElementById('bg-overlay');
+            const levelData = quizDatabase.find(l => l.level === gameData.lvl) || quizDatabase[0];
+            const qList = levelData.questions;
             
-            // OPTION C FIX: Direct application with cache-busting
-            if (levelData.bgImage) {
-                bgOverlay.style.backgroundImage = `url('${levelData.bgImage}')`;
-            }
-
+            // Fix Background
+            document.getElementById('bg-overlay').style.backgroundImage = `url('${levelData.bgImage}')`;
+            
+            // Fix Stats
             document.getElementById('world-title').innerText = levelData.name;
             document.getElementById('lvl-badge').innerText = gameData.lvl;
             document.getElementById('gold-val').innerText = gameData.gold;
             
-            const qList = levelData.questions;
             const pct = (gameData.currentQuestionIndex / qList.length) * 100;
             document.getElementById('xp-bar').style.width = pct + "%";
 
@@ -97,38 +100,48 @@
             if (gameData.currentQuestionIndex < qList.length) {
                 const qObj = qList[gameData.currentQuestionIndex];
                 let qCard = document.createElement('div');
-                qCard.className = "quiz-card p-6 shadow-xl space-y-4";
-                qCard.innerHTML = `
-                    <h2 class="text-xl font-bold text-slate-800">${qObj.q}</h2>
-                    <div id="options-box" class="space-y-2"></div>
-                `;
+                qCard.className = "quiz-card p-6 shadow-xl space-y-6";
+                qCard.innerHTML = `<h2 class="text-xl font-bold text-slate-800">${qObj.q}</h2><div id="options-box" class="space-y-3"></div>`;
                 container.appendChild(qCard);
 
                 qObj.a.forEach((option, idx) => {
                     let btn = document.createElement('button');
-                    btn.className = "w-full text-left p-4 rounded-xl border border-slate-200 hover:bg-indigo-50 font-bold transition-all bg-white shadow-sm";
+                    btn.className = "btn-opt";
                     btn.innerText = option;
-                    btn.onclick = () => checkAnswer(idx, qObj.correct, btn);
+                    btn.onclick = () => {
+                        if (idx === qObj.correct) {
+                            btn.style.background = "#dcfce7";
+                            btn.style.borderColor = "#22c55e";
+                            gameData.gold += 20;
+                            gameData.currentQuestionIndex++;
+                            if (gameData.currentQuestionIndex >= qList.length) {
+                                gameData.lvl++;
+                                gameData.currentQuestionIndex = 0;
+                            }
+                        } else {
+                            btn.style.background = "#fee2e2";
+                            btn.style.borderColor = "#ef4444";
+                            gameData.gold -= 10;
+                        }
+                        localStorage.setItem('bibleQuizRPGData', JSON.stringify(gameData));
+                        setTimeout(updateUI, 500);
+                    };
                     document.getElementById('options-box').appendChild(btn);
                 });
+            } else {
+                container.innerHTML = `<div class="quiz-card p-6 text-center font-bold text-indigo-600">You've finished the available levels!</div>`;
             }
         }
 
-        function checkAnswer(chosen, correct, btn) {
-            if (chosen === correct) {
-                btn.classList.add('bg-green-100', 'border-green-500');
-                gameData.gold += 20;
-                gameData.currentQuestionIndex++;
-                
-                const levelData = getCurrentLevelData();
-                if (gameData.currentQuestionIndex >= levelData.questions.length) {
-                    gameData.lvl++;
-                    gameData.currentQuestionIndex = 0;
-                    showLevelUp();
-                } else {
-                    setTimeout(saveAndRefresh, 600);
-                }
-            } else {
-                btn.classList.add('bg-red-100', 'border-red-500');
-                gameData.gold -= 10;
-                if(gameData.gold 
+        function triggerReset() {
+            if(confirm("Start over?")) {
+                localStorage.removeItem('bibleQuizRPGData');
+                location.reload();
+            }
+        }
+
+        // Start the game
+        updateUI();
+    </script>
+</body>
+</html>
