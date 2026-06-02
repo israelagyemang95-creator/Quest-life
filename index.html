@@ -203,6 +203,61 @@
             });
         });
     </script>
+            
+                
+        // Select the Input and Add Button
+        const questInput = document.querySelector('input[type="text"]');
+        const addButton = document.querySelector('button');
+        const questList = document.querySelector('.space-y-2.5');
+
+        addButton.addEventListener('click', () => {
+            const taskName = questInput.value.trim();
+            
+            if (taskName !== "") {
+                // Create a new Quest Card (defaulting to Medium difficulty)
+                const newQuest = document.createElement('div');
+                newQuest.className = "glass-card rounded-xl p-4 flex items-center justify-between border-l-4 border-l-amber-500 transition-all hover:translate-x-1 duration-200";
+                
+                newQuest.innerHTML = `
+                    <div class="flex items-center space-x-3.5">
+                        <input type="checkbox" class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-0 focus:ring-offset-0 cursor-pointer accent-amber-500">
+                        <div>
+                            <p class="font-medium text-sm">${taskName}</p>
+                            <p class="text-[10px] text-amber-400 font-medium uppercase tracking-wider mt-0.5">+15 XP | +8 Gold</p>
+                        </div>
+                    </div>
+                    <span class="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded">Medium</span>
+                `;
+
+                // Add the new quest to the list
+                questList.appendChild(newQuest);
+                
+                // Clear the input box
+                questInput.value = "";
+
+                // Re-run the listener so the new checkbox also gives XP!
+                attachCheckboxListener(newQuest.querySelector('input'));
+            }
+        });
+
+        // Small function to handle the XP logic for new items
+        function attachCheckboxListener(checkbox) {
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    playerState.gold += 8;
+                    playerState.xp += 15;
+                    
+                    const card = this.closest('.glass-card');
+                    card.querySelector('p.font-medium').classList.add('line-through', 'text-slate-500');
+                    card.style.opacity = '0.6';
+
+                    // Update UI
+                    goldText.textContent = `${playerState.gold} GP`;
+                    xpText.textContent = `${playerState.xp}%`;
+                    xpBar.style.width = `${playerState.xp}%`;
+                }
+            });
+        }
 
                 Add
             </button>
