@@ -3,198 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuestLife - Dashboard</title>
+    <title>QuestLife - Live</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        glass: 'rgba(255, 255, 255, 0.05)',
-                        glassBorder: 'rgba(255, 255, 255, 0.1)',
-                    }
-                }
-            }
-        }
-    </script>
     <style>
-        body {
-            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #311042, #0f172a);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-        }
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .glass-card {
-            background: rgba(15, 23, 42, 0.4);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
+        body { background: #0f172a; color: white; font-family: sans-serif; }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
     </style>
 </head>
-<body class="min-h-screen text-slate-100 font-sans antialiased flex justify-center items-start p-4 sm:p-8">
+<body class="p-4 flex justify-center">
 
     <div class="w-full max-w-md space-y-6">
-        
-        <!-- 1. HERO STATUS MODULE -->
-        <div class="glass-card rounded-2xl p-5 shadow-2xl space-y-4">
-            <div class="flex justify-between items-center">
+        <div class="glass-card rounded-2xl p-5 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
                 <div class="flex items-center space-x-3">
-                    <div class="w-12 h-12 rounded-full border-2 border-cyan-400 bg-slate-800 flex items-center justify-center font-bold text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.3)]">
-                        Lvl 1
-                    </div>
-                    <div>
-                        <h2 class="font-bold text-lg tracking-wide">Player One</h2>
-                        <p class="text-xs text-slate-400">Class: Shadow Developer</p>
-                    </div>
+                    <div id="lvl-badge" class="w-12 h-12 rounded-full border-2 border-cyan-400 flex items-center justify-center font-bold text-cyan-400">Lvl 1</div>
+                    <h2 class="font-bold">Player One</h2>
                 </div>
-                <div class="bg-yellow-500/10 border border-yellow-500/30 px-3 py-1.5 rounded-full flex items-center space-x-1.5">
-                    <span class="text-base">🪙</span>
-                    <span class="font-bold text-sm text-yellow-400 tracking-wider">125 GP</span>
-                </div>
+                <div class="text-yellow-400 font-bold">🪙 <span id="gold-val">125</span> GP</div>
             </div>
 
-            <div class="space-y-3 pt-2">
-                <div class="space-y-1">
-                    <div class="flex justify-between text-xs font-semibold px-0.5">
-                        <span class="text-rose-400 flex items-center gap-1">❤️ HP (Health)</span>
-                        <span class="text-rose-300">80 / 100</span>
-                    </div>
-                    <div class="w-full h-3 bg-slate-950/60 rounded-full overflow-hidden border border-rose-950/50 p-[1.5px]">
-                        <div class="h-full bg-gradient-to-r from-rose-600 to-rose-400 rounded-full" style="width: 80%"></div>
-                    </div>
+            <div class="space-y-3">
+                <div>
+                    <div class="flex justify-between text-xs mb-1"><span>❤️ Health</span><span id="hp-txt">80/100</span></div>
+                    <div class="w-full h-2 bg-slate-800 rounded-full"><div id="hp-bar" class="h-full bg-rose-500 rounded-full transition-all" style="width: 80%"></div></div>
                 </div>
-
-                <div class="space-y-1">
-                    <div class="flex justify-between text-xs font-semibold px-0.5">
-                        <span class="text-emerald-400 flex items-center gap-1">✨ XP (Experience)</span>
-                        <span class="text-emerald-300">45%</span>
-                    </div>
-                    <div class="w-full h-3 bg-slate-950/60 rounded-full overflow-hidden border border-emerald-950/50 p-[1.5px]">
-                        <div class="h-full bg-gradient-to-r from-emerald-600 to-cyan-400 rounded-full" style="width: 45%"></div>
-                    </div>
+                <div>
+                    <div class="flex justify-between text-xs mb-1"><span>✨ Experience</span><span id="xp-txt">45%</span></div>
+                    <div class="w-full h-2 bg-slate-800 rounded-full"><div id="xp-bar" class="h-full bg-emerald-500 rounded-full transition-all" style="width: 45%"></div></div>
                 </div>
             </div>
         </div>
 
-        <!-- 2. ACTIVE QUEST LOG -->
-        <div class="space-y-3">
-            <h3 class="text-sm font-bold uppercase tracking-widest text-slate-400 px-1">Active Quests</h3>
-            <div class="space-y-2.5">
-                <div class="glass-card rounded-xl p-4 flex items-center justify-between border-l-4 border-l-emerald-500">
-                    <div class="flex items-center space-x-3.5">
-                        <input type="checkbox" class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-emerald-500 accent-emerald-500">
-                        <div>
-                            <p class="font-medium text-sm">Drink 2L of water</p>
-                            <p class="text-[10px] text-emerald-400 font-medium uppercase mt-0.5">+5 XP | +2 Gold</p>
-                        </div>
-                    </div>
-                    <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded">Easy</span>
+        <div id="quest-container" class="space-y-3">
+            <div class="glass-card rounded-xl p-4 flex items-center justify-between border-l-4 border-emerald-500">
+                <div class="flex items-center space-x-3">
+                    <input type="checkbox" onclick="completeTask(this, 5, 2)" class="w-5 h-5">
+                    <p class="text-sm">Drink 2L of water</p>
                 </div>
-
-                <div class="glass-card rounded-xl p-4 flex items-center justify-between border-l-4 border-l-amber-500">
-                    <div class="flex items-center space-x-3.5">
-                        <input type="checkbox" class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-amber-500 accent-amber-500">
-                        <div>
-                            <p class="font-medium text-sm">Read 1 chapter of a book</p>
-                            <p class="text-[10px] text-amber-400 font-medium uppercase mt-0.5">+15 XP | +8 Gold</p>
-                        </div>
-                    </div>
-                    <span class="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded">Medium</span>
-                </div>
-
-                <div class="glass-card rounded-xl p-4 flex items-center justify-between border-l-4 border-l-rose-500">
-                    <div class="flex items-center space-x-3.5">
-                        <input type="checkbox" class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-rose-500 accent-rose-500">
-                        <div>
-                            <p class="font-medium text-sm">Hit gym / Workout for 45 mins</p>
-                            <p class="text-[10px] text-rose-400 font-medium uppercase mt-0.5">+30 XP | +20 Gold</p>
-                        </div>
-                    </div>
-                    <span class="text-xs bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded">Hard</span>
-                </div>
+                <span class="text-xs text-emerald-400">Easy</span>
             </div>
         </div>
 
-        <!-- 3. QUICK-ADD CONSOLE -->
-        <div class="glass-card rounded-xl p-3 flex items-center space-x-2">
-            <input type="text" placeholder="Add a new quest..." class="w-full bg-slate-950/40 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50">
-            <button class="bg-gradient-to-r from-cyan-500 to-indigo-600 font-bold text-sm px-4 py-2 rounded-lg active:scale-95">
-                Add
-            </button>
+        <div class="glass-card rounded-xl p-3 flex space-x-2">
+            <input type="text" id="task-input" placeholder="New quest..." class="w-full bg-transparent border-none focus:outline-none text-sm">
+            <button onclick="addNewQuest()" class="bg-cyan-600 px-4 py-2 rounded-lg font-bold text-sm">Add</button>
         </div>
-
     </div>
 
-    <!-- 4. APP ENGINE (COMBINED JAVASCRIPT LOGIC) -->
     <script>
-        let playerState = { level: 1, xp: 45, gold: 125, hp: 80 };
+        // CORE DATA
+        let stats = { lvl: 1, xp: 45, gold: 125, hp: 80 };
 
-        const levelBadge = document.querySelector('.w-12.h-12');
-        const goldText = document.querySelector('.text-yellow-400');
-        const xpBar = document.querySelector('.bg-gradient-to-r.from-emerald-600');
-        const xpText = document.querySelector('.text-emerald-300');
-        const questInput = document.querySelector('input[type="text"]');
-        const addButton = document.querySelector('button');
-        const questList = document.querySelector('.space-y-2.5');
+        // UPDATE SCREEN FUNCTION
+        function refreshUI() {
+            document.getElementById('lvl-badge').innerText = "Lvl " + stats.lvl;
+            document.getElementById('gold-val').innerText = stats.gold;
+            document.getElementById('xp-txt').innerText = stats.xp + "%";
+            document.getElementById('xp-bar').style.width = stats.xp + "%";
+            document.getElementById('hp-txt').innerText = stats.hp + "/100";
+            document.getElementById('hp-bar').style.width = stats.hp + "%";
+        }
 
-        function handleCompletion(checkbox, xpReward, goldReward) {
-            if (checkbox.checked) {
-                playerState.gold += goldReward;
-                playerState.xp += xpReward;
+        // TASK COMPLETION LOGIC
+        function completeTask(el, xpGain, goldGain) {
+            if(el.checked) {
+                stats.xp += xpGain;
+                stats.gold += goldGain;
+                el.parentElement.parentElement.style.opacity = "0.5";
+                el.disabled = true;
 
-                const card = checkbox.closest('.glass-card');
-                card.querySelector('p.font-medium').classList.add('line-through', 'text-slate-500');
-                card.style.opacity = '0.6';
-
-                if (playerState.xp >= 100) {
-                    playerState.level += 1;
-                    playerState.xp -= 100;
-                    alert(`✨ LEVEL UP! Level ${playerState.level}! ✨`);
+                if(stats.xp >= 100) {
+                    stats.lvl++;
+                    stats.xp -= 100;
+                    alert("🎉 LEVEL UP TO " + stats.lvl + "!");
                 }
-
-                goldText.textContent = `${playerState.gold} GP`;
-                levelBadge.textContent = `Lvl ${playerState.level}`;
-                xpText.textContent = `${playerState.xp}%`;
-                xpBar.style.width = `${playerState.xp}%`;
+                refreshUI();
             }
         }
 
-        addButton.addEventListener('click', () => {
-            const taskName = questInput.value.trim();
-            if (taskName !== "") {
-                const newQuest = document.createElement('div');
-                newQuest.className = "glass-card rounded-xl p-4 flex items-center justify-between border-l-4 border-l-amber-500 transition-all hover:translate-x-1";
-                newQuest.innerHTML = `
-                    <div class="flex items-center space-x-3.5">
-                        <input type="checkbox" class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-amber-500 accent-amber-500">
-                        <div>
-                            <p class="font-medium text-sm">${taskName}</p>
-                            <p class="text-[10px] text-amber-400 font-medium uppercase mt-0.5">+15 XP | +8 Gold</p>
-                        </div>
+        // ADD NEW QUEST LOGIC
+        function addNewQuest() {
+            let val = document.getElementById('task-input').value;
+            if(val) {
+                let div = document.createElement('div');
+                div.className = "glass-card rounded-xl p-4 flex items-center justify-between border-l-4 border-amber-500";
+                div.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <input type="checkbox" onclick="completeTask(this, 15, 8)" class="w-5 h-5">
+                        <p class="text-sm">${val}</p>
                     </div>
-                    <span class="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded">Medium</span>
-                `;
-                questList.appendChild(newQuest);
-                questInput.value = "";
-                
-                newQuest.querySelector('input').addEventListener('change', function() {
-                    handleCompletion(this, 15, 8);
-                });
+                    <span class="text-xs text-amber-400">Medium</span>`;
+                document.getElementById('quest-container').appendChild(div);
+                document.getElementById('task-input').value = "";
             }
-        });
-
-        document.querySelectorAll('input[type="checkbox"]').forEach(box => {
-            box.addEventListener('change', function() {
-                const difficulty = this.closest('.glass-card').querySelector('span').textContent.trim();
-                let rewards = difficulty === 'Easy' ? [5, 2] : difficulty === 'Hard' ? [30, 20] : [15, 8];
-                handleCompletion(this, rewards[0], rewards[1]);
-            });
-        });
+        }
     </script>
 </body>
 </html>
