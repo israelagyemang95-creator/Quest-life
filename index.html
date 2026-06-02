@@ -113,8 +113,19 @@
                 if(gameData.xp >= 100) {
                     gameData.lvl++;
                     gameData.xp = 0;
-                    alert("🌟 SUPER LEVEL UP! 🌟");
+                   if(gameData.xp >= 100) {
+                    gameData.lvl++;
+                    gameData.xp = 0;
+                    // Add this visual pop:
+                    document.body.style.backgroundColor = "#fbbf24"; 
+                    setTimeout(() => document.body.style.backgroundColor = "#4f46e5", 500);
+                    alert("🌟 SUPER LEVEL UP! You reached Level " + gameData.lvl + "! 🌟");
                 }
+                 alert("🌟 SUPER LEVEL UP!
+
+ 🌟");
+
+               }
                 saveGame();
             }
         }
