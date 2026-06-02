@@ -91,23 +91,23 @@
 
     <script>
         // --- AUDIO ENGINE ASSETS ---
-        // Utilizing clear loopable audio assets hosted on public repositories
-        const bgMusic = new Audio("https://actions.google.com/sounds/v1/weather/rain_heavy_loud.ogg"); // Placeholder audio stream or substitute direct midis
-        bgMusic.src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"; // Instrumental track
+        const bgMusic = new Audio();
+        // Loaded an inspirational, serene instrumental track perfect for scriptural study
+        bgMusic.src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"; 
         bgMusic.loop = true;
-        bgMusic.volume = 0.25; // Set ambient volume low so it doesn't overpower
+        bgMusic.volume = 0.20; // Soft volume for focus
 
-        const soundCorrect = new Audio("https://assets.mixkit.co/active_storage/sfx/2019/2019-84.wav"); // Retro point chime
-        const soundWrong = new Audio("https://assets.mixkit.co/active_storage/sfx/2958/2958-84.wav"); // Vintage fail buzzer
-        const soundLevelUp = new Audio("https://assets.mixkit.co/active_storage/sfx/1435/1435-84.wav"); // Grand fan-fare chime
+        const soundCorrect = new Audio("https://assets.mixkit.co/active_storage/sfx/2019/2019-84.wav"); 
+        const soundWrong = new Audio("https://assets.mixkit.co/active_storage/sfx/2958/2958-84.wav"); 
+        const soundLevelUp = new Audio("https://assets.mixkit.co/active_storage/sfx/1435/1435-84.wav"); 
 
         let isMusicPlaying = false;
 
         function toggleMusic() {
             const btn = document.getElementById('music-btn');
             if (!isMusicPlaying) {
-                bgMusic.play().catch(e => console.log("Audio playback waiting for user click interaction."));
-                btn.innerText = "🔊 Music On";
+                bgMusic.play().catch(e => console.log("Audio playback waiting for interaction."));
+                btn.innerText = "🎵 Gospel On";
                 btn.className = "bg-green-600 border border-white/20 p-3 rounded-full text-lg shadow-lg active:scale-95 transition-all";
                 isMusicPlaying = true;
             } else {
@@ -119,7 +119,6 @@
         }
 
         function playSound(audioObject) {
-            // Reset track playback position immediately to allow rapid-fire clicks
             audioObject.currentTime = 0;
             audioObject.play().catch(e => console.log("Audio interaction triggered."));
         }
@@ -360,7 +359,6 @@
                         const emojiSpan = btn.querySelector('.emoji-status');
 
                         if (idx === qObj.correct) {
-                            // PLAY CORRECT ANSWER SOUND
                             playSound(soundCorrect);
 
                             btn.style.background = "#dcfce7";
@@ -375,12 +373,10 @@
                                 activeLevelQuestions = []; 
                                 localStorage.setItem('bibleQuizRPGData', JSON.stringify(gameData));
                                 
-                                // Delay slightly so correct chime plays before level up fan-fare
                                 setTimeout(triggerLevelUpAnimation, 500);
                                 return;
                             }
                         } else {
-                            // PLAY WRONG ANSWER SOUND
                             playSound(soundWrong);
 
                             btn.style.background = "#fee2e2";
@@ -399,7 +395,6 @@
         }
 
         function triggerLevelUpAnimation() {
-            // PLAY LEVEL UP FLASH SOUND
             playSound(soundLevelUp);
 
             const splash = document.getElementById('level-up-splash');
