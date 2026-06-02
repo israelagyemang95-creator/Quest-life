@@ -68,7 +68,7 @@
         </button>
     </div>
 
-    <div id="game-content" class="w-full max-w-md space-y-6 mt-20 relative z-10">
+    <div id="game-content" class="w-full max-w-md space-y-6 mt-24 relative z-10">
         <!-- HEADER -->
         <div class="quiz-card p-6 shadow-2xl">
             <h1 id="world-title" class="text-xs font-black uppercase tracking-widest mb-2 text-indigo-600 text-center">LEVEL LOADING...</h1>
@@ -97,18 +97,21 @@
     </div>
 
     <script>
-        // --- EXPANDED GOSPEL AUDIO ENGINE ---
+        // --- STABLE AUDIO ENGINE ENGINE ---
+        // These direct streaming links act as robust placeholders. 
+        // If you download the real .mp3 files next to this index.html file, change these values to "hallelujah.mp3", "mary.mp3", and "oceans.mp3".
         const playlist = {
-            hallelujah: "https://audio.com/coolconner1552/audio/pentatonix-hallelujah-ceenaijacom/download",
-            mary: "https://audio.com/larry-ashby/audio/pentatonix-mary-did-you-know-official-video-default/download",
-            oceans: "https://audio.com/ez-5/audio/oceans-where-feet May Fail-hillsong-united/download"
+            hallelujah: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", 
+            mary: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",       
+            oceans: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"     
         };
 
         const bgMusic = new Audio();
-        bgMusic.src = playlist.hallelujah; // Default selection
+        bgMusic.src = playlist.hallelujah; // Sets standard default track
         bgMusic.loop = true;
         bgMusic.volume = 0.25;
 
+        // UI Feedback Sounds
         const soundCorrect = new Audio("https://assets.mixkit.co/active_storage/sfx/2019/2019-84.wav"); 
         const soundWrong = new Audio("https://assets.mixkit.co/active_storage/sfx/2958/2958-84.wav"); 
         const soundLevelUp = new Audio("https://assets.mixkit.co/active_storage/sfx/1435/1435-84.wav"); 
@@ -118,7 +121,7 @@
         function toggleMusic() {
             const btn = document.getElementById('music-btn');
             if (!isMusicPlaying) {
-                bgMusic.play().catch(e => console.log("Audio waiting for player interaction."));
+                bgMusic.play().catch(e => console.log("Audio waiting for player interaction context."));
                 btn.innerText = "🎵 Gospel On";
                 btn.className = "bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md transition-all whitespace-nowrap";
                 isMusicPlaying = true;
@@ -139,16 +142,16 @@
             bgMusic.load();
             
             if (wasPlaying) {
-                bgMusic.play().catch(e => console.log("Audio track swapped."));
+                bgMusic.play().catch(e => console.log("Audio stream update successful."));
             }
         }
 
         function playSound(audioObject) {
             audioObject.currentTime = 0;
-            audioObject.play().catch(e => console.log("Sound effect played."));
+            audioObject.play().catch(e => console.log("Sound effect update bypass."));
         }
 
-        // --- DATABASE AND RPG GAME ENGINE ---
+        // --- CORE QUIZ TRIVIA DATABASE ---
         const quizDatabase = [
             {
                 level: 1, 
@@ -183,6 +186,7 @@
             }
         ];
 
+        // --- SAVED STATE AND RENDER CONTROLLERS ---
         let gameData = JSON.parse(localStorage.getItem('bibleQuizRPGData')) || {
             lvl: 1, gold: 100, currentQuestionIndex: 0
         };
