@@ -54,7 +54,14 @@
         </div>
     </div>
 
-    <div id="game-content" class="w-full max-w-md space-y-6 mt-4 relative z-10">
+    <!-- AUDIO CONTROLLER FLOATING BUTTON -->
+    <div class="fixed top-4 right-4 z-50">
+        <button onclick="toggleMusic()" id="music-btn" class="bg-slate-900/80 backdrop-blur border border-white/10 p-3 rounded-full text-lg shadow-lg active:scale-95 transition-all">
+            🔇 Music Off
+        </button>
+    </div>
+
+    <div id="game-content" class="w-full max-w-md space-y-6 mt-12 relative z-10">
         <!-- HEADER -->
         <div class="quiz-card p-6 shadow-2xl">
             <h1 id="world-title" class="text-xs font-black uppercase tracking-widest mb-2 text-indigo-600 text-center">LEVEL LOADING...</h1>
@@ -83,6 +90,40 @@
     </div>
 
     <script>
+        // --- AUDIO ENGINE ASSETS ---
+        // Utilizing clear loopable audio assets hosted on public repositories
+        const bgMusic = new Audio("https://actions.google.com/sounds/v1/weather/rain_heavy_loud.ogg"); // Placeholder audio stream or substitute direct midis
+        bgMusic.src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"; // Instrumental track
+        bgMusic.loop = true;
+        bgMusic.volume = 0.25; // Set ambient volume low so it doesn't overpower
+
+        const soundCorrect = new Audio("https://assets.mixkit.co/active_storage/sfx/2019/2019-84.wav"); // Retro point chime
+        const soundWrong = new Audio("https://assets.mixkit.co/active_storage/sfx/2958/2958-84.wav"); // Vintage fail buzzer
+        const soundLevelUp = new Audio("https://assets.mixkit.co/active_storage/sfx/1435/1435-84.wav"); // Grand fan-fare chime
+
+        let isMusicPlaying = false;
+
+        function toggleMusic() {
+            const btn = document.getElementById('music-btn');
+            if (!isMusicPlaying) {
+                bgMusic.play().catch(e => console.log("Audio playback waiting for user click interaction."));
+                btn.innerText = "🔊 Music On";
+                btn.className = "bg-green-600 border border-white/20 p-3 rounded-full text-lg shadow-lg active:scale-95 transition-all";
+                isMusicPlaying = true;
+            } else {
+                bgMusic.pause();
+                btn.innerText = "🔇 Music Off";
+                btn.className = "bg-slate-900/80 backdrop-blur border border-white/10 p-3 rounded-full text-lg shadow-lg active:scale-95 transition-all";
+                isMusicPlaying = false;
+            }
+        }
+
+        function playSound(audioObject) {
+            // Reset track playback position immediately to allow rapid-fire clicks
+            audioObject.currentTime = 0;
+            audioObject.play().catch(e => console.log("Audio interaction triggered."));
+        }
+
         const quizDatabase = [
             {
                 level: 1, 
@@ -244,9 +285,8 @@
         let isProcessingClick = false;
         let activeLevelQuestions = [];
 
-        // NEW: Fisher-Yates Shuffling Function
         function shuffleQuestions(array) {
-            let shuffled = JSON.parse(JSON.stringify(array)); // Deep copy array to keep raw database clean
+            let shuffled = JSON.parse(JSON.stringify(array));
             for (let i = shuffled.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
@@ -257,7 +297,6 @@
         function initLevel() {
             const levelData = quizDatabase.find(l => l.level === gameData.lvl);
             if (levelData) {
-                // Shuffle the questions specifically for this level session
                 activeLevelQuestions = shuffleQuestions(levelData.questions);
             }
         }
@@ -265,7 +304,6 @@
         function updateUI() {
             isProcessingClick = false;
             
-            // Check if player completed everything
             if (gameData.lvl > quizDatabase.length) {
                 document.getElementById('bg-overlay').style.backgroundImage = `url('https://images.unsplash.com/photo-1472214222541-d510753a8707?q=80&w=1000')`;
                 document.getElementById('world-title').innerText = "CAMP COMPLETED";
@@ -281,16 +319,11 @@
             }
 
             const levelData = quizDatabase.find(l => l.level === gameData.lvl) || quizDatabase[0];
-            
-            // If the reshuffled list is empty or doesn't match the level progression, reload it
             if (activeLevelQuestions.length === 0) {
                 initLevel();
             }
 
-            // Fix Background
             document.getElementById('bg-overlay').style.backgroundImage = `url('${levelData.bgImage}')`;
-            
-            // Fix Stats
             document.getElementById('world-title').innerText = levelData.name;
             document.getElementById('lvl-badge').innerText = gameData.lvl;
             document.getElementById('gold-val').innerText = gameData.gold;
@@ -298,7 +331,6 @@
             const pct = (gameData.currentQuestionIndex / activeLevelQuestions.length) * 100;
             document.getElementById('xp-bar').style.width = pct + "%";
 
-            // Control visibility of the Skip button
             const skipContainer = document.getElementById('skip-container');
             if (gameData.gold >= 100 && gameData.lvl <= quizDatabase.length) {
                 skipContainer.classList.remove('hidden');
@@ -328,6 +360,9 @@
                         const emojiSpan = btn.querySelector('.emoji-status');
 
                         if (idx === qObj.correct) {
+                            // PLAY CORRECT ANSWER SOUND
+                            playSound(soundCorrect);
+
                             btn.style.background = "#dcfce7";
                             btn.style.borderColor = "#22c55e";
                             emojiSpan.innerText = "✅";
@@ -337,12 +372,17 @@
                             if (gameData.currentQuestionIndex >= activeLevelQuestions.length) {
                                 gameData.lvl++;
                                 gameData.currentQuestionIndex = 0;
-                                activeLevelQuestions = []; // Reset list so next level reshuffles natively
+                                activeLevelQuestions = []; 
                                 localStorage.setItem('bibleQuizRPGData', JSON.stringify(gameData));
-                                triggerLevelUpAnimation();
+                                
+                                // Delay slightly so correct chime plays before level up fan-fare
+                                setTimeout(triggerLevelUpAnimation, 500);
                                 return;
                             }
                         } else {
+                            // PLAY WRONG ANSWER SOUND
+                            playSound(soundWrong);
+
                             btn.style.background = "#fee2e2";
                             btn.style.borderColor = "#ef4444";
                             emojiSpan.innerText = "❌";
@@ -359,6 +399,9 @@
         }
 
         function triggerLevelUpAnimation() {
+            // PLAY LEVEL UP FLASH SOUND
+            playSound(soundLevelUp);
+
             const splash = document.getElementById('level-up-splash');
             const nextWorldTxt = document.getElementById('next-world-txt');
             
@@ -369,7 +412,7 @@
             
             setTimeout(() => {
                 splash.classList.remove('active');
-                initLevel(); // Pull and shuffle new layout array
+                initLevel(); 
                 updateUI();
             }, 2500);
         }
@@ -380,7 +423,7 @@
                     gameData.gold -= 100;
                     gameData.lvl++;
                     gameData.currentQuestionIndex = 0;
-                    activeLevelQuestions = []; // Reset for shuffle engine activation
+                    activeLevelQuestions = []; 
                     localStorage.setItem('bibleQuizRPGData', JSON.stringify(gameData));
                     triggerLevelUpAnimation();
                 }
@@ -397,7 +440,6 @@
             }
         }
 
-        // Run the setup engine on load
         initLevel();
         updateUI();
     </script>
