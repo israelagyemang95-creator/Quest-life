@@ -6,205 +6,348 @@
     <title>Bible Quest 200</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        #bg-overlay { position: fixed; inset: 0; background-color: #0f172a; background-size: cover; background-position: center; transition: background-image 1s; z-index: 0; }
-        #bg-tint { position: fixed; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.9)); z-index: 1; }
-        body { min-height: 100vh; background: #0f172a; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .quiz-card { background: rgba(255, 255, 255, 0.98); border-radius: 24px; color: #1e293b; position: relative; z-index: 10; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); }
-        .btn-opt { width: 100%; text-align: left; padding: 1.2rem; border-radius: 16px; border: 2px solid #f1f5f9; background: white; font-weight: 600; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; }
+        #bg-overlay { position: fixed; inset: 0; background-color: #0f172a; background-size: cover; background-position: center; transition: background-image 1s ease-in-out; z-index: 0; }
+        #bg-tint { position: fixed; inset: 0; background: linear-gradient(180deg, rgba(15,23,42,0.65), rgba(15,23,42,0.92)); z-index: 1; }
+        body { min-height: 100vh; background: #0f172a; color: white; font-family: 'Segoe UI', system-ui, sans-serif; }
+        
+        /* Glassmorphic UI elements */
+        .quiz-card { background: rgba(255, 255, 255, 0.98); border-radius: 24px; color: #1e293b; position: relative; z-index: 10; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        .btn-opt { width: 100%; text-align: left; padding: 1.1rem 1.5rem; border-radius: 16px; border: 2px solid #f1f5f9; background: white; font-weight: 700; font-size: 0.95rem; transition: all 0.2s ease; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .btn-opt:hover { border-color: #e2e8f0; background: #f8fafc; }
         .btn-opt:active { transform: scale(0.97); }
         
         #level-up-splash {
             position: fixed; inset: 0; background: rgba(15, 23, 42, 0.98);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 100; opacity: 0; pointer-events: none; transition: 0.6s;
+            z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.6s ease;
         }
         #level-up-splash.active { opacity: 1; pointer-events: auto; }
+        .pop-card { transform: scale(0.7); transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        #level-up-splash.active .pop-card { transform: scale(1); }
     </style>
 </head>
-<body class="p-4">
+<body class="p-4 flex flex-col items-center justify-start min-h-screen">
     <div id="bg-overlay"></div>
     <div id="bg-tint"></div>
 
+    <!-- VICTORY STAGE SPLASH -->
     <div id="level-up-splash">
-        <div class="text-center p-8">
-            <div class="text-7xl mb-4">🏆</div>
-            <h1 class="text-5xl font-black text-amber-400 uppercase italic">Victory!</h1>
-            <p id="next-world-txt" class="text-indigo-200 mt-2 font-bold tracking-widest">ADVANCING TO NEXT CHAPTER</p>
+        <div class="pop-card bg-gradient-to-b from-indigo-900 to-slate-900 p-8 rounded-3xl text-center shadow-2xl max-w-sm w-11/12 border border-white/10">
+            <div class="text-7xl mb-3 animate-bounce">✨🏆✨</div>
+            <h1 class="text-4xl font-black text-amber-400 tracking-wider uppercase">Glory!</h1>
+            <p class="text-indigo-200 text-xs font-bold tracking-widest mt-1 uppercase">Chapter Completed</p>
+            <div class="my-5 inline-block bg-white/5 px-6 py-2 rounded-full border border-white/10">
+                <span class="text-xs text-white/60 block uppercase font-semibold">Next Revelation</span>
+                <span id="next-world-txt" class="text-lg font-extrabold text-white">Loading...</span>
+            </div>
         </div>
     </div>
 
+    <!-- AUDIO MANAGEMENT DASHBOARD -->
     <div class="fixed top-4 right-4 z-50">
-        <button onclick="toggleAmbient()" id="audio-toggle" class="bg-white/10 backdrop-blur-md border border-white/20 px-4 py-2 rounded-full text-xs font-bold">
-            🔇 Angelic Sound: Off
+        <button onclick="toggleAngelicPad()" id="audio-toggle" class="bg-slate-900/90 text-white border border-white/10 px-5 py-2.5 rounded-xl text-xs font-bold shadow-xl flex items-center gap-2 backdrop-blur transition-all active:scale-95">
+            <span id="audio-icon">🔇</span> <span id="audio-text">Angelic Ambient: Off</span>
         </button>
     </div>
 
-    <div class="max-w-md mx-auto mt-16 relative z-10 space-y-6">
-        <div class="quiz-card p-6">
-            <div class="flex justify-between items-center mb-4">
-                <span id="world-title" class="text-indigo-600 font-black text-xs uppercase tracking-tighter">Bible Quest</span>
-                <span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold">💰 <span id="gold-val">0</span></span>
+    <div class="w-full max-w-md mt-20 relative z-10 space-y-6">
+        <!-- SCOREBOARD STATUS CARD -->
+        <div class="quiz-card p-5">
+            <div class="flex justify-between items-center mb-3">
+                <span id="world-title" class="text-indigo-600 font-black text-xs uppercase tracking-widest">Loading Track...</span>
+                <span class="bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-xs font-black border border-amber-200/50">💰 <span id="gold-val">0</span></span>
             </div>
-            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                <div id="xp-bar" class="bg-indigo-500 h-full transition-all duration-500" style="width: 0%"></div>
+            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                <div id="xp-bar" class="bg-indigo-600 h-full transition-all duration-500" style="width: 0%"></div>
             </div>
         </div>
 
+        <!-- MAIN QUIZ FRAMEWORK -->
         <div id="quiz-container"></div>
     </div>
 
     <script>
-        // --- SYNTHETIC AUDIO ENGINE ---
-        let ctx = null;
-        let ambient = null;
-        let isMuted = true;
+        // ========================================================
+        // ADVANCED CINEMATIC WEB AUDIO SYNTHESIS ENGINE
+        // ========================================================
+        let audioCtx = null;
+        let ambientGainNode = null;
+        let activeOscillators = [];
+        let isAudioPlaying = false;
 
-        function initAudio() { if(!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)(); }
-
-        function toggleAmbient() {
-            initAudio();
-            const btn = document.getElementById('audio-toggle');
-            if(isMuted) {
-                ambient = ctx.createGain();
-                const osc = ctx.createOscillator();
-                const lfo = ctx.createOscillator();
-                const lfoGain = ctx.createGain();
-
-                osc.type = 'triangle';
-                osc.frequency.value = 110; // Deep meditative A
-                
-                lfo.frequency.value = 0.5; // Angelic "wavering" effect
-                lfoGain.gain.value = 2;
-
-                lfo.connect(lfoGain);
-                lfoGain.connect(osc.frequency);
-                osc.connect(ambient);
-                ambient.connect(ctx.destination);
-                
-                ambient.gain.setValueAtTime(0, ctx.currentTime);
-                ambient.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 2);
-                
-                osc.start(); lfo.start();
-                btn.innerText = "😇 Angelic Sound: On";
-                isMuted = false;
-            } else {
-                ambient.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.5);
-                isMuted = true;
-                btn.innerText = "🔇 Angelic Sound: Off";
+        function initAudioEngine() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
         }
 
-        function playSound(type) {
-            if(!ctx || isMuted) return;
-            const osc = ctx.createOscillator();
-            const g = ctx.createGain();
-            const now = ctx.currentTime;
-            osc.connect(g); g.connect(ctx.destination);
+        function toggleAngelicPad() {
+            initAudioEngine();
+            const btnText = document.getElementById('audio-text');
+            const btnIcon = document.getElementById('audio-icon');
+            const toggleBtn = document.getElementById('audio-toggle');
 
-            if(type === 'correct') {
-                osc.frequency.setValueAtTime(523, now); // C5
-                osc.frequency.exponentialRampToValueAtTime(1046, now + 0.2); // C6
-                g.gain.setValueAtTime(0.1, now);
-                g.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                osc.start(); osc.stop(now + 0.3);
-            } else if(type === 'wrong') {
-                osc.frequency.setValueAtTime(200, now);
-                osc.frequency.linearRampToValueAtTime(50, now + 0.3);
-                g.gain.setValueAtTime(0.1, now);
-                g.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                osc.start(); osc.stop(now + 0.3);
-            } else { // Victory
-                [440, 554, 659, 880].forEach((f, i) => {
-                    const o = ctx.createOscillator();
-                    const gn = ctx.createGain();
-                    o.connect(gn); gn.connect(ctx.destination);
-                    o.frequency.value = f;
-                    gn.gain.setValueAtTime(0.1, now + (i*0.1));
-                    gn.gain.exponentialRampToValueAtTime(0.01, now + 0.5 + (i*0.1));
-                    o.start(now + (i*0.1)); o.stop(now + 0.6 + (i*0.1));
+            if (!isAudioPlaying) {
+                // Set up safely blended audio routing graph
+                ambientGainNode = audioCtx.createGain();
+                const masterLowPass = audioCtx.createBiquadFilter();
+                
+                masterLowPass.type = 'lowpass';
+                masterLowPass.frequency.setValueAtTime(280, audioCtx.currentTime); // Strips away all robotic metallic high edges
+                masterLowPass.Q.setValueAtTime(1.5, audioCtx.currentTime);
+
+                // Pure sine notes stacked in a gorgeous open choral chord (C major / Am vibe)
+                const angelicFrequencies = [130.81, 196.00, 261.63, 329.63, 392.00]; 
+
+                angelicFrequencies.forEach((freq) => {
+                    const osc = audioCtx.createOscillator();
+                    const oscGain = audioCtx.createGain();
+                    
+                    osc.type = 'sine'; // Softest possible wave shape
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                    
+                    // Subtle dynamic detune to mimic living movement instead of a frozen machine
+                    osc.detune.setValueAtTime((Math.random() * 6) - 3, audioCtx.currentTime);
+
+                    oscGain.gain.setValueAtTime(0.04, audioCtx.currentTime); 
+
+                    osc.connect(oscGain);
+                    oscGain.connect(masterLowPass);
+                    activeOscillators.push(osc);
+                });
+
+                ambientGainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+                masterLowPass.connect(ambientGainNode);
+                ambientGainNode.connect(audioCtx.destination);
+
+                // Ethereal continuous sound swell
+                ambientGainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 2.5);
+
+                activeOscillators.forEach(osc => osc.start());
+                
+                btnText.innerText = "Angelic Ambient: On";
+                btnIcon.innerText = "😇";
+                toggleBtn.classList.remove('bg-slate-900/90');
+                toggleBtn.classList.add('bg-green-600', 'border-green-500');
+                isAudioPlaying = true;
+            } else {
+                // Gentle decay finish rather than an abrupt click cut-off
+                if (ambientGainNode) {
+                    ambientGainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.8);
+                    setTimeout(() => {
+                        activeOscillators.forEach(osc => { try { osc.stop(); } catch(e){} });
+                        activeOscillators = [];
+                    }, 800);
+                }
+                btnText.innerText = "Angelic Ambient: Off";
+                btnIcon.innerText = "🔇";
+                toggleBtn.classList.add('bg-slate-900/90');
+                toggleBtn.classList.remove('bg-green-600', 'border-green-500');
+                isAudioPlaying = false;
+            }
+        }
+
+        function playFeedbackSound(type) {
+            if (!audioCtx || !isAudioPlaying) return;
+            const now = audioCtx.currentTime;
+
+            if (type === 'correct') {
+                // Heavenly wind chime sound effect
+                const chimeFreqs = [523.25, 659.25, 783.99, 1046.50]; // Bright C-Major high harmony
+                chimeFreqs.forEach((freq, index) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + (index * 0.05));
+                    
+                    gain.gain.setValueAtTime(0.08, now + (index * 0.05));
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4 + (index * 0.05));
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + (index * 0.05));
+                    osc.stop(now + 0.5 + (index * 0.05));
+                });
+            } else if (type === 'wrong') {
+                // Soft, organic dropping teardrop decay sound
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                const lowFilter = audioCtx.createBiquadFilter();
+
+                lowFilter.type = 'lowpass';
+                lowFilter.frequency.setValueAtTime(160, now);
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(140, now);
+                osc.frequency.linearRampToValueAtTime(80, now + 0.3);
+
+                gain.gain.setValueAtTime(0.18, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+                osc.connect(lowFilter);
+                lowFilter.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(now + 0.4);
+            } else if (type === 'victory') {
+                // Triumphant continuous harp sweep arpeggio
+                const scale = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
+                scale.forEach((freq, index) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + (index * 0.07));
+                    
+                    gain.gain.setValueAtTime(0.1, now + (index * 0.07));
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6 + (index * 0.07));
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + (index * 0.07));
+                    osc.stop(now + 0.7 + (index * 0.07));
                 });
             }
         }
 
-        // --- DATABASE (EXPANDABLE TO 200) ---
+        // ========================================================
+        // 200 QUESTION SCALABLE MAP DATABASE
+        // ========================================================
         const bibleData = [
             {
-                lvl: 1, title: "The Beginning", img: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b",
+                lvl: 1, title: "Genesis: Creation & Fall", img: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1000",
                 q: [
-                    {q: "Who was the first man?", a: ["Noah","Adam","Moses","Paul"], c: 1},
-                    {q: "How many days did God take to create the world?", a: ["7","6","10","3"], c: 1},
+                    {q: "Who was the first man created by God?", a: ["Noah","Adam","Moses","Abraham"], c: 1},
+                    {q: "How many days did God take to create the universe?", a: ["5 Days","7 Days","6 Days","10 Days"], c: 2},
                     {q: "Who was Adam's wife?", a: ["Sarah","Ruth","Eve","Esther"], c: 2},
-                    {q: "What was the first thing God created?", a: ["Animals","Man","Light","Trees"], c: 2},
-                    {q: "Who killed Abel?", a: ["Seth","Cain","Enoch","Lamech"], c: 1}
+                    {q: "What was the very first thing created by God?", a: ["Animals","Dry land","Light","The Moon"], c: 2},
+                    {q: "Which brother committed the first murder recorded?", a: ["Abel","Cain","Seth","Enos"], c: 1},
+                    {q: "Out of what material did God fashion Adam?", a: ["Gold dust","Water","The dust of the ground","Tree bark"], c: 2},
+                    {q: "What was the name of the garden home of Adam and Eve?", a: ["Eden","Sinai","Gethsemane","Canaan"], c: 0},
+                    {q: "Which creature deceived Eve in the Garden?", a: ["A lion","A hawk","A serpent","A leopard"], c: 2},
+                    {q: "What tree were Adam and Eve forbidden to eat from?", a: ["Tree of Life","Tree of Knowledge of Good and Evil","The Olive Tree","The Fig Tree"], c: 1},
+                    {q: "Who was the oldest man recorded in scripture?", a: ["Methuselah","Noah","Jared","Mahalaleel"], c: 0}
                 ]
             },
             {
-                lvl: 2, title: "Noah's Faith", img: "https://images.unsplash.com/photo-1433086966358-54859d0ed716",
+                lvl: 2, title: "Noah & The Great Covenant", img: "https://images.unsplash.com/photo-1433086966358-54859d0ed716?q=80&w=1000",
                 q: [
-                    {q: "What did Noah build?", a: ["A Temple","A Wall","An Ark","A Palace"], c: 2},
-                    {q: "How many of each clean animal entered the Ark?", a: ["2","7","12","1"], c: 1},
-                    {q: "How long did it rain during the flood?", a: ["40 Days","12 Days","1 Year","7 Days"], c: 0},
-                    {q: "What bird returned with an olive leaf?", a: ["Raven","Eagle","Dove","Sparrow"], c: 2},
-                    {q: "What sign did God give to never flood the earth again?", a: ["A Cloud","A Rainbow","A Star","A Pillar"], c: 1}
+                    {q: "What structure did Noah build to preserve life?", a: ["A floating tower","An Ark","A sanctuary citadel","A stone vault"], c: 1},
+                    {q: "How many of each clean animal did Noah bring onboard?", a: ["Two pairs","Seven pairs","Twelve","One single pair"], c: 1},
+                    {q: "How long did the catastrophic storm waters rain down?", a: ["40 Days and 40 Nights","12 Days","7 Days","A full calendar year"], c: 0},
+                    {q: "Which bird returned with an olive branch sign?", a: ["A raven","An eagle","A dove","A swallow"], c: 2},
+                    {q: "What visual sign did God place to seal His global promise?", a: ["A pillar of fire","A bright star","A rainbow","A solar eclipse"], c: 1},
+                    {q: "How many human souls total survived inside the Ark?", a: ["4","12","8","2"], c: 2},
+                    {q: "What were the names of Noah's three sons?", a: ["Cain, Abel, Seth","Shem, Ham, Japheth","Abraham, Isaac, Jacob","Peter, James, John"], c: 1},
+                    {q: "Where did the Ark finally come to rest?", a: ["Mount Sinai","Mount Ararat","Mount Carmel","Mount Nebo"], c: 1},
+                    {q: "What did Noah build immediately after exiting the Ark?", a: ["A house","A vineyard","An altar to the Lord","A city tower"], c: 2},
+                    {q: "What did humanity build to make a name for themselves in Shinar?", a: ["The Temple of Solomon","The Tower of Babel","The Pyramids","The Walls of Jericho"], c: 1}
                 ]
             }
-            // Add more levels here to reach 200 questions!
+            // Add levels 3 through 20 right here to complete the full 200 questions block!
         ];
 
-        let state = JSON.parse(localStorage.getItem('bq200')) || { lvl: 1, idx: 0, gold: 0 };
+        // --- PROGRESS RETRIEVAL SYSTEMS ---
+        let state = JSON.parse(localStorage.getItem('bq200_engine')) || { lvl: 1, idx: 0, gold: 0 };
+        let currentQuestions = [];
+
+        function shuffle(arr) {
+            let s = JSON.parse(JSON.stringify(arr));
+            for (let i = s.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [s[i], s[j]] = [s[j], s[i]];
+            }
+            return s;
+        }
 
         function render() {
             const level = bibleData.find(d => d.lvl === state.lvl);
-            if(!level) {
-                document.getElementById('quiz-container').innerHTML = "<div class='quiz-card p-8 text-center font-bold'>The Quest is Complete! 🏆</div>";
+            if (!level) {
+                document.getElementById('quiz-container').innerHTML = `
+                    <div class='quiz-card p-8 text-center font-bold space-y-3 shadow-2xl'>
+                        <div class="text-5xl">👑</div>
+                        <h2 class="text-2xl text-indigo-600 font-black">All Stages Mastered!</h2>
+                        <p class="text-slate-500 text-sm">You have traversed all 200 holy scriptural milestones successfully.</p>
+                    </div>`;
                 return;
+            }
+
+            if (state.idx === 0 || currentQuestions.length === 0) {
+                currentQuestions = shuffle(level.q);
             }
 
             document.getElementById('bg-overlay').style.backgroundImage = `url(${level.img})`;
             document.getElementById('world-title').innerText = level.title;
             document.getElementById('gold-val').innerText = state.gold;
-            document.getElementById('xp-bar').style.width = (state.idx / level.q.length) * 100 + "%";
+            document.getElementById('xp-bar').style.width = (state.idx / currentQuestions.length) * 100 + "%";
 
-            const current = level.q[state.idx];
-            let html = `<div class="quiz-card p-6 animate-fade-in">
-                <h2 class="text-xl font-bold mb-6">${current.q}</h2>
-                <div class="space-y-3">`;
+            const current = currentQuestions[state.idx];
+            let html = `<div class="quiz-card p-6 space-y-6">
+                <h2 class="text-xl font-black text-slate-800 leading-snug">${current.q}</h2>
+                <div class="space-y-3.5">`;
             
             current.a.forEach((opt, i) => {
-                html += `<button onclick="check(${i})" class="btn-opt"><span>${opt}</span></button>`;
+                html += `<button onclick="verifyAnswer(${i}, this)" class="btn-opt"><span>${opt}</span><span class="indicator"></span></button>`;
             });
 
             html += `</div></div>`;
             document.getElementById('quiz-container').innerHTML = html;
         }
 
-        window.check = function(choice) {
+        window.verifyAnswer = function(choice, element) {
             const level = bibleData.find(d => d.lvl === state.lvl);
-            if(choice === level.q[state.idx].c) {
-                playSound('correct');
-                state.gold += 10;
+            const current = currentQuestions[state.idx];
+            const indicator = element.querySelector('.indicator');
+            
+            // Disable all option choices temporarily during verification animation processing
+            const buttons = document.querySelectorAll('.btn-opt');
+            buttons.forEach(b => b.removeAttribute('onclick'));
+
+            if (choice === current.c) {
+                playFeedbackSound('correct');
+                element.style.background = "#dcfce7";
+                element.style.borderColor = "#22c55e";
+                indicator.innerText = "✅";
+                state.gold += 15;
                 state.idx++;
-                if(state.idx >= level.q.length) {
+                
+                if (state.idx >= currentQuestions.length) {
                     state.lvl++;
                     state.idx = 0;
-                    showVictory();
+                    currentQuestions = [];
+                    localStorage.setItem('bq200_engine', JSON.stringify(state));
+                    setTimeout(showVictoryPanel, 600);
+                    return;
                 }
             } else {
-                playSound('wrong');
-                alert("Try again, seeker!");
+                playFeedbackSound('wrong');
+                element.style.background = "#fee2e2";
+                element.style.borderColor = "#ef4444";
+                indicator.innerText = "❌";
+                state.gold = Math.max(0, state.gold - 5);
             }
-            save();
-            render();
+            
+            localStorage.setItem('bq200_engine', JSON.stringify(state));
+            setTimeout(render, 900);
         };
 
-        function showVictory() {
-            playSound('victory');
-            const s = document.getElementById('level-up-splash');
-            s.classList.add('active');
-            setTimeout(() => s.classList.remove('active'), 3000);
+        function showVictoryPanel() {
+            playFeedbackSound('victory');
+            const splash = document.getElementById('level-up-splash');
+            const txt = document.getElementById('next-world-txt');
+            const nextLvl = bibleData.find(d => d.lvl === state.lvl);
+            
+            txt.innerText = nextLvl ? nextLvl.title : "Final Deliverance";
+            splash.classList.add('active');
+            
+            setTimeout(() => {
+                splash.classList.remove('active');
+                render();
+            }, 2500);
         }
 
-        function save() { localStorage.setItem('bq200', JSON.stringify(state)); }
         render();
     </script>
 </body>
