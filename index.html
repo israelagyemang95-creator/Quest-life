@@ -138,6 +138,72 @@
         <div class="glass-card rounded-xl p-3 flex items-center space-x-2">
             <input type="text" placeholder="Add a new quest..." class="w-full bg-slate-950/40 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 transition-colors">
             <button class="bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-600 hover:to-indigo-700 font-bold text-sm px-4 py-2 rounded-lg transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:shadow-[0_0_20px_rgba(6,182,212,0.5)] active:scale-95">
+    <!-- 4. APP ENGINE (DYNAMIC GAMIFICATION LOGIC) -->
+    <script>
+        // Set up the character's initial game state variables
+        let playerState = {
+            level: 1,
+            xp: 45,         // Starts at 45% as shown on the UI
+            gold: 125,      // Starts at 125 Gold
+            hp: 80          // Starts at 80 HP
+        };
+
+        // Select the HTML elements we need to manipulate dynamically
+        const levelBadge = document.querySelector('.w-12.h-12'); // Selects the level circle
+        const goldText = document.querySelector('.text-yellow-400'); // Selects gold text
+        const xpBar = document.querySelector('.bg-gradient-to-r.from-emerald-600'); // Selects green progress bar
+        const xpText = document.querySelector('.text-emerald-300'); // Selects XP status text
+
+        // Find all checkboxes inside our quest items
+        const questCheckboxes = document.querySelectorAll('input[type="checkbox"]');
+
+        questCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    // 1. Identify which task was completed and look up its rewards
+                    let xpReward = 0;
+                    let goldReward = 0;
+                    const card = this.closest('.glass-card');
+                    const difficultyTag = card.querySelector('span').textContent.trim();
+
+                    if (difficultyTag === 'Easy') {
+                        xpReward = 5;
+                        goldReward = 2;
+                    } else if (difficultyTag === 'Medium') {
+                        xpReward = 15;
+                        goldReward = 8;
+                    } else if (difficultyTag === 'Hard') {
+                        xpReward = 30;
+                        goldReward = 20;
+                    }
+
+                    // 2. Apply rewards to the player state
+                    playerState.gold += goldReward;
+                    playerState.xp += xpReward;
+
+                    // 3. Visual Feedback: Strike through text and dim card
+                    const taskText = card.querySelector('p.font-medium');
+                    taskText.classList.add('line-through', 'text-slate-500');
+                    card.style.opacity = '0.6';
+
+                    // 4. Level Up verification routine
+                    if (playerState.xp >= 100) {
+                        playerState.level += 1;
+                        playerState.xp = playerState.xp - 100; // Keep the remaining XP overflow
+                        alert(`✨ LEVEL UP! You have reached Level ${playerState.level}! Your health has been restored! ✨`);
+                        playerState.hp = 100; // Max heal on level up
+                    }
+
+                    // 5. Instantly update the UI layout on screen
+                    goldText.textContent = `${playerState.gold} GP`;
+                    levelBadge.textContent = `Lvl ${playerState.level}`;
+                    xpText.textContent = `${playerState.xp}%`;
+                    xpBar.style.width = `${playerState.xp}%`;
+                }
+            });
+        });
+    </script>
+
                 Add
             </button>
         </div>
