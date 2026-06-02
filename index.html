@@ -6,332 +6,129 @@
     <title>Bible Quest: 100 Levels</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Immersive full-screen background handler with safe fallback */
         #bg-overlay {
             position: fixed; inset: 0;
-            background-color: #0f172a; /* Deep slate slate fallback color if images load slowly */
+            background-color: #1e1b4b; /* Safe fallback color */
             background-size: cover; background-position: center;
-            transition: background-image 1.2s ease-in-out;
+            transition: background-image 1s ease-in-out;
             z-index: 0;
         }
-        /* Soft dark tint so the white text/cards pop perfectly on mobile */
         #bg-tint {
             position: fixed; inset: 0;
-            background: linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.85));
+            background: linear-gradient(180deg, rgba(0,0,0,0.5), rgba(0,0,0,0.8));
             z-index: 1;
         }
+        body { min-height: 100vh; font-family: sans-serif; overflow-x: hidden; }
+        .quiz-card { background: rgba(255, 255, 255, 0.95); border-radius: 20px; color: #1e293b; z-index: 10; position: relative; }
         
-        body { min-height: 100vh; font-family: 'Comic Sans MS', sans-serif; overflow-x: hidden; }
-        .quiz-card { background: rgba(255, 255, 255, 0.96); border-radius: 20px; color: #1e293b; transition: all 0.3s ease; }
-        
-        /* Floating particles overlaying the artwork */
-        .firefly { position: absolute; width: 4px; height: 4px; background: #fbbf24; border-radius: 50%; animation: drift 5s infinite; pointer-events: none; z-index: 2; }
-        @keyframes drift { 0%, 100% { opacity: 0; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-60px) translateX(15px); } }
-
-        /* Level Up Overlay */
         #level-up-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.9);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 50; opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.5s;
         }
         #level-up-overlay.active { opacity: 1; pointer-events: auto; }
-        .zoom-text { transform: scale(0.5); transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); color: #fbbf24; font-weight: 900; text-shadow: 0 0 20px #f59e0b; }
-        #level-up-overlay.active .zoom-text { transform: scale(1); }
     </style>
 </head>
-<body class="p-4 flex flex-col items-center text-slate-800">
-    <!-- DYNAMIC BACKGROUND SYSTEM -->
+<body class="p-4 flex flex-col items-center">
     <div id="bg-overlay"></div>
     <div id="bg-tint"></div>
-    <div id="fx-container"></div>
 
-    <!-- LEVEL UP OVERLAY -->
     <div id="level-up-overlay">
-        <div class="text-center space-y-2">
-            <h1 class="zoom-text text-5xl md:text-6xl tracking-wider animate-bounce">LEVEL UP! 🌟</h1>
-            <p id="next-world-txt" class="text-white text-lg font-bold tracking-wide opacity-90">Traveling to a new realm...</p>
+        <div class="text-center text-white">
+            <h1 class="text-5xl font-black text-amber-400 animate-bounce">LEVEL UP!</h1>
+            <p id="next-world-txt" class="text-xl mt-2 font-bold"></p>
         </div>
     </div>
 
-    <div id="game-content" class="w-full max-w-md space-y-6 mt-4 relative z-10 transition-all duration-500">
-        <!-- STATUS CARD -->
-        <div class="quiz-card p-6 shadow-2xl text-center border-b-4 border-black/10">
-            <h1 id="world-title" class="text-xs font-black uppercase tracking-widest mb-2 text-indigo-600">Loading...</h1>
+    <div id="game-content" class="w-full max-w-md space-y-6 mt-4 relative z-10">
+        <div class="quiz-card p-6 shadow-2xl">
+            <h1 id="world-title" class="text-xs font-black uppercase tracking-widest mb-2 text-indigo-600 text-center">Loading...</h1>
             <div class="flex justify-between items-center">
-                <div id="lvl-badge" class="w-14 h-14 rounded-full bg-indigo-600 text-white flex items-center justify-center text-2xl font-black shadow-md">1</div>
-                <div class="text-right flex items-center space-x-3">
-                    <div>
-                        <p class="text-2xl font-black text-slate-800">💰 <span id="gold-val">0</span></p>
-                        <p class="text-[10px] font-bold text-slate-400">GOLD BALANCE</p>
-                    </div>
-                    <button onclick="triggerReset()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-rose-100 hover:text-rose-600 active:scale-90 transition-all shadow-sm" title="Restart Game">
-                        ↺
-                    </button>
+                <div id="lvl-badge" class="w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xl font-black shadow-md">1</div>
+                <div class="text-right">
+                    <p class="text-2xl font-black text-slate-800">💰 <span id="gold-val">100</span></p>
+                    <p class="text-[10px] font-bold text-slate-400">GOLD BALANCE</p>
                 </div>
             </div>
             <div class="mt-4">
-                <div class="w-full h-4 bg-slate-200 rounded-full overflow-hidden border-2 border-white">
+                <div class="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
                     <div id="xp-bar" class="h-full bg-green-500 transition-all duration-500" style="width: 0%"></div>
                 </div>
-                <p class="text-[10px] font-black mt-1 text-slate-500 uppercase">Questions Solved: <span id="q-count">0</span> / <span id="q-total">3</span></p>
-            </div>
-            
-            <!-- SKIP LEVEL BUTTON -->
-            <div class="mt-4 pt-3 border-t border-slate-100">
-                <button id="skip-btn" onclick="trySkipLevel()" class="w-full py-2 px-4 rounded-xl font-bold text-sm shadow-sm transition-all flex justify-between items-center bg-amber-500 text-white hover:bg-amber-600 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed active:scale-95">
-                    <span>✨ Skip This Entire Level</span>
-                    <span class="bg-black/20 px-2 py-0.5 rounded text-xs">Cost: 100 💰</span>
-                </button>
             </div>
         </div>
 
-        <!-- CURRENT QUESTION BOX -->
         <div id="quiz-container" class="space-y-4"></div>
+        
+        <button onclick="triggerReset()" class="w-full text-center text-xs text-white/50 hover:text-white mt-10">
+            Reset Game Progress
+        </button>
     </div>
 
-    <!-- LINK TO YOUR 200 QUESTIONS FILE -->
     <script src="questions.js"></script>
-
-    <!-- PICTURE-DRIVEN GAME ENGINE WITH CORS EXCEPTION FIX -->
     <script>
         let gameData = JSON.parse(localStorage.getItem('bibleQuizRPGData')) || {
             lvl: 1, gold: 100, currentQuestionIndex: 0
         };
 
-        let currentLevelShuffledQuestions = [];
-        let trackedLevelSnapshot = null;
-
-        function shuffleArray(array) {
-            let shuffled = [...array];
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-            }
-            return shuffled;
-        }
-
         function getCurrentLevelData() {
-            return quizDatabase.find(l => l.level === gameData.lvl) || quizDatabase[quizDatabase.length - 1];
-        }
-
-        function prepareQuestionsForLevel() {
-            const levelData = getCurrentLevelData();
-            if (trackedLevelSnapshot !== gameData.lvl) {
-                currentLevelShuffledQuestions = shuffleArray(levelData.questions);
-                trackedLevelSnapshot = gameData.lvl;
-            }
-        }
-
-        function save() {
-            localStorage.setItem('bibleQuizRPGData', JSON.stringify(gameData));
-            updateUI();
+            return quizDatabase.find(l => l.level === gameData.lvl) || quizDatabase[0];
         }
 
         function updateUI() {
-            prepareQuestionsForLevel();
-            
-            const bgOverlay = document.getElementById('bg-overlay');
-            const title = document.getElementById('world-title');
             const levelData = getCurrentLevelData();
+            const bgOverlay = document.getElementById('bg-overlay');
             
-            // SECURITY PATCH: Cache image explicitly via JS object to prevent browser tracking blocks
+            // OPTION C FIX: Direct application with cache-busting
             if (levelData.bgImage) {
-                const imgLoader = new Image();
-                imgLoader.src = levelData.bgImage;
-                imgLoader.onload = () => {
-                    bgOverlay.style.backgroundImage = `url('${levelData.bgImage}')`;
-                };
+                bgOverlay.style.backgroundImage = `url('${levelData.bgImage}')`;
             }
-            title.innerText = levelData.name;
 
+            document.getElementById('world-title').innerText = levelData.name;
             document.getElementById('lvl-badge').innerText = gameData.lvl;
             document.getElementById('gold-val').innerText = gameData.gold;
-            document.getElementById('q-count').innerText = gameData.currentQuestionIndex;
-            document.getElementById('q-total').innerText = currentLevelShuffledQuestions.length;
             
-            let pct = (gameData.currentQuestionIndex / currentLevelShuffledQuestions.length) * 100;
+            const qList = levelData.questions;
+            const pct = (gameData.currentQuestionIndex / qList.length) * 100;
             document.getElementById('xp-bar').style.width = pct + "%";
-
-            const skipBtn = document.getElementById('skip-btn');
-            if (gameData.gold >= 100) {
-                skipBtn.disabled = false;
-                skipBtn.classList.remove('opacity-50');
-            } else {
-                skipBtn.disabled = true;
-                skipBtn.classList.add('opacity-50');
-            }
 
             const container = document.getElementById('quiz-container');
             container.innerHTML = "";
 
-            if (gameData.gold <= 0) {
-                triggerGameOver();
-                return;
-            }
-
-            if (gameData.currentQuestionIndex < currentLevelShuffledQuestions.length) {
-                const qObj = currentLevelShuffledQuestions[gameData.currentQuestionIndex];
-                
+            if (gameData.currentQuestionIndex < qList.length) {
+                const qObj = qList[gameData.currentQuestionIndex];
                 let qCard = document.createElement('div');
                 qCard.className = "quiz-card p-6 shadow-xl space-y-4";
                 qCard.innerHTML = `
-                    <p class="text-xs uppercase font-black tracking-wider text-slate-400">Question ${gameData.currentQuestionIndex + 1}</p>
                     <h2 class="text-xl font-bold text-slate-800">${qObj.q}</h2>
-                    <div id="options-box" class="space-y-2 pt-2"></div>
+                    <div id="options-box" class="space-y-2"></div>
                 `;
                 container.appendChild(qCard);
 
-                const optionsBox = document.getElementById('options-box');
                 qObj.a.forEach((option, idx) => {
                     let btn = document.createElement('button');
-                    btn.className = "w-full text-left p-4 rounded-xl border border-slate-200 hover:bg-indigo-50 font-bold transition-all flex justify-between items-center bg-white shadow-sm active:scale-95";
-                    btn.innerHTML = `<span>${option}</span> <span id="feedback-${idx}"></span>`;
-                    btn.onclick = () => checkAnswer(idx, qObj.correct, btn, qObj);
-                    optionsBox.appendChild(btn);
+                    btn.className = "w-full text-left p-4 rounded-xl border border-slate-200 hover:bg-indigo-50 font-bold transition-all bg-white shadow-sm";
+                    btn.innerText = option;
+                    btn.onclick = () => checkAnswer(idx, qObj.correct, btn);
+                    document.getElementById('options-box').appendChild(btn);
                 });
-            } else {
-                container.innerHTML = `
-                    <div class="quiz-card p-6 text-center shadow-xl space-y-2">
-                        <h2 class="text-2xl font-black text-indigo-600">🏆 CONGRATULATIONS!</h2>
-                        <p class="text-slate-600 font-bold">You have mastered all 200 questions and conquered the absolute depths of scripture!</p>
-                    </div>
-                `;
             }
         }
 
-        function checkAnswer(chosenIdx, correctIdx, buttonElement, originalQuestionObject) {
-            const optionsBox = document.getElementById('options-box');
-            const buttons = optionsBox.getElementsByTagName('button');
-            for (let b of buttons) b.disabled = true;
-
-            const feedbackSpan = document.getElementById(`feedback-${chosenIdx}`);
-            
-            const chosenAnswerText = originalQuestionObject.a[chosenIdx];
-            const correctAnswerText = originalQuestionObject.a[correctIdx];
-
-            if (chosenAnswerText === correctAnswerText) {
-                feedbackSpan.innerText = "😀";
-                buttonElement.classList.remove('border-slate-200');
-                buttonElement.classList.add('border-green-500', 'bg-green-50');
+        function checkAnswer(chosen, correct, btn) {
+            if (chosen === correct) {
+                btn.classList.add('bg-green-100', 'border-green-500');
                 gameData.gold += 20;
+                gameData.currentQuestionIndex++;
                 
-                setTimeout(() => {
-                    gameData.currentQuestionIndex++;
-                    const levelData = getCurrentLevelData();
-                    
-                    if (gameData.currentQuestionIndex >= currentLevelShuffledQuestions.length) {
-                        const nextLvlExists = quizDatabase.some(l => l.level === (gameData.lvl + 1));
-                        if (nextLvlExists) {
-                            gameData.lvl++;
-                            gameData.currentQuestionIndex = 0;
-                            playDramaticLevelUp();
-                        } else {
-                            save();
-                        }
-                    } else {
-                        save();
-                    }
-                }, 1000);
-            } else {
-                feedbackSpan.innerText = "😢";
-                buttonElement.classList.remove('border-slate-200');
-                buttonElement.classList.add('border-rose-500', 'bg-rose-50');
-                
-                gameData.gold -= 20;
-                if (gameData.gold < 0) gameData.gold = 0;
-
-                setTimeout(() => {
-                    if (gameData.gold <= 0) {
-                        save();
-                    } else {
-                        for (let b of buttons) b.disabled = false;
-                        buttonElement.classList.remove('border-rose-500', 'bg-rose-50');
-                        buttonElement.classList.add('border-slate-200');
-                        feedbackSpan.innerText = "";
-                        save();
-                    }
-                }, 1200);
-            }
-        }
-
-        function trySkipLevel() {
-            if (gameData.gold >= 100) {
-                if (confirm("✨ Spend 100 gold coins to skip this entire level?")) {
-                    gameData.gold -= 100;
-                    
-                    const nextLvlExists = quizDatabase.some(l => l.level === (gameData.lvl + 1));
-                    if (nextLvlExists) {
-                        gameData.lvl++;
-                        gameData.currentQuestionIndex = 0;
-                        playDramaticLevelUp();
-                    } else {
-                        gameData.currentQuestionIndex = currentLevelShuffledQuestions.length;
-                        save();
-                    }
+                const levelData = getCurrentLevelData();
+                if (gameData.currentQuestionIndex >= levelData.questions.length) {
+                    gameData.lvl++;
+                    gameData.currentQuestionIndex = 0;
+                    showLevelUp();
+                } else {
+                    setTimeout(saveAndRefresh, 600);
                 }
-            }
-        }
-
-        function triggerGameOver() {
-            const container = document.getElementById('quiz-container');
-            container.innerHTML = `
-                <div class="quiz-card p-8 text-center shadow-xl space-y-4 border-2 border-rose-500 animate-pulse">
-                    <h2 class="text-3xl font-black text-rose-600">💀 GAME OVER</h2>
-                    <p class="text-sm text-slate-600 font-bold">Your gold coins hit 0! Your journey through the scriptures has come to an end.</p>
-                    <button onclick="restartFromScratch()" class="w-full py-3 bg-rose-600 text-white font-black rounded-xl hover:bg-rose-700 transition-all shadow-md active:scale-95">
-                        🎭 Revive & Restart Run
-                    </button>
-                </div>
-            `;
-            document.getElementById('skip-btn').disabled = true;
-        }
-
-        function restartFromScratch() {
-            localStorage.removeItem('bibleQuizRPGData');
-            gameData = { lvl: 1, gold: 100, currentQuestionIndex: 0 };
-            trackedLevelSnapshot = null;
-            save();
-        }
-
-        function playDramaticLevelUp() {
-            const overlay = document.getElementById('level-up-overlay');
-            const content = document.getElementById('game-content');
-            
-            prepareQuestionsForLevel();
-            const nextLevelData = getCurrentLevelData();
-            
-            document.getElementById('next-world-txt').innerText = `Entering: ${nextLevelData.name} (Level ${gameData.lvl})`;
-            
-            content.style.opacity = "0";
-            content.style.transform = "scale(0.9)";
-            overlay.classList.add('active');
-
-            setTimeout(() => {
-                save();
-                setTimeout(() => {
-                    overlay.classList.remove('active');
-                    content.style.opacity = "1";
-                    content.style.transform = "scale(1)";
-                }, 1200);
-            }, 600);
-        }
-
-        function triggerReset() {
-            if (confirm("🚨 Reset entire profile? Your save state and level will completely clear.")) {
-                restartFromScratch();
-            }
-        }
-
-        // Initialize particle FX elements background layer
-        for(let i=0; i<12; i++){
-            let f = document.createElement('div');
-            f.className = 'firefly';
-            f.style.left = Math.random()*100 + "vw"; f.style.top = Math.random()*100 + "vh";
-            f.style.animationDelay = Math.random()*3 + "s";
-            document.getElementById('fx-container').appendChild(f);
-        }
-
-        updateUI();
-    </script>
-</body>
-</html>
+            } else {
+                btn.classList.add('bg-red-100', 'border-red-500');
+                gameData.gold -= 10;
+                if(gameData.gold 
