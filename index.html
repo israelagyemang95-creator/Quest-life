@@ -3,148 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuestLife: World Explorer</title>
+    <title>QuestLife: 100 Levels</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Jungle Style (Level 1) */
-        .world-1 { background: linear-gradient(180deg, #064e3b 0%, #065f46 100%); }
-        .vines-1 { border: 4px solid #10b981; box-shadow: 0 0 15px #059669; }
-
-        /* Desert Style (Level 2) */
-        .world-2 { background: linear-gradient(180deg, #78350f 0%, #92400e 100%); }
-        .vines-2 { border: 4px solid #f59e0b; box-shadow: 0 0 15px #d97706; }
-
-        /* Firefly Animation */
-        .firefly {
-            position: absolute; width: 4px; height: 4px; background: #fbbf24;
-            border-radius: 50%; filter: blur(2px); animation: drift 5s infinite;
-        }
-        @keyframes drift {
-            0% { transform: translateY(0) translateX(0); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: translateY(-100px) translateX(20px); opacity: 0; }
-        }
-
-        body { transition: background 1s ease; font-family: 'Comic Sans MS', sans-serif; min-height: 100vh; overflow-x: hidden; }
-        .quest-card { background: rgba(255,255,255,0.9); border-radius: 20px; transition: all 0.3s; }
+        body { transition: all 1s ease; min-height: 100vh; font-family: 'Comic Sans MS', sans-serif; overflow-x: hidden; color: white; }
+        .world-jungle { background: linear-gradient(180deg, #064e3b, #065f46); }
+        .world-desert { background: linear-gradient(180deg, #78350f, #92400e); }
+        .world-cave { background: linear-gradient(180deg, #4c1d95, #1e1b4b); }
+        .world-ice { background: linear-gradient(180deg, #0c4a6e, #e0f2fe); color: #0c4a6e; }
+        
+        .quest-card { background: rgba(255,255,255,0.95); border-radius: 20px; color: #1e293b; transition: transform 0.2s; }
+        .firefly { position: absolute; width: 4px; height: 4px; background: #fbbf24; border-radius: 50%; animation: drift 5s infinite; }
+        @keyframes drift { 0%, 100% { opacity: 0; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-50px) translateX(10px); } }
     </style>
 </head>
 <body id="main-body" class="p-4 flex flex-col items-center">
-    <div id="fx-container"></div> <div class="w-full max-w-md space-y-6 mt-4 relative z-10">
-        <div class="quest-card p-6 shadow-2xl text-center border-b-8 border-black/20">
-            <h1 id="world-name" class="text-xs font-black uppercase tracking-widest mb-2 text-emerald-700">The Deep Jungle</h1>
+    <div id="fx-container"></div>
+
+    <div class="w-full max-w-md space-y-6 mt-4 relative z-10">
+        <div class="quest-card p-6 shadow-2xl text-center">
+            <h1 id="world-name" class="text-xs font-black uppercase tracking-widest mb-2">The Deep Jungle</h1>
             <div class="flex justify-between items-center">
-                <div id="lvl-badge" class="w-14 h-14 rounded-full bg-white flex items-center justify-center text-2xl font-black shadow-inner">1</div>
+                <div id="lvl-badge" class="w-14 h-14 rounded-full bg-indigo-600 text-white flex items-center justify-center text-2xl font-black">1</div>
                 <div class="text-right">
-                    <p class="text-2xl font-black text-slate-800"><span id="gold-val">0</span> 🪙</p>
-                    <p class="text-xs font-bold uppercase text-slate-500">Gold Collected</p>
+                    <p class="text-2xl font-black">💰 <span id="gold-val">0</span></p>
+                    <p class="text-[10px] font-bold text-slate-400">TOTAL GOLD</p>
                 </div>
             </div>
-            
             <div class="mt-4">
                 <div class="w-full h-4 bg-slate-200 rounded-full overflow-hidden border-2 border-white">
-                    <div id="xp-bar" class="h-full bg-emerald-500 transition-all duration-700" style="width: 0%"></div>
+                    <div id="xp-bar" class="h-full bg-green-500 transition-all" style="width: 0%"></div>
                 </div>
-                <p class="text-[10px] font-black mt-1">MISSIONS TO NEXT WORLD: <span id="mission-count">0</span> / 5</p>
+                <p class="text-[10px] font-black mt-1 uppercase">Next Level: <span id="m-count">0</span> / 5 Missions</p>
             </div>
         </div>
 
-        <div id="quest-container" class="space-y-3"></div>
-
-        <div id="input-area" class="quest-card p-4 shadow-lg border-b-4 border-black/20">
-            <input type="text" id="task-input" placeholder="Type mission..." class="w-full p-3 bg-slate-100 rounded-xl border-none font-bold mb-3 focus:ring-2 focus:ring-emerald-500 outline-none">
-            <button onclick="addNewQuest()" id="add-btn" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl shadow-lg active:scale-95 transition-all">
-                START MISSION! ⚔️
-            </button>
-        </div>
+        <div id="quest-container" class="space-y-3 text-left"></div>
     </div>
 
     <script>
-        let gameData = JSON.parse(localStorage.getItem('worldQuestData')) || {
-            lvl: 1, gold: 100, completedThisLevel: 0, missions: []
+        // MISSION DATABASE
+        const missionLibrary = [
+            ["Drink water 🥤", "Eat a fruit 🍎", "5 min stretch 🤸", "Deep breaths 🌬️", "Smile in mirror 😊"], // Level 1
+            ["Walk 10 mins 🚶", "No soda today 🚫", "Read 5 pages 📖", "Wash face 🫧", "Stand for 1 hour 🧍"], // Level 2
+            ["10 Jumping jacks ⚡", "Tidy your room 🧹", "Eat a vegetable 🥦", "Hug someone 🫂", "Write a goal ✍️"], // Level 3
+            ["20 Squats 🏋️", "No junk food 🍎", "Drink 2L water 💧", "Power nap 😴", "Learn a new word 🧠"], // Level 4
+            ["Run for 5 mins 🏃", "Cold water splash 🧊", "Balance on 1 leg 🦵", "Say thank you 🙏", "Check posture 📐"]  // Level 5
+        ];
+
+        let gameData = JSON.parse(localStorage.getItem('megaQuestData')) || {
+            lvl: 1, gold: 0, completedCount: 0, currentMissions: []
         };
 
-        const worlds = {
-            1: { name: "The Deep Jungle", color: "world-1", accent: "vines-1", btn: "bg-emerald-600" },
-            2: { name: "The Scorched Desert", color: "world-2", accent: "vines-2", btn: "bg-amber-700" }
-        };
+        function initLevel() {
+            // If the level list is empty, pull 5 missions from the library
+            if (gameData.currentMissions.length === 0) {
+                let list = missionLibrary[(gameData.lvl - 1) % missionLibrary.length];
+                gameData.currentMissions = list.map(m => ({ text: m, done: false }));
+            }
+            save();
+        }
 
         function save() {
-            localStorage.setItem('worldQuestData', JSON.stringify(gameData));
+            localStorage.setItem('megaQuestData', JSON.stringify(gameData));
             updateUI();
         }
 
         function updateUI() {
-            const world = worlds[gameData.lvl] || worlds[1];
-            document.getElementById('main-body').className = "p-4 flex flex-col items-center " + world.color;
-            document.getElementById('world-name').innerText = world.name;
+            const body = document.getElementById('main-body');
+            const badge = document.getElementById('lvl-badge');
+            
+            // Set Themes
+            if (gameData.lvl <= 5) body.className = "p-4 flex flex-col items-center world-jungle";
+            else if (gameData.lvl <= 10) body.className = "p-4 flex flex-col items-center world-desert";
+            else body.className = "p-4 flex flex-col items-center world-cave";
+
             document.getElementById('lvl-badge').innerText = gameData.lvl;
             document.getElementById('gold-val').innerText = gameData.gold;
-            document.getElementById('add-btn').className = `w-full ${world.btn} text-white font-black py-4 rounded-xl shadow-lg active:scale-95 transition-all`;
-            
-            // Progress Bar (Missions based)
-            let progress = (gameData.completedThisLevel / 5) * 100;
-            document.getElementById('xp-bar').style.width = progress + "%";
-            document.getElementById('mission-count').innerText = gameData.completedThisLevel;
+            document.getElementById('m-count').innerText = gameData.completedCount;
+            document.getElementById('xp-bar').style.width = (gameData.completedCount / 5) * 100 + "%";
 
-            // Render Missions
             const container = document.getElementById('quest-container');
             container.innerHTML = "";
-            gameData.missions.forEach((m, i) => {
+            
+            gameData.currentMissions.forEach((m, i) => {
                 const div = document.createElement('div');
-                div.className = `quest-card p-4 flex items-center justify-between ${world.accent} ${m.done ? 'opacity-40' : ''}`;
+                div.className = `quest-card p-4 flex items-center space-x-4 ${m.done ? 'opacity-40 grayscale' : 'shadow-lg'}`;
                 div.innerHTML = `
-                    <div class="flex items-center space-x-3">
-                        <button onclick="completeTask(${i})" class="w-8 h-8 rounded-lg border-2 border-slate-300 flex items-center justify-center font-bold ${m.done ? 'bg-green-500 border-green-500 text-white' : 'text-transparent'}">✓</button>
-                        <p class="font-bold text-slate-800 ${m.done ? 'line-through' : ''}">${m.text}</p>
-                    </div>
-                    <button onclick="deleteTask(${i})" class="text-slate-400">✕</button>
+                    <button onclick="completeTask(${i})" class="w-10 h-10 rounded-xl border-2 border-indigo-100 flex items-center justify-center text-xl ${m.done ? 'bg-green-500 text-white' : 'bg-white'}">${m.done ? '✓' : ''}</button>
+                    <p class="font-bold text-slate-700">${m.text}</p>
                 `;
                 container.appendChild(div);
             });
         }
 
-        function addNewQuest() {
-            const input = document.getElementById('task-input');
-            if(input.value.trim()) {
-                gameData.missions.push({ text: input.value, done: false });
-                input.value = "";
-                save();
-            }
-        }
-
         function completeTask(i) {
-            if(!gameData.missions[i].done) {
-                gameData.missions[i].done = true;
-                gameData.completedThisLevel++;
-                gameData.gold += 20;
+            if (!gameData.currentMissions[i].done) {
+                gameData.currentMissions[i].done = true;
+                gameData.completedCount++;
+                gameData.gold += 15;
 
-                if(gameData.completedThisLevel >= 5) {
+                if (gameData.completedCount >= 5) {
                     gameData.lvl++;
-                    gameData.completedThisLevel = 0;
-                    gameData.missions = []; // Clear for new world
-                    alert("🚀 JOURNEY COMPLETE! YOU HAVE ENTERED " + (worlds[gameData.lvl]?.name || "A NEW LAND"));
+                    gameData.completedCount = 0;
+                    gameData.currentMissions = []; 
+                    alert("🌟 WORLD CLEAR! NEXT LEVEL UNLOCKED 🌟");
+                    initLevel();
+                } else {
+                    save();
                 }
-                save();
             }
         }
 
-        function deleteTask(i) {
-            gameData.missions.splice(i, 1);
-            save();
-        }
-
-        // Firefly Spawner
-        for(let i=0; i<15; i++) {
+        // Spawn fireflies for the Jungle
+        for(let i=0; i<15; i++){
             let f = document.createElement('div');
             f.className = 'firefly';
-            f.style.left = Math.random() * 100 + "vw";
-            f.style.top = Math.random() * 100 + "vh";
-            f.style.animationDelay = Math.random() * 5 + "s";
+            f.style.left = Math.random()*100 + "vw"; f.style.top = Math.random()*100 + "vh";
             document.getElementById('fx-container').appendChild(f);
         }
 
-        updateUI();
+        initLevel();
     </script>
 </body>
 </html>
