@@ -20,7 +20,7 @@
         }
         body { min-height: 100vh; background: #0f172a; color: white; font-family: sans-serif; }
         .quiz-card { background: rgba(255, 255, 255, 0.95); border-radius: 20px; color: #1e293b; position: relative; z-index: 10; }
-        .btn-opt { width: 100%; text-align: left; padding: 1rem; border-radius: 12px; border: 1px solid #e2e8f0; background: white; font-weight: bold; transition: all 0.2s; shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .btn-opt { width: 100%; text-align: left; padding: 1rem; border-radius: 12px; border: 1px solid #e2e8f0; background: white; font-weight: bold; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .btn-opt:active { transform: scale(0.98); }
     </style>
 </head>
@@ -29,6 +29,7 @@
     <div id="bg-tint"></div>
 
     <div id="game-content" class="w-full max-w-md space-y-6 mt-4 relative z-10">
+        <!-- HEADER -->
         <div class="quiz-card p-6 shadow-2xl">
             <h1 id="world-title" class="text-xs font-black uppercase tracking-widest mb-2 text-indigo-600 text-center">LEVEL LOADING...</h1>
             <div class="flex justify-between items-center">
@@ -42,15 +43,20 @@
             </div>
         </div>
 
-        <div id="quiz-container" class="space-y-4">
-            <div class="quiz-card p-6 text-center italic text-slate-400">Initializing Scripture Quest...</div>
+        <!-- QUESTIONS AREA -->
+        <div id="quiz-container" class="space-y-4"></div>
+
+        <!-- SKIP LEVEL BUTTON -->
+        <div id="skip-container" class="w-full text-center relative z-10 hidden">
+            <button onclick="skipLevel()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-2 px-4 rounded-xl text-xs shadow-md transition-all">
+                ⏭️ Skip Level (Costs 100 Gold)
+            </button>
         </div>
         
         <button onclick="triggerReset()" class="w-full text-center text-xs text-white/30 mt-10">Reset Progress</button>
     </div>
 
     <script>
-        // ALL DATA IN ONE PLACE TO PREVENT LOADING ERRORS
         const quizDatabase = [
             {
                 level: 1, 
@@ -79,8 +85,11 @@
             lvl: 1, gold: 100, currentQuestionIndex: 0
         };
 
+        let isProcessingClick = false;
+
         function updateUI() {
-            const levelData = quizDatabase.find(l => l.level === gameData.lvl) || quizDatabase[0];
+            isProcessingClick = false;
+            const levelData = quizDatabase.find(l => l.level === gameData.lvl) || quizDatabase[quizDatabase.length - 1];
             const qList = levelData.questions;
             
             // Fix Background
@@ -94,8 +103,22 @@
             const pct = (gameData.currentQuestionIndex / qList.length) * 100;
             document.getElementById('xp-bar').style.width = pct + "%";
 
+            // Control visibility of the Skip button
+            const skipContainer = document.getElementById('skip-container');
+            if (gameData.gold >= 100 && gameData.lvl < quizDatabase.length) {
+                skipContainer.classList.remove('hidden');
+            } else {
+                skipContainer.classList.add('hidden');
+            }
+
             const container = document.getElementById('quiz-container');
             container.innerHTML = "";
+
+            if (gameData.lvl > quizDatabase.length) {
+                container.innerHTML = `<div class="quiz-card p-6 text-center font-bold text-indigo-600">🎉 You have completed all available levels!</div>`;
+                skipContainer.classList.add('hidden');
+                return;
+            }
 
             if (gameData.currentQuestionIndex < qList.length) {
                 const qObj = qList[gameData.currentQuestionIndex];
@@ -107,13 +130,21 @@
                 qObj.a.forEach((option, idx) => {
                     let btn = document.createElement('button');
                     btn.className = "btn-opt";
-                    btn.innerText = option;
+                    btn.innerHTML = `<span>${option}</span><span class="emoji-status"></span>`;
+                    
                     btn.onclick = () => {
+                        if (isProcessingClick) return; 
+                        isProcessingClick = true;
+
+                        const emojiSpan = btn.querySelector('.emoji-status');
+
                         if (idx === qObj.correct) {
                             btn.style.background = "#dcfce7";
                             btn.style.borderColor = "#22c55e";
+                            emojiSpan.innerText = "✅";
                             gameData.gold += 20;
                             gameData.currentQuestionIndex++;
+                            
                             if (gameData.currentQuestionIndex >= qList.length) {
                                 gameData.lvl++;
                                 gameData.currentQuestionIndex = 0;
@@ -121,26 +152,40 @@
                         } else {
                             btn.style.background = "#fee2e2";
                             btn.style.borderColor = "#ef4444";
+                            emojiSpan.innerText = "❌";
                             gameData.gold -= 10;
+                            if (gameData.gold < 0) gameData.gold = 0;
                         }
+                        
                         localStorage.setItem('bibleQuizRPGData', JSON.stringify(gameData));
-                        setTimeout(updateUI, 500);
+                        setTimeout(updateUI, 800); // 800ms delay to allow viewing the result
                     };
                     document.getElementById('options-box').appendChild(btn);
                 });
+            }
+        }
+
+        function skipLevel() {
+            if (gameData.gold >= 100) {
+                if (confirm("Spend 100 gold to advance directly to the next level?")) {
+                    gameData.gold -= 100;
+                    gameData.lvl++;
+                    gameData.currentQuestionIndex = 0;
+                    localStorage.setItem('bibleQuizRPGData', JSON.stringify(gameData));
+                    updateUI();
+                }
             } else {
-                container.innerHTML = `<div class="quiz-card p-6 text-center font-bold text-indigo-600">You've finished the available levels!</div>`;
+                alert("You need at least 100 Gold to skip a level!");
             }
         }
 
         function triggerReset() {
-            if(confirm("Start over?")) {
+            if(confirm("Start over from Level 1?")) {
                 localStorage.removeItem('bibleQuizRPGData');
                 location.reload();
             }
         }
 
-        // Start the game
         updateUI();
     </script>
 </body>
