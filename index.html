@@ -3,341 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bible Quest</title>
+    <title>Bible Quest 200</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        #bg-overlay {
-            position: fixed; inset: 0;
-            background-color: #0f172a;
-            background-size: cover; background-position: center;
-            transition: background-image 1s ease-in-out;
-            z-index: 0;
-        }
-        #bg-tint {
-            position: fixed; inset: 0;
-            background: linear-gradient(180deg, rgba(0,0,0,0.5), rgba(0,0,0,0.8));
-            z-index: 1;
-        }
-        body { min-height: 100vh; background: #0f172a; color: white; font-family: sans-serif; }
-        .quiz-card { background: rgba(255, 255, 255, 0.95); border-radius: 20px; color: #1e293b; position: relative; z-index: 10; }
-        .btn-opt { width: 100%; text-align: left; padding: 1rem; border-radius: 12px; border: 1px solid #e2e8f0; background: white; font-weight: bold; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .btn-opt:active { transform: scale(0.98); }
-
+        #bg-overlay { position: fixed; inset: 0; background-color: #0f172a; background-size: cover; background-position: center; transition: background-image 1s; z-index: 0; }
+        #bg-tint { position: fixed; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.9)); z-index: 1; }
+        body { min-height: 100vh; background: #0f172a; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .quiz-card { background: rgba(255, 255, 255, 0.98); border-radius: 24px; color: #1e293b; position: relative; z-index: 10; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); }
+        .btn-opt { width: 100%; text-align: left; padding: 1.2rem; border-radius: 16px; border: 2px solid #f1f5f9; background: white; font-weight: 600; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; }
+        .btn-opt:active { transform: scale(0.97); }
+        
         #level-up-splash {
-            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95);
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.98);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 100; opacity: 0; pointer-events: none; transition: all 0.5s ease-in-out;
+            z-index: 100; opacity: 0; pointer-events: none; transition: 0.6s;
         }
         #level-up-splash.active { opacity: 1; pointer-events: auto; }
-        .pop-card { transform: scale(0.7); transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        #level-up-splash.active .pop-card { transform: scale(1); }
     </style>
 </head>
-<body class="p-4 flex flex-col items-center">
+<body class="p-4">
     <div id="bg-overlay"></div>
     <div id="bg-tint"></div>
 
-    <!-- DRAMATIC ANIMATION SPLASH LAYER -->
     <div id="level-up-splash">
-        <div class="pop-card bg-gradient-to-b from-indigo-600 to-indigo-900 p-8 rounded-3xl text-center shadow-2xl max-w-sm w-11/12 border border-indigo-400/30">
-            <div class="text-6xl mb-2 animate-bounce">✨🏆✨</div>
-            <h1 class="text-4xl font-black text-amber-400 tracking-wider uppercase animate-pulse">Level Up!</h1>
-            <p class="text-indigo-200 text-sm font-bold tracking-widest mt-1">STAGE CLEARED</p>
-            <div class="my-6 inline-block bg-white/10 px-6 py-2 rounded-full border border-white/10">
-                <span class="text-xs font-bold text-white block uppercase">Next Destination</span>
-                <span id="next-world-txt" class="text-xl font-extrabold text-white">Loading Stage...</span>
-            </div>
-            <p class="text-xs text-amber-300 font-semibold flex items-center justify-center gap-1">
-                🎉 Bonus Reward Deposited!
-            </p>
+        <div class="text-center p-8">
+            <div class="text-7xl mb-4">🏆</div>
+            <h1 class="text-5xl font-black text-amber-400 uppercase italic">Victory!</h1>
+            <p id="next-world-txt" class="text-indigo-200 mt-2 font-bold tracking-widest">ADVANCING TO NEXT CHAPTER</p>
         </div>
     </div>
 
-    <!-- FLOATING PLAYLIST CONTROL PANEL -->
-    <div class="fixed top-4 right-4 z-50 flex flex-col sm:flex-row gap-2 bg-slate-900/90 backdrop-blur p-2 rounded-2xl border border-white/10 shadow-xl items-center">
-        <!-- Track Selector Dropdown -->
-        <select id="track-select" onchange="changeTrack()" class="bg-slate-800 text-white text-xs font-semibold rounded-lg px-3 py-2 border border-white/10 outline-none focus:border-indigo-500 cursor-pointer w-44">
-            <option value="hallelujah">PTX - Hallelujah</option>
-            <option value="mary">PTX - Mary, Did You Know?</option>
-            <option value="oceans">Hillsong - Oceans</option>
-        </select>
-        
-        <!-- Toggle Button -->
-        <button onclick="toggleMusic()" id="music-btn" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md transition-all whitespace-nowrap">
-            🔇 Music Off
+    <div class="fixed top-4 right-4 z-50">
+        <button onclick="toggleAmbient()" id="audio-toggle" class="bg-white/10 backdrop-blur-md border border-white/20 px-4 py-2 rounded-full text-xs font-bold">
+            🔇 Angelic Sound: Off
         </button>
     </div>
 
-    <div id="game-content" class="w-full max-w-md space-y-6 mt-24 relative z-10">
-        <!-- HEADER -->
-        <div class="quiz-card p-6 shadow-2xl">
-            <h1 id="world-title" class="text-xs font-black uppercase tracking-widest mb-2 text-indigo-600 text-center">LEVEL LOADING...</h1>
-            <div class="flex justify-between items-center">
-                <div id="lvl-badge" class="w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xl font-black shadow-md">1</div>
-                <div class="text-right">
-                    <p class="text-2xl font-black text-slate-800">💰 <span id="gold-val">100</span></p>
-                </div>
+    <div class="max-w-md mx-auto mt-16 relative z-10 space-y-6">
+        <div class="quiz-card p-6">
+            <div class="flex justify-between items-center mb-4">
+                <span id="world-title" class="text-indigo-600 font-black text-xs uppercase tracking-tighter">Bible Quest</span>
+                <span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold">💰 <span id="gold-val">0</span></span>
             </div>
-            <div class="mt-4 w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-                <div id="xp-bar" class="h-full bg-green-500 transition-all duration-500" style="width: 0%"></div>
+            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                <div id="xp-bar" class="bg-indigo-500 h-full transition-all duration-500" style="width: 0%"></div>
             </div>
         </div>
 
-        <!-- QUESTIONS AREA -->
-        <div id="quiz-container" class="space-y-4"></div>
-
-        <!-- SKIP LEVEL BUTTON -->
-        <div id="skip-container" class="w-full text-center relative z-10 hidden">
-            <button onclick="skipLevel()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-2 px-4 rounded-xl text-xs shadow-md transition-all">
-                ⏭️ Skip Level (Costs 100 Gold)
-            </button>
-        </div>
-        
-        <button onclick="triggerReset()" class="w-full text-center text-xs text-white/30 mt-10">Reset Progress</button>
+        <div id="quiz-container"></div>
     </div>
 
     <script>
-        // --- STABLE AUDIO ENGINE ENGINE ---
-        // These direct streaming links act as robust placeholders. 
-        // If you download the real .mp3 files next to this index.html file, change these values to "hallelujah.mp3", "mary.mp3", and "oceans.mp3".
-        const playlist = {
-            hallelujah: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", 
-            mary: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",       
-            oceans: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"     
-        };
+        // --- SYNTHETIC AUDIO ENGINE ---
+        let ctx = null;
+        let ambient = null;
+        let isMuted = true;
 
-        const bgMusic = new Audio();
-        bgMusic.src = playlist.hallelujah; // Sets standard default track
-        bgMusic.loop = true;
-        bgMusic.volume = 0.25;
+        function initAudio() { if(!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)(); }
 
-        // UI Feedback Sounds
-        const soundCorrect = new Audio("https://assets.mixkit.co/active_storage/sfx/2019/2019-84.wav"); 
-        const soundWrong = new Audio("https://assets.mixkit.co/active_storage/sfx/2958/2958-84.wav"); 
-        const soundLevelUp = new Audio("https://assets.mixkit.co/active_storage/sfx/1435/1435-84.wav"); 
+        function toggleAmbient() {
+            initAudio();
+            const btn = document.getElementById('audio-toggle');
+            if(isMuted) {
+                ambient = ctx.createGain();
+                const osc = ctx.createOscillator();
+                const lfo = ctx.createOscillator();
+                const lfoGain = ctx.createGain();
 
-        let isMusicPlaying = false;
+                osc.type = 'triangle';
+                osc.frequency.value = 110; // Deep meditative A
+                
+                lfo.frequency.value = 0.5; // Angelic "wavering" effect
+                lfoGain.gain.value = 2;
 
-        function toggleMusic() {
-            const btn = document.getElementById('music-btn');
-            if (!isMusicPlaying) {
-                bgMusic.play().catch(e => console.log("Audio waiting for player interaction context."));
-                btn.innerText = "🎵 Gospel On";
-                btn.className = "bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md transition-all whitespace-nowrap";
-                isMusicPlaying = true;
+                lfo.connect(lfoGain);
+                lfoGain.connect(osc.frequency);
+                osc.connect(ambient);
+                ambient.connect(ctx.destination);
+                
+                ambient.gain.setValueAtTime(0, ctx.currentTime);
+                ambient.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 2);
+                
+                osc.start(); lfo.start();
+                btn.innerText = "😇 Angelic Sound: On";
+                isMuted = false;
             } else {
-                bgMusic.pause();
-                btn.innerText = "🔇 Music Off";
-                btn.className = "bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md transition-all whitespace-nowrap";
-                isMusicPlaying = false;
+                ambient.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.5);
+                isMuted = true;
+                btn.innerText = "🔇 Angelic Sound: Off";
             }
         }
 
-        function changeTrack() {
-            const selection = document.getElementById('track-select').value;
-            const wasPlaying = isMusicPlaying;
-            
-            bgMusic.pause();
-            bgMusic.src = playlist[selection];
-            bgMusic.load();
-            
-            if (wasPlaying) {
-                bgMusic.play().catch(e => console.log("Audio stream update successful."));
-            }
-        }
+        function playSound(type) {
+            if(!ctx || isMuted) return;
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            const now = ctx.currentTime;
+            osc.connect(g); g.connect(ctx.destination);
 
-        function playSound(audioObject) {
-            audioObject.currentTime = 0;
-            audioObject.play().catch(e => console.log("Sound effect update bypass."));
-        }
-
-        // --- CORE QUIZ TRIVIA DATABASE ---
-        const quizDatabase = [
-            {
-                level: 1, 
-                name: "Genesis Beginnings", 
-                bgImage: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1000",
-                questions: [
-                    { q: "Who was the first man created?", a: ["Noah", "Adam", "Abraham", "Moses"], correct: 1 },
-                    { q: "What did Noah build to survive the flood?", a: ["A tower", "A castle", "An ark", "A temple"], correct: 2 },
-                    { q: "How many commandments did God give Moses?", a: ["5", "12", "7", "10"], correct: 3 },
-                    { q: "Who was swallowed by a great fish?", a: ["Jonah", "Peter", "Daniel", "Paul"], correct: 0 }
-                ]
-            },
-            {
-                level: 2, 
-                name: "The Great Flood", 
-                bgImage: "https://images.unsplash.com/photo-1433086966358-54859d0ed716?q=80&w=1000",
-                questions: [
-                    { q: "How many days did it rain during the flood?", a: ["7", "40", "100", "3"], correct: 1 },
-                    { q: "Which bird did Noah first send out to look for land?", a: ["Dove", "Raven", "Eagle", "Sparrow"], correct: 1 },
-                    { q: "What was the sign of God's promise to never flood the earth again?", a: ["A burning bush", "A rainbow", "A pillar of cloud", "A golden star"], correct: 1 }
-                ]
-            },
-            {
-                level: 3, 
-                name: "The Patriarchs", 
-                bgImage: "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=80&w=1000",
-                questions: [
-                    { q: "Who was Abraham's wife?", a: ["Rebekah", "Rachel", "Sarah", "Leah"], correct: 2 },
-                    { q: "Who was Isaac's son that bought Esau's birthright?", a: ["Jacob", "Joseph", "Benjamin", "Levi"], correct: 0 },
-                    { q: "What special gift did Jacob give to his favorite son, Joseph?", a: ["A gold ring", "A coat of many colors", "A silver cup", "A royal crown"], correct: 1 }
-                ]
-            }
-        ];
-
-        // --- SAVED STATE AND RENDER CONTROLLERS ---
-        let gameData = JSON.parse(localStorage.getItem('bibleQuizRPGData')) || {
-            lvl: 1, gold: 100, currentQuestionIndex: 0
-        };
-
-        let isProcessingClick = false;
-        let activeLevelQuestions = [];
-
-        function shuffleQuestions(array) {
-            let shuffled = JSON.parse(JSON.stringify(array));
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-            }
-            return shuffled;
-        }
-
-        function initLevel() {
-            const levelData = quizDatabase.find(l => l.level === gameData.lvl);
-            if (levelData) {
-                activeLevelQuestions = shuffleQuestions(levelData.questions);
-            }
-        }
-
-        function updateUI() {
-            isProcessingClick = false;
-            
-            if (gameData.lvl > quizDatabase.length) {
-                document.getElementById('bg-overlay').style.backgroundImage = `url('https://images.unsplash.com/photo-1472214222541-d510753a8707?q=80&w=1000')`;
-                document.getElementById('world-title').innerText = "CAMP COMPLETED";
-                document.getElementById('lvl-badge').innerText = "🏆";
-                document.getElementById('xp-bar').style.width = "100%";
-                document.getElementById('skip-container').classList.add('hidden');
-                document.getElementById('quiz-container').innerHTML = `
-                    <div class="quiz-card p-6 text-center space-y-4 shadow-xl">
-                        <h2 class="text-2xl font-black text-indigo-600">🎉 Spectacular!</h2>
-                        <p class="text-slate-600 font-medium">You have mastered all scriptural stages and completed the quest!</p>
-                    </div>`;
-                return;
-            }
-
-            const levelData = quizDatabase.find(l => l.level === gameData.lvl) || quizDatabase[0];
-            if (activeLevelQuestions.length === 0) {
-                initLevel();
-            }
-
-            document.getElementById('bg-overlay').style.backgroundImage = `url('${levelData.bgImage}')`;
-            document.getElementById('world-title').innerText = levelData.name;
-            document.getElementById('lvl-badge').innerText = gameData.lvl;
-            document.getElementById('gold-val').innerText = gameData.gold;
-            
-            const pct = (gameData.currentQuestionIndex / activeLevelQuestions.length) * 100;
-            document.getElementById('xp-bar').style.width = pct + "%";
-
-            const skipContainer = document.getElementById('skip-container');
-            if (gameData.gold >= 100 && gameData.lvl <= quizDatabase.length) {
-                skipContainer.classList.remove('hidden');
-            } else {
-                skipContainer.classList.add('hidden');
-            }
-
-            const container = document.getElementById('quiz-container');
-            container.innerHTML = "";
-
-            if (gameData.currentQuestionIndex < activeLevelQuestions.length) {
-                const qObj = activeLevelQuestions[gameData.currentQuestionIndex];
-                let qCard = document.createElement('div');
-                qCard.className = "quiz-card p-6 shadow-xl space-y-6";
-                qCard.innerHTML = `<h2 class="text-xl font-bold text-slate-800">${qObj.q}</h2><div id="options-box" class="space-y-3"></div>`;
-                container.appendChild(qCard);
-
-                qObj.a.forEach((option, idx) => {
-                    let btn = document.createElement('button');
-                    btn.className = "btn-opt";
-                    btn.innerHTML = `<span>${option}</span><span class="emoji-status"></span>`;
-                    
-                    btn.onclick = () => {
-                        if (isProcessingClick) return; 
-                        isProcessingClick = true;
-                        const emojiSpan = btn.querySelector('.emoji-status');
-
-                        if (idx === qObj.correct) {
-                            playSound(soundCorrect);
-                            btn.style.background = "#dcfce7";
-                            btn.style.borderColor = "#22c55e";
-                            emojiSpan.innerText = "✅";
-                            gameData.gold += 20;
-                            gameData.currentQuestionIndex++;
-                            
-                            if (gameData.currentQuestionIndex >= activeLevelQuestions.length) {
-                                gameData.lvl++;
-                                gameData.currentQuestionIndex = 0;
-                                activeLevelQuestions = []; 
-                                localStorage.setItem('bibleQuizRPGData', JSON.stringify(gameData));
-                                setTimeout(triggerLevelUpAnimation, 500);
-                                return;
-                            }
-                        } else {
-                            playSound(soundWrong);
-                            btn.style.background = "#fee2e2";
-                            btn.style.borderColor = "#ef4444";
-                            emojiSpan.innerText = "❌";
-                            gameData.gold -= 10;
-                            if (gameData.gold < 0) gameData.gold = 0;
-                        }
-                        
-                        localStorage.setItem('bibleQuizRPGData', JSON.stringify(gameData));
-                        setTimeout(updateUI, 800);
-                    };
-                    document.getElementById('options-box').appendChild(btn);
+            if(type === 'correct') {
+                osc.frequency.setValueAtTime(523, now); // C5
+                osc.frequency.exponentialRampToValueAtTime(1046, now + 0.2); // C6
+                g.gain.setValueAtTime(0.1, now);
+                g.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(); osc.stop(now + 0.3);
+            } else if(type === 'wrong') {
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.linearRampToValueAtTime(50, now + 0.3);
+                g.gain.setValueAtTime(0.1, now);
+                g.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(); osc.stop(now + 0.3);
+            } else { // Victory
+                [440, 554, 659, 880].forEach((f, i) => {
+                    const o = ctx.createOscillator();
+                    const gn = ctx.createGain();
+                    o.connect(gn); gn.connect(ctx.destination);
+                    o.frequency.value = f;
+                    gn.gain.setValueAtTime(0.1, now + (i*0.1));
+                    gn.gain.exponentialRampToValueAtTime(0.01, now + 0.5 + (i*0.1));
+                    o.start(now + (i*0.1)); o.stop(now + 0.6 + (i*0.1));
                 });
             }
         }
 
-        function triggerLevelUpAnimation() {
-            playSound(soundLevelUp);
-            const splash = document.getElementById('level-up-splash');
-            const nextWorldTxt = document.getElementById('next-world-txt');
-            const nextLevelData = quizDatabase.find(l => l.level === gameData.lvl);
-            nextWorldTxt.innerText = nextLevelData ? nextLevelData.name : "Final Victory!";
-            splash.classList.add('active');
+        // --- DATABASE (EXPANDABLE TO 200) ---
+        const bibleData = [
+            {
+                lvl: 1, title: "The Beginning", img: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b",
+                q: [
+                    {q: "Who was the first man?", a: ["Noah","Adam","Moses","Paul"], c: 1},
+                    {q: "How many days did God take to create the world?", a: ["7","6","10","3"], c: 1},
+                    {q: "Who was Adam's wife?", a: ["Sarah","Ruth","Eve","Esther"], c: 2},
+                    {q: "What was the first thing God created?", a: ["Animals","Man","Light","Trees"], c: 2},
+                    {q: "Who killed Abel?", a: ["Seth","Cain","Enoch","Lamech"], c: 1}
+                ]
+            },
+            {
+                lvl: 2, title: "Noah's Faith", img: "https://images.unsplash.com/photo-1433086966358-54859d0ed716",
+                q: [
+                    {q: "What did Noah build?", a: ["A Temple","A Wall","An Ark","A Palace"], c: 2},
+                    {q: "How many of each clean animal entered the Ark?", a: ["2","7","12","1"], c: 1},
+                    {q: "How long did it rain during the flood?", a: ["40 Days","12 Days","1 Year","7 Days"], c: 0},
+                    {q: "What bird returned with an olive leaf?", a: ["Raven","Eagle","Dove","Sparrow"], c: 2},
+                    {q: "What sign did God give to never flood the earth again?", a: ["A Cloud","A Rainbow","A Star","A Pillar"], c: 1}
+                ]
+            }
+            // Add more levels here to reach 200 questions!
+        ];
+
+        let state = JSON.parse(localStorage.getItem('bq200')) || { lvl: 1, idx: 0, gold: 0 };
+
+        function render() {
+            const level = bibleData.find(d => d.lvl === state.lvl);
+            if(!level) {
+                document.getElementById('quiz-container').innerHTML = "<div class='quiz-card p-8 text-center font-bold'>The Quest is Complete! 🏆</div>";
+                return;
+            }
+
+            document.getElementById('bg-overlay').style.backgroundImage = `url(${level.img})`;
+            document.getElementById('world-title').innerText = level.title;
+            document.getElementById('gold-val').innerText = state.gold;
+            document.getElementById('xp-bar').style.width = (state.idx / level.q.length) * 100 + "%";
+
+            const current = level.q[state.idx];
+            let html = `<div class="quiz-card p-6 animate-fade-in">
+                <h2 class="text-xl font-bold mb-6">${current.q}</h2>
+                <div class="space-y-3">`;
             
-            setTimeout(() => {
-                splash.classList.remove('active');
-                initLevel(); 
-                updateUI();
-            }, 2500);
+            current.a.forEach((opt, i) => {
+                html += `<button onclick="check(${i})" class="btn-opt"><span>${opt}</span></button>`;
+            });
+
+            html += `</div></div>`;
+            document.getElementById('quiz-container').innerHTML = html;
         }
 
-        function skipLevel() {
-            if (gameData.gold >= 100) {
-                if (confirm("Spend 100 gold to advance directly to the next level?")) {
-                    gameData.gold -= 100;
-                    gameData.lvl++;
-                    gameData.currentQuestionIndex = 0;
-                    activeLevelQuestions = []; 
-                    localStorage.setItem('bibleQuizRPGData', JSON.stringify(gameData));
-                    triggerLevelUpAnimation();
+        window.check = function(choice) {
+            const level = bibleData.find(d => d.lvl === state.lvl);
+            if(choice === level.q[state.idx].c) {
+                playSound('correct');
+                state.gold += 10;
+                state.idx++;
+                if(state.idx >= level.q.length) {
+                    state.lvl++;
+                    state.idx = 0;
+                    showVictory();
                 }
+            } else {
+                playSound('wrong');
+                alert("Try again, seeker!");
             }
+            save();
+            render();
+        };
+
+        function showVictory() {
+            playSound('victory');
+            const s = document.getElementById('level-up-splash');
+            s.classList.add('active');
+            setTimeout(() => s.classList.remove('active'), 3000);
         }
 
-        function triggerReset() {
-            if(confirm("Start over from Level 1?")) {
-                localStorage.removeItem('bibleQuizRPGData');
-                activeLevelQuestions = [];
-                location.reload();
-            }
-        }
-
-        initLevel();
-        updateUI();
+        function save() { localStorage.setItem('bq200', JSON.stringify(state)); }
+        render();
     </script>
 </body>
 </html>
