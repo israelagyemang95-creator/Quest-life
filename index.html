@@ -71,57 +71,11 @@
         <div id="quiz-container" class="space-y-4"></div>
     </div>
 
-    <script>
-        // COMPREHENSIVE BIBLE QUIZ DATABASE (100 Questions Split Into Levels)
-        // Levels 1-2 (Easy), 3-4 (Medium), 5+ (Hard)
-        const quizDatabase = [
-            {
-                level: 1, name: "The Deep Jungle", style: "world-jungle",
-                questions: [
-                    { q: "Who was the first man created?", a: ["Noah", "Adam", "Abraham", "Moses"], correct: 1 },
-                    { q: "What did Noah build to survive the flood?", a: ["A tower", "A castle", "An ark", "A temple"], correct: 2 },
-                    { q: "How many commandments did God give Moses?", a: ["5", "12", "7", "10"], correct: 3 }
-                ]
-            },
-            {
-                level: 2, name: "The Deep Jungle", style: "world-jungle",
-                questions: [
-                    { q: "Who was swallowed by a great fish?", a: ["Jonah", "Peter", "Daniel", "Paul"], correct: 0 },
-                    { q: "What giant did David defeat with a sling?", a: ["Saul", "Goliath", "Samson", "Absalom"], correct: 1 },
-                    { q: "Which book is the very first in the Bible?", a: ["Exodus", "Matthew", "Genesis", "Psalms"], correct: 2 }
-                ]
-            },
-            {
-                level: 3, name: "Scorched Desert", style: "world-desert",
-                questions: [
-                    { q: "What was Jesus' earthly profession before His ministry?", a: ["Fisherman", "Carpenter", "Tentmaker", "Tax Collector"], correct: 1 },
-                    { q: "Through which sea did Moses lead the Israelites safely?", a: ["The Red Sea", "The Dead Sea", "The Mediterranean Sea", "The Caspian Sea"], correct: 0 },
-                    { q: "Who was thrown into the lions' den for praying?", a: ["Shadrach", "Elijah", "Daniel", "Jeremiah"], correct: 2 },
-                    { q: "How many disciples did Jesus choose?", a: ["10", "12", "15", "70"], correct: 1 }
-                ]
-            },
-            {
-                level: 4, name: "Scorched Desert", style: "world-desert",
-                questions: [
-                    { q: "What did Judas receive for betraying Jesus?", a: ["A crown of gold", "An estate", "30 pieces of silver", "A purple robe"], correct: 2 },
-                    { q: "Who received a coat of many colors from his father?", a: ["Benjamin", "Joseph", "David", "Solomon"], correct: 1 },
-                    { q: "Which New Testament book contains many letters written by Paul?", a: ["Acts", "Revelation", "Romans", "John"], correct: 2 },
-                    { q: "Who was Jesus' mother?", a: ["Martha", "Elisabeth", "Mary", "Ruth"], correct: 2 }
-                ]
-            },
-            {
-                level: 5, name: "Crystal Caves", style: "world-cave",
-                questions: [
-                    { q: "What is the longest book in the Bible?", a: ["Isaiah", "Genesis", "Chronicles", "Psalms"], correct: 3 },
-                    { q: "On what island was John when he wrote Revelation?", a: ["Cyprus", "Patmos", "Malta", "Crete"], correct: 1 },
-                    { q: "Who was the oldest man recorded in the Bible?", a: ["Methuselah", "Enoch", "Noah", "Adam"], correct: 0 },
-                    { q: "Which king asked God for wisdom instead of long life?", a: ["David", "Saul", "Solomon", "Hezekiah"], correct: 2 },
-                    { q: "What was the original name of the Apostle Paul?", a: ["Saul", "Silas", "Simon", "Stephen"], correct: 0 }
-                ]
-            }
-            // You can continue appending levels up to 100 following this exact array structural design pattern!
-        ];
+    <!-- THE BRIDGE TO YOUR 100 QUESTIONS FILE -->
+    <script src="questions.js"></script>
 
+    <!-- THE MAIN GAME ENGINE -->
+    <script>
         let gameData = JSON.parse(localStorage.getItem('bibleQuizRPGData')) || {
             lvl: 1, gold: 0, currentQuestionIndex: 0
         };
@@ -140,7 +94,6 @@
             const title = document.getElementById('world-title');
             const levelData = getCurrentLevelData();
             
-            // Render Background Environment Style
             body.className = "p-4 flex flex-col items-center " + levelData.style;
             title.innerText = levelData.name;
 
@@ -149,11 +102,9 @@
             document.getElementById('q-count').innerText = gameData.currentQuestionIndex;
             document.getElementById('q-total').innerText = levelData.questions.length;
             
-            // Progress tracker bar
             let pct = (gameData.currentQuestionIndex / levelData.questions.length) * 100;
             document.getElementById('xp-bar').style.width = pct + "%";
 
-            // Render current Question
             const container = document.getElementById('quiz-container');
             container.innerHTML = "";
 
@@ -161,7 +112,7 @@
                 const qObj = levelData.questions[gameData.currentQuestionIndex];
                 
                 let qCard = document.createElement('div');
-                qCard.className = "quiz-card p-6 shadow-xl space-y-4 animate-fade-in";
+                qCard.className = "quiz-card p-6 shadow-xl space-y-4";
                 qCard.innerHTML = `
                     <p class="text-xs uppercase font-black tracking-wider text-slate-400">Question ${gameData.currentQuestionIndex + 1}</p>
                     <h2 class="text-xl font-bold text-slate-800">${qObj.q}</h2>
@@ -177,12 +128,18 @@
                     btn.onclick = () => checkAnswer(idx, qObj.correct, btn);
                     optionsBox.appendChild(btn);
                 });
+            } else {
+                container.innerHTML = `
+                    <div class="quiz-card p-6 text-center shadow-xl space-y-2">
+                        <h2 class="text-2xl font-black text-indigo-600">🏆 CONGRATULATIONS!</h2>
+                        <p class="text-slate-600 font-bold">You have mastered all 100 questions and conquered the Promised Land!</p>
+                    </div>
+                `;
             }
         }
 
         function checkAnswer(chosenIdx, correctIdx, buttonElement) {
             const optionsBox = document.getElementById('options-box');
-            // Temporarily disable buttons to freeze inputs during animation frame
             const buttons = optionsBox.getElementsByTagName('button');
             for (let b of buttons) b.disabled = true;
 
@@ -199,10 +156,14 @@
                     const levelData = getCurrentLevelData();
                     
                     if (gameData.currentQuestionIndex >= levelData.questions.length) {
-                        // Level Cleared completely!
-                        gameData.lvl++;
-                        gameData.currentQuestionIndex = 0;
-                        playDramaticLevelUp();
+                        const nextLvlExists = quizDatabase.some(l => l.level === (gameData.lvl + 1));
+                        if (nextLvlExists) {
+                            gameData.lvl++;
+                            gameData.currentQuestionIndex = 0;
+                            playDramaticLevelUp();
+                        } else {
+                            save();
+                        }
                     } else {
                         save();
                     }
@@ -212,7 +173,6 @@
                 buttonElement.classList.remove('border-slate-200');
                 buttonElement.classList.add('border-rose-500', 'bg-rose-50');
                 
-                // Allow them to try again after a brief visual pause
                 setTimeout(() => {
                     for (let b of buttons) b.disabled = false;
                     buttonElement.classList.remove('border-rose-500', 'bg-rose-50');
@@ -251,7 +211,6 @@
             }
         }
 
-        // Particle layout generator
         for(let i=0; i<12; i++){
             let f = document.createElement('div');
             f.className = 'firefly';
