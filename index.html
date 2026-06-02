@@ -10,8 +10,10 @@
         #bg-tint { position: fixed; inset: 0; background: linear-gradient(180deg, rgba(15,23,42,0.7), rgba(15,23,42,0.95)); z-index: 1; }
         body { min-height: 100vh; background: #0f172a; color: white; font-family: system-ui, -apple-system, sans-serif; }
         
+        /* Glassmorphism Styling */
         .quiz-card { background: rgba(255, 255, 255, 0.98); border-radius: 24px; color: #1e293b; position: relative; z-index: 10; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
         .btn-opt { width: 100%; text-align: left; padding: 1.1rem 1.5rem; border-radius: 16px; border: 2px solid #f1f5f9; background: white; font-weight: 700; font-size: 0.95rem; transition: all 0.2s ease; display: flex; justify-content: space-between; align-items: center; }
+        .btn-opt:hover { border-color: #e2e8f0; background: #f8fafc; }
         .btn-opt:active { transform: scale(0.97); }
         
         #level-up-splash {
@@ -32,7 +34,7 @@
             <div class="text-6xl animate-bounce">🕊️</div>
             <h1 class="text-3xl font-black tracking-wide text-amber-400">BIBLE QUEST 200</h1>
             <p class="text-slate-400 text-sm leading-relaxed">
-                Tap below to unlock embedded audio profiles and begin your journey.
+                Tap below to initialize the high-fidelity bell chime system and begin your scriptural journey.
             </p>
             <button onclick="launchGame()" class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-2xl shadow-xl transform active:scale-95 transition-all text-lg tracking-wide">
                 ✨ Enter Bible Quest
@@ -54,15 +56,25 @@
     </div>
 
     <!-- MAIN INTERFACE -->
-    <div id="game-ui" class="w-full max-w-md mt-6 relative z-10 space-y-6 hidden">
-        <!-- HEADER STATUS -->
+    <div id="game-ui" class="w-full max-w-md mt-6 relative z-10 space-y-4 hidden">
+        <!-- HEADER STATUS CARD -->
         <div class="quiz-card p-5">
             <div class="flex justify-between items-center mb-3">
                 <span id="world-title" class="text-indigo-600 font-black text-xs uppercase tracking-widest">Chapter Title</span>
-                <span class="bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-xs font-black border border-amber-200/50">Score: <span id="gold-val">0</span></span>
+                <span class="bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-xs font-black border border-amber-200/50">💰 <span id="gold-val">0</span></span>
             </div>
-            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-4">
                 <div id="xp-bar" class="bg-indigo-600 h-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+            
+            <!-- ACTION UTILITIES BLOCK -->
+            <div class="flex gap-2 pt-2 border-t border-slate-100">
+                <button onclick="restartLevel()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2 px-3 rounded-xl transition active:scale-95 text-center">
+                    🔄 Restart Level
+                </button>
+                <button onclick="skipLevel()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold py-2 px-3 rounded-xl transition active:scale-95 text-center flex justify-center items-center gap-1">
+                    ⏩ Skip Level <span class="text-[10px] bg-black/20 px-1.5 py-0.5 rounded-md">30 💰</span>
+                </button>
             </div>
         </div>
 
@@ -72,50 +84,77 @@
 
     <script>
         // ========================================================
-        // EMBEDDED AUDIO DATA (BASE64 - NO EXTERNAL LOADING)
+        // HIGH-FIDELITY FM CHIME SYNTHESIS ENGINE (ROBOT-PROOF)
         // ========================================================
-        const audioAssets = {
-            // Short, clean embedded chimes that work offline instantly
-            correct: "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==",
-            wrong: "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==",
-            victory: "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="
-        };
-
-        const sounds = {};
+        let audioCtx = null;
 
         function launchGame() {
-            // Build the audio elements from embedded strings immediately on tap frame
-            try {
-                sounds.correct = new Audio(audioAssets.correct);
-                sounds.wrong = new Audio(audioAssets.wrong);
-                sounds.victory = new Audio(audioAssets.victory);
-                
-                // Force a mute-reset initialization cycle to wake up the phone's speaker channels
-                for (let key in sounds) {
-                    sounds[key].load();
-                    sounds[key].volume = 0.0;
-                    sounds[key].play().catch(() => {});
-                }
-            } catch (e) {
-                console.log("Internal sound components setup bypassed");
-            }
-
-            // Swap out launcher UI
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             document.getElementById('launcher-screen').classList.add('hidden');
             document.getElementById('game-ui').classList.remove('hidden');
-            
             render();
         }
 
-        function playSoundEffect(type) {
-            try {
-                if (sounds[type]) {
-                    sounds[type].currentTime = 0;
-                    sounds[type].volume = 0.4;
-                    sounds[type].play().catch(e => console.log("Audio block: ", e));
-                }
-            } catch (e) {
-                console.log("Playback error: ", e);
+        function playFmChime(frequency, duration, isCorrect) {
+            if (!audioCtx) return;
+            
+            const now = audioCtx.currentTime;
+            
+            // 1. Carrier node (The main pitched tone)
+            const carrier = audioCtx.createOscillator();
+            const carrierGain = audioCtx.createGain();
+            
+            // 2. Modulator node (Creates the rich metal metallic acoustic vibration string properties)
+            const modulator = audioCtx.createOscillator();
+            const modulatorGain = audioCtx.createGain();
+            
+            carrier.type = 'sine';
+            modulator.type = 'sine';
+            
+            // Setting up natural bell acoustic ratios
+            modulator.frequency.setValueAtTime(frequency * 1.414, now); 
+            modulatorGain.gain.setValueAtTime(isCorrect ? 150 : 40, now); 
+            
+            carrier.frequency.setValueAtTime(frequency, now);
+            
+            // Envelope shapes for real material strikes
+            carrierGain.gain.setValueAtTime(0.25, now);
+            if (isCorrect) {
+                // Smooth ringing bell decay finish
+                carrierGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+                modulatorGain.gain.exponentialRampToValueAtTime(0.001, now + duration * 0.5);
+            } else {
+                // Short damp thud
+                carrierGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+            }
+            
+            // Internal routing layout connections
+            modulator.connect(modulatorGain);
+            modulatorGain.connect(carrier.frequency); 
+            carrier.connect(carrierGain);
+            carrierGain.connect(audioCtx.destination);
+            
+            modulator.start(now);
+            carrier.start(now);
+            
+            modulator.stop(now + duration);
+            carrier.stop(now + duration);
+        }
+
+        function triggerSoundEffect(type) {
+            if (type === 'correct') {
+                // Two-tone rising crystal bell harmony
+                playFmChime(587.33, 0.6, true); // D5
+                setTimeout(() => playFmChime(880.00, 0.8, true), 80); // A5
+            } else if (type === 'wrong') {
+                // Dark acoustic metal strike drop
+                playFmChime(110.00, 0.3, false); // A2
+            } else if (type === 'victory') {
+                // Full ascending major triad bell flourish
+                let notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((f, i) => {
+                    setTimeout(() => playFmChime(f, 1.2, true), i * 120);
+                });
             }
         }
 
@@ -143,10 +182,10 @@
                     {q: "What visual sign did God place to seal His global promise?", a: ["A pillar of fire","A bright star","A rainbow","A solar eclipse"], c: 1}
                 ]
             }
-            // --- PLUG IN REST OF YOUR 200 QUESTIONS BELOW ---
+            // --- Continue appending Levels 3 to 20 here down the line! ---
         ];
 
-        let state = JSON.parse(localStorage.getItem('bq200_failproof')) || { lvl: 1, idx: 0, gold: 0 };
+        let state = JSON.parse(localStorage.getItem('bq200_restored_save')) || { lvl: 1, idx: 0, gold: 10 };
         let currentQuestions = [];
 
         function shuffle(arr) {
@@ -165,7 +204,7 @@
                     <div class='quiz-card p-8 text-center font-bold space-y-3 shadow-2xl'>
                         <div class="text-5xl">👑</div>
                         <h2 class="text-2xl text-indigo-600 font-black">All Stages Mastered!</h2>
-                        <p class="text-slate-500 text-sm">You have traversed all 200 scriptural milestones successfully.</p>
+                        <p class="text-slate-500 text-sm">You have successfully run the full 200 question course line.</p>
                     </div>`;
                 return;
             }
@@ -200,7 +239,7 @@
             buttons.forEach(b => b.removeAttribute('onclick'));
 
             if (choice === current.c) {
-                playSoundEffect('correct');
+                triggerSoundEffect('correct');
                 element.style.background = "#dcfce7";
                 element.style.borderColor = "#22c55e";
                 indicator.innerText = "✅";
@@ -211,23 +250,48 @@
                     state.lvl++;
                     state.idx = 0;
                     currentQuestions = [];
-                    localStorage.setItem('bq200_failproof', JSON.stringify(state));
+                    localStorage.setItem('bq200_restored_save', JSON.stringify(state));
                     setTimeout(showLevelVictoryPanel, 600);
                     return;
                 }
             } else {
-                playSoundEffect('wrong');
+                triggerSoundEffect('wrong');
                 element.style.background = "#fee2e2";
                 element.style.borderColor = "#ef4444";
                 indicator.innerText = "❌";
+                state.gold = Math.max(0, state.gold - 5); // Deducts 5 coins cleanly on wrong answer
             }
             
-            localStorage.setItem('bq200_failproof', JSON.stringify(state));
+            localStorage.setItem('bq200_restored_save', JSON.stringify(state));
             setTimeout(render, 900);
         };
 
+        // --- GAME MECHANIC UTILITIES ---
+        window.restartLevel = function() {
+            if (confirm("Are you sure you want to reset your current score tracking for this chapter?")) {
+                state.idx = 0;
+                currentQuestions = [];
+                localStorage.setItem('bq200_restored_save', JSON.stringify(state));
+                triggerSoundEffect('wrong');
+                render();
+            }
+        };
+
+        window.skipLevel = function() {
+            if (state.gold >= 30) {
+                state.gold -= 30;
+                state.lvl++;
+                state.idx = 0;
+                currentQuestions = [];
+                localStorage.setItem('bq200_restored_save', JSON.stringify(state));
+                showLevelVictoryPanel();
+            } else {
+                alert("You need at least 30 coins to skip this scriptural stage!");
+            }
+        };
+
         function showLevelVictoryPanel() {
-            playSoundEffect('victory');
+            triggerSoundEffect('victory');
             const splash = document.getElementById('level-up-splash');
             const txt = document.getElementById('next-world-txt');
             const nextLvl = bibleData.find(d => d.lvl === state.lvl);
