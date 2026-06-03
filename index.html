@@ -61,7 +61,8 @@
     <div id="bg-overlay"></div>
     <div id="bg-tint"></div>
 
-     <audio id="bg-music" loop src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAAQA"></audio>
+     <audio id="bg-music" loop src="background.mp3"></audio>
+
 
 
 
@@ -298,50 +299,35 @@ let audioCtx = null;
 let musicInterval = null;
 
 function toggleMusic() {
+    const music = document.getElementById('bg-music');
     const musicBtn = document.getElementById('music-btn');
     
     if (!isMusicPlaying) {
-        isMusicPlaying = true;
-        musicBtn.innerText = "🔊 Music: On";
-        musicBtn.classList.replace('bg-slate-700', 'bg-emerald-600');
-        
-        // Initialize the local native synth engine
-        if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        
-        // Generate a beautiful, continuous peaceful ambient tone loop
-        musicInterval = setInterval(() => {
-            if (isPaused) return; // Freeze music if game is paused
-            
-            try {
-                let osc = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
+        music.play()
+            .then(() => {
+                isMusicPlaying = true;
+                musicBtn.innerText = "🔊 Music: On";
+                musicBtn.classList.replace('bg-slate-700', 'bg-emerald-600');
+            })
+            .catch((error) => {
+                console.log("Waiting for user interaction...");
+                isMusicPlaying = true;
+                musicBtn.innerText = "🔊 Music: On";
+                musicBtn.classList.replace('bg-slate-700', 'bg-emerald-600');
                 
-                osc.type = 'triangle'; // Soft, warm piano-like tone wave
-                // Alternate softly between two peaceful ambient chords
-                osc.frequency.setValueAtTime(Math.random() > 0.5 ? 261.63 : 329.63, audioCtx.currentTime); 
-                
-                gain.gain.setValueAtTime(0.05, audioCtx.currentTime); // Low background volume
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.9);
-                
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                
-                osc.start();
-                osc.stop(audioCtx.currentTime + 2);
-            } catch (e) {
-                console.log("Audio loop waiting for user touch interaction.");
-            }
-        }, 2000);
-        
+                document.body.addEventListener('click', function startOnInteraction() {
+                    music.play().catch(e => console.log(e));
+                    document.body.removeEventListener('click', startOnInteraction);
+                }, { once: true });
+            });
     } else {
+        music.pause();
         isMusicPlaying = false;
         musicBtn.innerText = "🔈 Music: Off";
         musicBtn.classList.replace('bg-emerald-600', 'bg-slate-700');
-        clearInterval(musicInterval);
     }
 }
+
 
 
         function checkStatus() {
