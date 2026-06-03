@@ -1,101 +1,215 @@
-// ... (Keep your Audio constants and gameData initialization at the top)
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bible Quest Blitz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="questions.js"></script>
+    <style>
+        #bg-overlay { position: fixed; inset: 0; background-color: #0f172a; background-size: cover; background-position: center; transition: background-image 1s ease-in-out; z-index: 0; }
+        #bg-tint { position: fixed; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.5), rgba(0,0,0,0.8)); z-index: 1; }
+        body { min-height: 100vh; background: #0f172a; color: white; font-family: sans-serif; overflow-x: hidden; }
+        .quiz-card { background: rgba(255, 255, 255, 0.95); border-radius: 20px; color: #1e293b; position: relative; z-index: 10; }
+        .btn-opt { width: 100%; text-align: left; padding: 1rem; border-radius: 12px; border: 1px solid #e2e8f0; background: white; font-weight: bold; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; }
+        .timer-danger { color: #ef4444 !important; animation: vibrate 0.2s linear infinite; }
+        @keyframes vibrate { 0%, 100% { transform: translate(0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(-2px, -2px); } 60% { transform: translate(2px, 2px); } 80% { transform: translate(2px, -2px); } }
+        #level-up-splash { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: all 0.5s; }
+        #level-up-splash.active { opacity: 1; pointer-events: auto; }
+    </style>
+</head>
+<body class="p-4 flex flex-col items-center">
+    <div id="bg-overlay"></div>
+    <div id="bg-tint"></div>
 
-let activeQuestions = []; // This will hold our shuffled pool
-let isProcessing = false;
+    <div id="level-up-splash">
+        <div class="bg-gradient-to-b from-indigo-600 to-indigo-900 p-8 rounded-3xl text-center shadow-2xl max-w-sm w-11/12 border border-white/20">
+            <div class="text-6xl mb-2">✨🏆✨</div>
+            <h1 class="text-4xl font-black text-amber-400 uppercase">Level Up!</h1>
+            <p id="next-world-txt" class="text-white font-bold mt-4"></p>
+        </div>
+    </div>
 
-function renderUI() {
-    isProcessing = false;
-    
-    // 1. Safety Check: Is the data file loaded?
-    if (typeof quizDatabase === 'undefined' || quizDatabase.length === 0) {
-        document.getElementById('quiz-container').innerHTML = 
-            `<div class="quiz-card p-6 text-center text-red-600 font-bold">
-                QUESTIONS.JS NOT LOADED<br>
-                <span class="text-xs font-normal text-slate-500">Make sure your file is named 'questions.js' and is in the same folder.</span>
-            </div>`;
-        return;
-    }
+    <div class="fixed top-4 left-4 right-4 flex justify-between z-50">
+        <button onclick="toggleLanguage()" class="bg-indigo-600 text-white px-4 py-2 rounded-full font-bold shadow-lg text-sm border border-white/20">
+            🌐 <span id="lang-label">English</span>
+        </button>
+        <button onclick="toggleMusic()" id="music-btn" class="bg-slate-900/80 backdrop-blur p-3 h-11 w-11 rounded-full text-lg border border-white/10 flex items-center justify-center shadow-lg active:scale-95 transition-all">🔇</button>
+    </div>
 
-    // 2. Find Current Level (or fall back to the last available one)
-    let levelData = quizDatabase.find(l => l.level === gameData.lvl);
-    if (!levelData) {
-        levelData = quizDatabase[quizDatabase.length - 1]; // Loop at the last level
-    }
+    <div id="game-content" class="w-full max-w-md space-y-6 mt-16 relative z-10">
+        <div class="quiz-card p-6 shadow-2xl">
+            <h1 id="world-title" class="text-xs font-black uppercase tracking-widest mb-3 text-indigo-600 text-center">INITIALIZING...</h1>
+            <div class="flex justify-between items-center mb-4">
+                <div id="lvl-badge" class="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-black">1</div>
+                <div class="flex flex-col items-center">
+                    <span id="timer-clock" class="text-3xl font-black text-slate-700">10</span>
+                </div>
+                <div class="text-right">
+                    <p class="text-xl font-black text-slate-800">💰 <span id="gold-val">0</span></p>
+                </div>
+            </div>
+            <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                <div id="xp-bar" class="h-full bg-green-500 transition-all duration-500" style="width: 0%"></div>
+            </div>
+        </div>
 
-    // 3. SHUFFLE LOGIC: If pool is empty or we finished the current list, REFILL IT
-    if (activeQuestions.length === 0 || gameData.currentQuestionIndex >= activeQuestions.length) {
-        // We clone and shuffle the questions from the current levelData
-        activeQuestions = [...levelData.questions].sort(() => Math.random() - 0.5);
-        gameData.currentQuestionIndex = 0; 
-        console.log("Shuffled new pool of " + activeQuestions.length + " questions.");
-    }
+        <div id="quiz-container" class="space-y-4"></div>
+        <button onclick="triggerReset()" class="w-full text-center text-xs text-white/30 mt-10 uppercase tracking-widest block">Reset Progress</button>
+    </div>
 
-    // 4. Update Visuals
-    document.getElementById('bg-overlay').style.backgroundImage = `url('${levelData.bgImage}')`;
-    document.getElementById('world-title').innerText = levelData.name;
-    document.getElementById('lvl-badge').innerText = gameData.lvl;
-    document.getElementById('gold-val').innerText = gameData.gold;
-    document.getElementById('xp-bar').style.width = (gameData.currentQuestionIndex / activeQuestions.length * 100) + "%";
+    <script>
+        // AUDIO SETUP
+        const bgMusic = new Audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3");
+        bgMusic.loop = true;
+        const sfxCorrect = new Audio("https://assets.mixkit.co/active_storage/sfx/2019/2019-84.wav");
+        const sfxWrong = new Audio("https://assets.mixkit.co/active_storage/sfx/2958/2958-84.wav");
+        const sfxLevel = new Audio("https://assets.mixkit.co/active_storage/sfx/1435/1435-84.wav");
 
-    renderCurrentQuestionText();
-    startTimer();
-}
+        let gameData = JSON.parse(localStorage.getItem('bibleQuizRPGData')) || {
+            lvl: 1, gold: 100, currentQuestionIndex: 0, lang: 'en'
+        };
 
-function handleAnswer(selected, correct, btn) {
-    if (isProcessing) return;
-    isProcessing = true;
-    clearInterval(timerInterval);
+        let activePool = [];
+        let timerInterval = null;
+        let timeLeft = 10;
+        let isProcessing = false;
+        let isMusicPlaying = false;
 
-    if (selected === correct) {
-        playSfx(soundCorrect);
-        btn.style.background = "#dcfce7";
-        btn.style.borderColor = "#22c55e";
-        gameData.gold += 20;
-        
-        // Move to next question index
-        gameData.currentQuestionIndex++; 
-
-        // Check if we just finished the last question in this level's pool
-        if (gameData.currentQuestionIndex >= activeQuestions.length) {
-            // Check if there is a next level defined in questions.js
-            const nextLevelExists = quizDatabase.some(l => l.level === gameData.lvl + 1);
-            
-            if (nextLevelExists) {
-                gameData.lvl++;
-                gameData.currentQuestionIndex = 0;
-                activeQuestions = []; // Force a fresh shuffle for the new level
-                save();
-                setTimeout(showLevelUp, 600);
+        function toggleMusic() {
+            const btn = document.getElementById('music-btn');
+            if (!isMusicPlaying) {
+                bgMusic.play().catch(() => {});
+                btn.innerText = "🔊";
+                isMusicPlaying = true;
             } else {
-                // No more levels? Just reshuffle the current one and keep going
-                activeQuestions = []; 
-                gameData.currentQuestionIndex = 0;
-                save();
-                setTimeout(() => {
-                    timeLeft = 10;
-                    renderUI();
-                }, 800);
+                bgMusic.pause();
+                btn.innerText = "🔇";
+                isMusicPlaying = false;
             }
-        } else {
-            save();
-            setTimeout(() => {
-                timeLeft = 10;
-                renderUI();
-            }, 800);
         }
-    } else {
-        // WRONG ANSWER LOGIC
-        playSfx(soundWrong);
-        btn.style.background = "#fee2e2";
-        btn.style.borderColor = "#ef4444";
-        gameData.gold = Math.max(0, gameData.gold - 10);
-        save();
-        
-        // Let them try the same question again
-        setTimeout(() => {
-            isProcessing = false;
+
+        function toggleLanguage() {
+            gameData.lang = (gameData.lang === 'en') ? 'tw' : 'en';
+            save();
+            renderQuestion();
+        }
+
+        function renderUI() {
+            if (typeof quizDatabase === 'undefined') {
+                document.getElementById('quiz-container').innerHTML = "<div class='quiz-card p-6 text-red-600'>ERROR: questions.js not found!</div>";
+                return;
+            }
+
+            let levelData = quizDatabase.find(l => l.level === gameData.lvl) || quizDatabase[quizDatabase.length - 1];
+            
+            // Refresh Pool if empty
+            if (activePool.length === 0) {
+                activePool = [...levelData.questions].sort(() => Math.random() - 0.5);
+            }
+
+            document.getElementById('bg-overlay').style.backgroundImage = `url('${levelData.bgImage}')`;
+            document.getElementById('world-title').innerText = levelData.name;
+            document.getElementById('lvl-badge').innerText = gameData.lvl;
+            document.getElementById('gold-val').innerText = gameData.gold;
+            document.getElementById('lang-label').innerText = (gameData.lang === 'en') ? "English" : "Twi";
+            
+            const progress = (gameData.currentQuestionIndex / activePool.length) * 100;
+            document.getElementById('xp-bar').style.width = progress + "%";
+
+            renderQuestion();
+            startTimer();
+        }
+
+        function renderQuestion() {
+            const qObj = activePool[gameData.currentQuestionIndex];
+            const container = document.getElementById('quiz-container');
+            
+            const txt = (gameData.lang === 'en') ? qObj.q : (qObj.q_twi || qObj.q);
+            const opts = (gameData.lang === 'en') ? qObj.a : (qObj.a_twi || qObj.a);
+
+            container.innerHTML = `
+                <div class="quiz-card p-6 shadow-xl">
+                    <h2 class="text-xl font-bold text-slate-800 mb-6">${txt}</h2>
+                    <div class="space-y-3" id="opt-box"></div>
+                </div>
+            `;
+
+            opts.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "btn-opt";
+                btn.innerHTML = `<span>${opt}</span>`;
+                btn.onclick = () => handleAnswer(idx, qObj.correct, btn);
+                document.getElementById('opt-box').appendChild(btn);
+            });
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
             timeLeft = 10;
-            renderUI();
-        }, 800);
-    }
-}
+            const clock = document.getElementById('timer-clock');
+            clock.classList.remove('timer-danger');
+            clock.innerText = timeLeft;
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                clock.innerText = timeLeft;
+                if (timeLeft <= 3) clock.classList.add('timer-danger');
+                if (timeLeft <= 0) handleTimeout();
+            }, 1000);
+        }
+
+        function handleTimeout() {
+            clearInterval(timerInterval);
+            gameData.gold = Math.max(0, gameData.gold - 20);
+            save();
+            renderUI(); // Restarts the same question
+        }
+
+        function handleAnswer(choice, correct, btn) {
+            if (isProcessing) return;
+            isProcessing = true;
+            clearInterval(timerInterval);
+
+            if (choice === correct) {
+                btn.style.background = "#dcfce7";
+                sfxCorrect.play();
+                gameData.gold += 20;
+                gameData.currentQuestionIndex++;
+
+                if (gameData.currentQuestionIndex >= activePool.length) {
+                    gameData.lvl++;
+                    gameData.currentQuestionIndex = 0;
+                    activePool = []; 
+                    save();
+                    setTimeout(showLevelUp, 600);
+                } else {
+                    save();
+                    setTimeout(renderUI, 800);
+                }
+            } else {
+                btn.style.background = "#fee2e2";
+                sfxWrong.play();
+                gameData.gold = Math.max(0, gameData.gold - 10);
+                save();
+                setTimeout(() => { isProcessing = false; startTimer(); }, 800);
+            }
+        }
+
+        function showLevelUp() {
+            sfxLevel.play();
+            const splash = document.getElementById('level-up-splash');
+            splash.classList.add('active');
+            setTimeout(() => {
+                splash.classList.remove('active');
+                renderUI();
+            }, 2000);
+        }
+
+        function save() { localStorage.setItem('bibleQuizRPGData', JSON.stringify(gameData)); }
+        function triggerReset() { localStorage.clear(); location.reload(); }
+
+        window.onload = renderUI;
+    </script>
+</body>
+</html>
