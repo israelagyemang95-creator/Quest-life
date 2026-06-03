@@ -291,24 +291,36 @@
             }
         }
 
-        function toggleMusic() {
-            const music = document.getElementById('bg-music');
-            const musicBtn = document.getElementById('music-btn');
-            if (!isMusicPlaying) {
-                music.play().then(() => {
-                    isMusicPlaying = true;
-                    musicBtn.innerText = "🔊 Music: On";
-                    musicBtn.classList.replace('bg-slate-700', 'bg-emerald-600');
-                }).catch(() => {
-                    alert("Interact with the screen before enabling track elements.");
-                });
-            } else {
-                music.pause();
-                isMusicPlaying = false;
-                musicBtn.innerText = "🔈 Music: Off";
-                musicBtn.classList.replace('bg-emerald-600', 'bg-slate-700');
-            }
-        }
+        
+function toggleMusic() {
+    const music = document.getElementById('bg-music');
+    const musicBtn = document.getElementById('music-btn');
+    
+    if (!isMusicPlaying) {
+        music.play()
+            .then(() => {
+                isMusicPlaying = true;
+                musicBtn.innerText = "🔊 Music: On";
+                musicBtn.classList.replace('bg-slate-700', 'bg-emerald-600');
+            })
+            .catch((error) => {
+                console.log("Autoplay prevented. Trying interaction method...");
+                isMusicPlaying = true;
+                musicBtn.innerText = "🔊 Music: On";
+                musicBtn.classList.replace('bg-slate-700', 'bg-emerald-600');
+                
+                document.body.addEventListener('click', function startOnInteraction() {
+                    music.play().catch(e => console.log(e));
+                    document.body.removeEventListener('click', startOnInteraction);
+                }, { once: true });
+            });
+    } else {
+        music.pause();
+        isMusicPlaying = false;
+        musicBtn.innerText = "🔈 Music: Off";
+        musicBtn.classList.replace('bg-emerald-600', 'bg-slate-700');
+    }
+}
 
         function checkStatus() {
             if (gameData.gold <= 0) {
