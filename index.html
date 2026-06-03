@@ -14,24 +14,30 @@
         .btn-opt:hover { background: #f8fafc; border-color: #cbd5e1; }
         .timer-danger { color: #ef4444 !important; animation: vibrate 0.2s linear infinite; }
         @keyframes vibrate { 0%, 100% { transform: translate(0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(-2px, -2px); } 60% { transform: translate(2px, 2px); } 80% { transform: translate(2px, -2px); } }
-        #level-up-splash { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: all 0.5s; }
-        #level-up-splash.active { opacity: 1; pointer-events: auto; }
+        #level-up-splash, #game-over-splash { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: all 0.5s; }
+        #level-up-splash.active, #game-over-splash.active { opacity: 1; pointer-events: auto; }
     </style>
 </head>
 <body class="p-4 flex flex-col items-center">
     <div id="bg-overlay"></div>
     <div id="bg-tint"></div>
 
-    <!-- LEVEL UP MODAL -->
     <div id="level-up-splash">
         <div class="bg-gradient-to-b from-indigo-600 to-indigo-900 p-8 rounded-3xl text-center shadow-2xl max-w-sm w-11/12 border border-white/20">
             <div class="text-6xl mb-2">✨🏆</div>
             <h1 class="text-4xl font-black text-amber-400 uppercase">Level Up!</h1>
-            <p id="next-world-txt" class="text-white font-bold mt-4">Moving to next level...</p>
+            <p class="text-white font-bold mt-4">New World Unlocked</p>
         </div>
     </div>
 
-    <!-- HUD MENU -->
+    <div id="game-over-splash">
+        <div class="bg-gradient-to-b from-red-600 to-black p-8 rounded-3xl text-center shadow-2xl max-w-sm w-11/12 border border-white/20">
+            <div class="text-6xl mb-2">💀</div>
+            <h1 class="text-4xl font-black text-white uppercase">Out of Coins!</h1>
+            <p class="text-red-200 font-bold mt-4">Restarting from Level 1...</p>
+        </div>
+    </div>
+
     <div class="fixed top-4 left-4 right-4 flex justify-between z-50">
         <button onclick="toggleLanguage()" class="bg-indigo-600 text-white px-4 py-2 rounded-full font-bold shadow-lg text-sm border border-white/20">
             🌐 <span id="lang-label">English</span>
@@ -39,17 +45,16 @@
         <button onclick="toggleMusic()" id="music-btn" class="bg-slate-900/80 backdrop-blur p-3 h-11 w-11 rounded-full text-lg border border-white/10 flex items-center justify-center shadow-lg active:scale-95 transition-all">🔇</button>
     </div>
 
-    <!-- MAIN GAME BOARD -->
     <div id="game-content" class="w-full max-w-md space-y-6 mt-16 relative z-10">
         <div class="quiz-card p-6 shadow-2xl">
-            <h1 id="world-title" class="text-xs font-black uppercase tracking-widest mb-3 text-indigo-600 text-center">LOADING BLITZ...</h1>
+            <h1 id="world-title" class="text-xs font-black uppercase tracking-widest mb-3 text-indigo-600 text-center">BIBLE QUEST BLITZ</h1>
             <div class="flex justify-between items-center mb-4">
-                <div id="lvl-badge" class="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-black">1</div>
+                <div id="lvl-badge" class="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-black shadow-lg">1</div>
                 <div class="flex flex-col items-center">
                     <span id="timer-clock" class="text-3xl font-black text-slate-700">10</span>
                 </div>
                 <div class="text-right">
-                    <p class="text-xl font-black text-slate-800">💰 <span id="gold-val">0</span></p>
+                    <p class="text-xl font-black text-slate-800">💰 <span id="gold-val">100</span></p>
                 </div>
             </div>
             <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
@@ -57,286 +62,36 @@
             </div>
         </div>
 
-        <!-- CONTAINER WHERE QUESTIONS REDIRECT -->
         <div id="quiz-container" class="space-y-4"></div>
         
-        <button onclick="triggerReset()" class="w-full text-center text-xs text-white/30 mt-10 uppercase tracking-widest block bg-slate-900/40 py-2 rounded-xl border border-white/5 tracking-wider">Tap Here to Hard Reset Data</button>
+        <button id="skip-btn" onclick="skipQuestion()" class="hidden w-full bg-amber-500 hover:bg-amber-400 text-slate-900 font-black py-4 rounded-2xl shadow-xl transition-all active:scale-95 border-b-4 border-amber-700 uppercase tracking-widest">
+            ⏩ Skip Question (-100 💰)
+        </button>
+        
+        <button onclick="triggerReset()" class="w-full text-center text-xs text-white/30 mt-10 uppercase tracking-widest block bg-slate-900/40 py-2 rounded-xl border border-white/5">Tap Here to Hard Reset Data</button>
     </div>
 
+    <audio id="sfx-correct" src="https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"></audio>
+    <audio id="sfx-wrong" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
+    <audio id="sfx-level" src="https://assets.mixkit.co/active_storage/sfx/2015/2015-preview.mp3"></audio>
+    <audio id="bg-loop" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+
     <script>
-        // MASTER BIBLE QUIZ DATABASE (15 Levels - 200 Questions)
+        // Use your database from before...
         const quizDatabase = [
-          {
-            level: 1, name: "Genesis: The Early Earth", bgImage: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1000",
-            questions: [
-              { q: "Who was the first man?", q_twi: "Hwan ne onipa a odi kan?", a: ["Noah", "Adam", "Seth", "Abel"], a_twi: ["Noa", "Adam", "Set", "Abel"], correct: 1 },
-              { q: "What was the first thing God created?", q_twi: "Dɛn ne adeɛ a Onyankopɔn bɔɔ no mfiaseɛ?", a: ["Animals", "Light", "Humans", "Trees"], a_twi: ["Mmoa", "Hann", "Nnipa", "Nnua"], correct: 1 },
-              { q: "Who built the Ark?", q_twi: "Hwan na ɔyɛɛ Adaka no?", a: ["Moses", "Abraham", "Noah", "David"], a_twi: ["Mose", "Abraham", "Noa", "Dawid"], correct: 2 },
-              { q: "Who was Adam's wife?", q_twi: "Hwan ne Adam yere?", a: ["Sarah", "Eve", "Ruth", "Esther"], a_twi: ["Sara", "Hawa", "Rut", "Ester"], correct: 1 },
-              { q: "Which brother killed Abel?", q_twi: "Onua bɛn na okum Abel?", a: ["Seth", "Cain", "Jacob", "Esau"], a_twi: ["Set", "Kain", "Yakobo", "Esau"], correct: 1 },
-              { q: "How many days did God take to create the world?", q_twi: "Nna dodoɔ sɛn na Onyankopɔn de bɔɔ wiase?", a: ["6", "7", "10", "40"], a_twi: ["6", "7", "10", "40"], correct: 0 },
-              { q: "What did God do on the 7th day?", q_twi: "Dɛn na Onyankopɔn yɛɛ no da a ɛtɔ so nson?", a: ["Created Sun", "He rested", "Created Rain", "He sang"], a_twi: ["Ɔbɔɔ awia", "Ɔhomee", "Ɔtɔɔ nsuo", "Ɔtoo dwom"], correct: 1 },
-              { q: "What fruit did Eve eat?", q_twi: "Aba bɛn na Hawa die?", a: ["Banana", "Forbidden Fruit", "Grape", "Orange"], a_twi: ["Kwadu", "Aba a wɔabra", "Bobe", "Akutu"], correct: 1 },
-              { q: "Who was the oldest man in the Bible?", q_twi: "Hwan ne onipa a ɔkyɛɛ paa wɔ Bible mu?", a: ["Enoch", "Methuselah", "Noah", "Adam"], a_twi: ["Enok", "Metusela", "Noa", "Adam"], correct: 1 },
-              { q: "What was the sign of God's promise to Noah?", q_twi: "Dɛn ne Onyankopɔn bɔhyɛ sɛnkyerɛnne kyerɛɛ Noa?", a: ["Fire", "A Rainbow", "A Star", "A Dove"], a_twi: ["Ogya", "Nyankontɔn", "Nsoroma", "Aburuburo"], correct: 1 }
-            ]
-          },
-          {
-            level: 2, name: "The Patriarchs", bgImage: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000",
-            questions: [
-              { q: "Who is known as the Father of many nations?", q_twi: "Hwan na wɔfrɛ no aman dodoɔ agya?", a: ["Isaac", "Jacob", "Abraham", "Lot"], a_twi: ["Isak", "Yakobo", "Abraham", "Lot"], correct: 2 },
-              { q: "Who was Abraham's wife?", q_twi: "Hwan ne Abraham yere?", a: ["Hagar", "Sarah", "Rebekah", "Leah"], a_twi: ["Hagar", "Sara", "Rebeka", "Lea"], correct: 1 },
-              { q: "Who was Abraham's son of promise?", q_twi: "Hwan ne Abraham bɔhyɛ ba no?", a: ["Ishmael", "Isaac", "Esau", "Joseph"], a_twi: ["Ismael", "Isak", "Esau", "Yosef"], correct: 1 },
-              { q: "What did Jacob dream about reaching to heaven?", q_twi: "Dɛn na Yakobo soo daeɛ sɛ ɛkɔ soro?", a: ["A Bridge", "A Ladder", "A Mountain", "A Tree"], a_twi: ["Kodoɔ", "Atwerɛ", "Bepo", "Dua"], correct: 1 },
-              { q: "Who was Jacob's twin brother?", q_twi: "Hwan ne Yakobo nta nua?", a: ["Joseph", "Esau", "Levi", "Benjamin"], a_twi: ["Yosef", "Esau", "Levi", "Benyamin"], correct: 1 },
-              { q: "How many sons did Jacob have?", q_twi: "Mma mmarima dodoɔ sɛn na Yakobo woo wɔn?", a: ["10", "12", "7", "3"], a_twi: ["10", "12", "7", "3"], correct: 1 },
-              { q: "Which son of Jacob was sold into slavery?", q_twi: "Yakobo ba bɛn na wɔtɔnn no nkoasuo mu?", a: ["Reuben", "Judah", "Joseph", "Dan"], a_twi: ["Ruben", "Yuda", "Yosef", "Dan"], correct: 2 },
-              { q: "What special gift did Jacob give Joseph?", q_twi: "Akyɛdeɛ titiri bɛn na Yakobo de maa Yosef?", a: ["A Sword", "A Coat of many colors", "Gold", "A Horse"], a_twi: ["Afena", "Atadeɛ amamuo", "Sika", "Ponko"], correct: 1 },
-              { q: "Who interpreted Pharaoh's dreams?", q_twi: "Hwan na ɔkyerɛɛ Farao daeɛ ase?", a: ["Moses", "Joseph", "Daniel", "Aaron"], a_twi: ["Mose", "Yosef", "Daniel", "Aaron"], correct: 1 },
-              { q: "Where did the Israelites live in Egypt?", q_twi: "Ɛhe na Israelfoɔ no tɛnee wɔ Misraim?", a: ["Cairo", "Goshen", "Sinai", "Alexandria"], a_twi: ["Cairo", "Gosen", "Sinai", "Alexandria"], correct: 1 },
-              { q: "Who was Joseph's younger full brother?", q_twi: "Hwan ne Yosef nua kumaa?", a: ["Benjamin", "Dan", "Gad", "Levi"], a_twi: ["Benyamin", "Dan", "Gad", "Levi"], correct: 0 },
-              { q: "What did Joseph's brothers dip his coat in?", q_twi: "Dɛn mu na Yosef nua mmarima de ne kɔto dɔmeeɛ?", a: ["Water", "Goat blood", "Mud", "Wine"], a_twi: ["Nsuo", "Aponkye mogya", "Dɔteɛ", "Nsa"], correct: 1 },
-              { q: "Who was Isaac's wife?", q_twi: "Hwan ne Isak yere?", a: ["Sarah", "Rebekah", "Rachel", "Leah"], a_twi: ["Sara", "Rebeka", "Rahel", "Lea"], correct: 1 }
-            ]
-          },
-          {
-            level: 3, name: "The Great Exodus", bgImage: "https://images.unsplash.com/photo-1461360228754-6e81c478bd42?q=80&w=1000",
-            questions: [
-              { q: "Who led the Israelites out of Egypt?", q_twi: "Hwan na ɔyii Israelfoɔ firii Misraim?", a: ["Joshua", "Moses", "Aaron", "Caleb"], a_twi: ["Yosua", "Mose", "Aaron", "Kaleb"], correct: 1 },
-              { q: "How did God appear to Moses in the desert?", q_twi: "Tebea bɛn mu na Onyankopɔn yii ne ho adi kyerɛɛ Mose?", a: ["In a cloud", "In a burning bush", "In a dream", "As a lion"], a_twi: ["Omununkum mu", "Wura a ɛredɛre mu", "Daeɛ mu", "Sɛ gyata"], correct: 1 },
-              { q: "How many plagues did God send to Egypt?", q_twi: "Ɔhaw dodoɔ sɛn na Onyankopɔn de kɔɔ Misraim?", a: ["7", "10", "12", "3"], a_twi: ["7", "10", "12", "3"], correct: 1 },
-              { q: "What sea did the Israelites cross?", q_twi: "Ɛpo bɛn na Israelfoɔ no twaeɛ?", a: ["Dead Sea", "Red Sea", "Galilee", "Jordan"], a_twi: ["Po Wuuo", "Ɛpo Kɔkɔɔ", "Galilea", "Yordan"], correct: 1 },
-              { q: "What was the food from heaven called?", q_twi: "Dɛn na wɔfrɛɛ aduane a ɛfiri soro baeɛ no?", a: ["Bread", "Manna", "Honey", "Quail"], a_twi: ["Paanoo", "Manna", "Ɛwoɔ", "Anomaa"], correct: 1 },
-              { q: "Where did Moses receive the 10 Commandments?", q_twi: "Ɛhe na Mose nsa kaa Mmaransɛm Du no?", a: ["Mt. Nebo", "Mt. Sinai", "Mt. Ararat", "Mt. Zion"], a_twi: ["Nebo Bepo", "Sinai Bepo", "Ararat Bepo", "Sion Bepo"], correct: 1 },
-              { q: "Who was Moses' spokesperson?", q_twi: "Hwan na ɔkasa maa Mose?", a: ["Joshua", "Aaron", "Miriam", "Hur"], a_twi: ["Yosua", "Aaron", "Miriam", "Hur"], correct: 1 },
-              { q: "What did the Israelites build to worship while Moses was away?", q_twi: "Dɛn na Israelfoɔ no yɛɛ de sɔreeɛ?", a: ["A Stone altar", "A Golden Calf", "A Wooden Cross", "A Temple"], a_twi: ["Ɔboɔ afɔrebukyia", "Sika nantu ba", "Dua asɛndua", "Asɔredan"], correct: 1 },
-              { q: "How long did the Israelites wander in the desert?", q_twi: "Mfeɛ dodoɔ sɛn na Israelfoɔ no kyiniiɛ?", a: ["10 years", "40 years", "100 years", "7 years"], a_twi: ["Mfeɛ 10", "Mfeɛ 40", "Mfeɛ 100", "Mfeɛ 7"], correct: 1 },
-              { q: "Who led the Israelites into the Promised Land?", q_twi: "Hwan na ɔde Israelfoɔ kɔɔ Bɔhyɛ Asase no so?", a: ["Moses", "Joshua", "Caleb", "Gideon"], a_twi: ["Mose", "Yosua", "Kaleb", "Gideon"], correct: 1 },
-              { q: "What was the first city captured across the Jordan?", q_twi: "Kuro bɛn ne kuro a odi kan a wɔfaa ti twaa Yordan?", a: ["Jericho", "Ai", "Jerusalem", "Hebron"], a_twi: ["Yeriko", "Ai", "Yerusalem", "Hebron"], correct: 0 },
-              { q: "Who hid the Israelite spies in Jericho?", q_twi: "Hwan na ɔde Israelfoɔ akwansrafoɔ no hintiee wɔ Yeriko?", a: ["Deborah", "Rahab", "Ruth", "Delilah"], a_twi: ["Debora", "Rahab", "Rut", "Delila"], correct: 1 },
-              { q: "What happened to the walls of Jericho?", q_twi: "Dɛn na ɛbaa Yeriko afasuo no so?", a: ["Burned down", "They fell flat", "Melted", "Nothing"], a_twi: ["Ɛhye mfifiri", "Ɛbubu gueɛ", "Ɛnannee", "Hwee anyɛ no"], correct: 1 }
-            ]
-          },
-          {
-            level: 4, name: "Judges and Kings", bgImage: "https://images.unsplash.com/photo-1461360228754-6e81c478bd42?q=80&w=1000",
-            questions: [
-              { q: "Who was the strongest man in the Bible?", q_twi: "Hwan ne ɔbarima a na ɔwɔ ahoɔden paa wɔ Bible mu?", a: ["David", "Samson", "Goliath", "Saul"], a_twi: ["Dawid", "Samson", "Goliat", "Saulo"], correct: 1 },
-              { q: "Who betrayed Samson to the Philistines?", q_twi: "Hwan na ogyee Samson maa Filistifoɔ no?", a: ["Ruth", "Delilah", "Rahab", "Jezebel"], a_twi: ["Rut", "Delila", "Rahab", "Yisebel"], correct: 1 },
-              { q: "Who was the first king of Israel?", q_twi: "Hwan ne Israel hene a odi kan?", a: ["David", "Solomon", "Saul", "Hezekiah"], a_twi: ["Dawid", "Solomon", "Saulo", "Hesekia"], correct: 2 },
-              { q: "Who defeated Goliath?", q_twi: "Hwan na odii ɔkatakyi Goliat so nkonim?", a: ["Saul", "Jonathan", "David", "Samson"], a_twi: ["Saulo", "Yonatan", "Dawid", "Samson"], correct: 2 },
-              { q: "What instrument did David play for King Saul?", q_twi: "Sankũ bɛn na Dawid bɔ maa Ɔhene Saulo?", a: ["Flute", "Harp", "Trumpet", "Drums"], a_twi: ["Abɛn", "Sankũ", "Torobento", "Akyene"], correct: 1 },
-              { q: "Who was David's best friend?", q_twi: "Hwan ne Dawid adamfo pa?", a: ["Saul", "Jonathan", "Absalom", "Solomon"], a_twi: ["Saulo", "Yonatan", "Absalom", "Solomon"], correct: 1 },
-              { q: "Which king built the first Temple in Jerusalem?", q_twi: "Ɔhene bɛn na osii Asɔredan a odi kan wɔ Yerusalem?", a: ["David", "Saul", "Solomon", "Rehobon"], a_twi: ["Dawid", "Saulo", "Solomon", "Rehoboam"], correct: 2 },
-              { q: "What was King Solomon famous for?", q_twi: "Dɛn na Ɔhene Solomon gyee din wɔ ho?", a: ["Strength", "Wisdom", "Speed", "Wealth only"], a_twi: ["Ahoɔden", "Nyansa", "Mmirika", "Ahonyadeɛ nko"], correct: 1 },
-              { q: "Who was the only female judge of Israel?", q_twi: "Hwan ne Israel ɔtemmufoɔ baa koro pɛ?", a: ["Ruth", "Esther", "Deborah", "Hannah"], a_twi: ["Rut", "Ester", "Debora", "Hana"], correct: 2 },
-              { q: "What did Gideon use to defeat the Midianites?", q_twi: "Dɛn na Gideon de dii Midianfoɔ so nkonim?", a: ["Swords & Shields", "Trumpets, Pitchers & Torches", "Bows & Arrows", "Chariots"], a_twi: ["Nfena ne nkataboɔ", "Ntorobento, akorɔ ne nnam", "Agayan", "Nteaseɛnam"], correct: 1 },
-              { q: "Who was David's father?", q_twi: "Hwan ne Dawid agya?", a: ["Saul", "Jesse", "Samuel", "Boaz"], a_twi: ["Saulo", "Yese", "Samuel", "Boas"], correct: 1 },
-              { q: "Which prophet anointed David as king?", q_twi: "Onyamsɛm kyerɛwfoɔ bɛn na ɔsraa Dawid ngo sɛ ɔhene?", a: ["Nathan", "Elijah", "Samuel", "Elisha"], a_twi: ["Natan", "Elia", "Samuel", "Elisa"], correct: 2 },
-              { q: "Who was Ruth's mother-in-law?", q_twi: "Hwan ne Rut asebaa?", a: ["Orpah", "Naomi", "Hannah", "Elisabeth"], a_twi: ["Orpa", "Naomi", "Hana", "Elisabet"], correct: 1 }
-            ]
-          },
-          {
-            level: 5, name: "Prophets & Captivity", bgImage: "https://images.unsplash.com/photo-1461360228754-6e81c478bd42?q=80&w=1000",
-            questions: [
-              { q: "Who was thrown into the lions' den?", q_twi: "Hwan na wɔtow no kyene gyata amoa mu?", a: ["Daniel", "Jeremiah", "Ezekiel", "Isaiah"], a_twi: ["Daniel", "Yeremia", "Esekiel", "Isaya"], correct: 0 },
-              { q: "Who was swallowed by a giant fish?", q_twi: "Hwan na mpataa kɛseɛ menee no?", a: ["Peter", "Jonah", "Paul", "Daniel"], a_twi: ["Petro", "Yona", "Paulo", "Daniel"], correct: 1 },
-              { q: "Which prophet was taken to heaven in a whirlwind?", q_twi: "Odiyifoɔ bɛn na mframa kɛseɛ de no kɔɔ soro?", a: ["Elisha", "Elijah", "Isaiah", "Jeremiah"], a_twi: ["Elisa", "Elia", "Isaya", "Yeremia"], correct: 1 },
-              { q: "What city did Jonah refuse to preach to?", q_twi: "Kuro bɛn na Yona ampɛ sɛ ɔkɔka asɛm wɔ hɔ?", a: ["Jerusalem", "Nineveh", "Babylon", "Tarsus"], a_twi: ["Yerusalem", "Nineve", "Babilon", "Tarso"], correct: 1 },
-              { q: "Who were Daniel's three friends thrown into the fiery furnace?", q_twi: "Hwan ne Daniel nnamfo mmeɛnsa a wɔtow wɔn gya fononoo mu?", a: ["Abraham, Isaac, Jacob", "Shadrach, Meshach, Abednego", "Peter, James, John", "Paul, Silas, Timothy"], a_twi: ["Abraham, Isak, Yakobo", "Sadrak, Mesak, Abednego", "Petro, Yakobo, Yohane", "Paulo, Silas, Timoteo"], correct: 1 },
-              { q: "Which queen saved her people from destruction?", q_twi: "Hembaa bɛn na ɔgyee ne manfoɔ firii ɔsɛeɛ mu?", a: ["Jezebel", "Vashti", "Esther", "Ruth"], a_twi: ["Yisebel", "Vasti", "Ester", "Rut"], correct: 2 },
-              { q: "What giant empire destroyed Jerusalem and took captives?", q_twi: "Ahendiman kɛseɛ bɛn na ɛsɛee Yerusalem nkoasuo mu?", a: ["Rome", "Greece", "Babylon", "Egypt"], a_twi: ["Roma", "Hellas", "Babilon", "Misraim"], correct: 2 },
-              { q: "Who was the king of Babylon during Daniel's time?", q_twi: "Hwan ne Babilon hene wɔ Daniel berɛ so?", a: ["Cyrus", "Darius", "Nebuchadnezzar", "Herod"], a_twi: ["Kiro", "Dario", "Nebukadnesar", "Herode"], correct: 2 },
-              { q: "Which prophet multi-plied the widow's oil?", q_twi: "Odiyifoɔ bɛn na ɔmaa kunafoɔ no ngo dɔɔreeɛ?", a: ["Elijah", "Elisha", "Isaiah", "Amos"], a_twi: ["Elia", "Elisa", "Isaya", "Amos"], correct: 1 },
-              { q: "What did Elijah call down from heaven on Mt. Carmel?", q_twi: "Dɛn na Elia maa ɛfiri soro baeɛ wɔ Karmel Bepo so?", a: ["Rain", "Fire", "Angels", "Hail"], a_twi: ["Nsuo", "Ogya", "Abɔfoɔ", "Asuɔmerewyee"], correct: 1 },
-              { q: "Who wrote the book of Lamentations?", q_twi: "Hwan na ɔtwerɛɛ Kwadwom nwoma no?", a: ["Isaiah", "Jeremiah", "Ezekiel", "Daniel"], a_twi: ["Isaya", "Yeremia", "Esekiel", "Daniel"], correct: 1 },
-              { q: "How many years was Israel in Babylonian exile?", q_twi: "Mfeɛ dodoɔ sɛn na Israel tɛnee nkoasuo mu wɔ Babilon?", a: ["40", "70", "100", "400"], a_twi: ["40", "70", "100", "400"], correct: 1 },
-              { q: "Who rebuilt the walls of Jerusalem after the exile?", q_twi: "Hwan na ɔsan sii Yerusalem afasuo no nkoasuo no akyi?", a: ["Ezra", "Nehemiah", "Zerubbabel", "Haggai"], a_twi: ["Esra", "Nehemia", "Serubabel", "Hagai"], correct: 1 }
-            ]
-          },
-          {
-            level: 6, name: "The Gospels: Birth of Jesus", bgImage: "https://images.unsplash.com/photo-1512253022256-19f4cb92a4dc?q=80&w=1000",
-            questions: [
-              { q: "In what town was Jesus born?", q_twi: "Kuro bɛn mu na wɔwoo Yesu?", a: ["Nazareth", "Jerusalem", "Bethlehem", "Capernaum"], a_twi: ["Nasaret", "Yerusalem", "Betlehem", "Kapernaum"], correct: 2 },
-              { q: "Who was the mother of Jesus?", q_twi: "Hwan ne Yesu na?", a: ["Martha", "Mary", "Elisabeth", "Salome"], a_twi: ["Marta", "Maria", "Elisabet", "Salome"], correct: 1 },
-              { q: "What was Joseph's trade/job?", q_twi: "Dɛn ne Yosef adwuma?", a: ["Fisherman", "Carpenter", "Tentmaker", "Tax Collector"], a_twi: ["Podwumfoɔ", "Duadwumfoɔ", "Ntomadanwunfoɔ", "Toofrɛfoɔ"], correct: 1 },
-              { q: "Which angel announced Jesus' birth to Mary?", q_twi: "Ɔbɔfoɔ bɛn na ɔbɔɔ Yesu awoɔ ho amanneɛ kyerɛɛ Maria?", a: ["Michael", "Gabriel", "Raphael", "Uriel"], a_twi: ["Mikael", "Gabriel", "Rafael", "Uriel"], correct: 1 },
-              { q: "Who wanted to kill baby Jesus?", q_twi: "Hwan na na ɔpɛ sɛ okum akokoaa Yesu?", a: ["Pilate", "King Herod", "Caesar", "Caiaphas"], a_twi: ["Pilato", "Ɔhene Herode", "Kaisare", "Kayafa"], correct: 1 },
-              { q: "How did the Wise Men find baby Jesus?", q_twi: "Ɛdeɛn na Anyansafoɔ no de hwehwɛɛ akokoaa Yesu?", a: ["Followed a map", "Followed a star", "Asked an angel", "Heard a rumor"], a_twi: ["Wɔfaal krataa so", "Wɔdial nsoroma akyi", "Wɔbisaal ɔbɔfoɔ", "Wɔtee nkaeɛ"], correct: 1 },
-              { q: "Who was the cousin of Jesus that baptized Him?", q_twi: "Yesu nua bɛn na ɔbɔɔ no asu?", a: ["John the Baptist", "Peter", "James", "Andrew"], a_twi: ["Yohane Osubɔfoɔ", "Petro", "Yakobo", "Andreo"], correct: 0 },
-              { q: "In what river was Jesus baptized?", q_twi: "Asubɔnten bɛn mu na wɔbɔɔ Yesu asu?", a: ["Nile", "Euphrates", "Jordan", "Tigris"], a_twi: ["Nile", "Eufrate", "Yordan", "Tigris"], correct: 2 },
-              { q: "How many disciples did Jesus choose?", q_twi: "Asuafoɔ dodoɔ sɛn na Yesu paw wɔn?", a: ["7", "10", "12", "70"], a_twi: ["7", "10", "12", "70"], correct: 2 },
-              { q: "How many days did Jesus fast in the wilderness?", q_twi: "Nna dodoɔ sɛn na Yesu kyiri aduane wɔ sare so?", a: ["7", "40", "3", "12"], a_twi: ["7", "40", "3", "12"], correct: 1 },
-              { q: "Which book is NOT one of the four Gospels?", q_twi: "Nwoma bɛn na ɛnnisɛm nkyerɛw koro mu?", a: ["Matthew", "Mark", "Acts", "John"], a_twi: ["Mateo", "Marko", "Asomafoɔ Nnwuma", "Yohane"], correct: 2 },
-              { q: "What sign came from heaven when Jesus was baptized?", q_twi: "Sɛnkyerɛnne bɛn na ɛfiri soro baeɛ berɛ a wɔbɔɔ Yesu asu?", a: ["Fire", "A Dove", "A Voice and Dove", "Thunder"], a_twi: ["Ogya", "Aburuburo", "Nne ne Aburuburo", "Onyankopɔn mma"], correct: 2 },
-              { q: "Where did Jesus' family flee to escape Herod?", q_twi: "Ɛhe na Yesu abusua guan kɔreeɛ de kwatiyɛɛ Herode?", a: ["Rome", "Egypt", "Syria", "Babylon"], a_twi: ["Roma", "Misraim", "Siria", "Babilon"], correct: 1 }
-            ]
-          },
-          {
-            level: 7, name: "Miracles of Jesus", bgImage: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000",
-            questions: [
-              { q: "What was Jesus' first miracle?", q_twi: "Anwanwadeɛ bɛn ne Yesu anwanwadeɛ a odi kan?", a: ["Healing a blind man", "Turning water to wine", "Walking on water", "Raising Lazarus"], a_twi: ["Ɔsaal ifurafoɔ", "Ɔdannan nsuo yɛɛ nsa bobe", "Ɔnantia nsuo so", "Ɔnyanyan Lasaro"], correct: 1 },
-              { q: "Who did Jesus raise from the dead after 4 days?", q_twi: "Hwan na Yesu nyanyan no firii awufoɔ mu nna 4 akyi?", a: ["Jairus' daughter", "Lazarus", "Peter's mother", "Tabitha"], a_twi: ["Yairo ba baa", "Lasaro", "Petro nasebaa", "Tabita"], correct: 1 },
-              { q: "How many people did Jesus feed with 5 loaves and 2 fish?", q_twi: "Nnipa dodoɔ sɛn na Yesu maa wɔn aduane de paanoo 5 ne nsuomnam 2?", a: ["1000", "5000 men", "1200", "500"], a_twi: ["1000", "Mmarima 5000", "1200", "500"], correct: 1 },
-              { q: "Which disciple walked on water toward Jesus?", q_twi: "Osuani bɛn na ɔnantia nsuo so kɔɔ Yesu nkyɛn?", a: ["John", "James", "Peter", "Judas"], a_twi: ["Yohane", "Yakobo", "Petro", "Yuda"], correct: 2 },
-              { q: "What did Jesus calm during a storm at sea?", q_twi: "Dɛn na Yesu dwoodwoo no wɔ mframa mu wɔ ɛpo so?", a: ["The disciples", "The wind and waves", "The sea monsters", "The fish"], a_twi: ["Asuafoɔ no", "Mframa ne asorokye no", "Po mu mmoa", "Nsuomnam"], correct: 1 },
-              { q: "How did Jesus heal the blind man Bartimaeus?", q_twi: "Ɔkwan bɛn so na Yesu faa so saal ifurafoɔ Bartimeo?", a: ["Gave him money", "Spoke and touched him", "Sent him to Egypt", "By a pool"], a_twi: ["Ɔmaa no sika", "Ɔkasaeɛ na ɔde ne nsa kaa no", "Ɔsomaa no Misraim", "Ɔtari ne nsuo mu"], correct: 1 },
-              { q: "How many lepers did Jesus heal at once, where only one returned to thank Him?", q_twi: "Akwaatafoɔ dodoɔ sɛn na Yesu saal wɔn yareɛ prɛko pɛ, a baako pɛ na ɔsann bɛdaa no aseɛ?", a: ["5", "10", "12", "3"], a_twi: ["5", "10", "12", "3"], correct: 1 },
-              { q: "Whose ear did Peter cut off, which Jesus then healed?", q_twi: "Hwan aso na Petro twaeɛ, a Yesu san saal no?", a: ["Malchus", "Caiaphas", "Pilate", "Cornelius"], a_twi: ["Malko", "Kayafa", "Pilato", "Kornelio"], correct: 0 },
-              { q: "How did a sick woman touch Jesus to get healed?", q_twi: "Ɔkwan bɛn so na ɔyarefoɔ baa bi faa so de nsa kaa Yesu nyaa ayaresa?", a: ["Shook His hand", "Touched the hem of His garment", "Hugged Him", "Pulled His hair"], a_twi: ["Ɔkyiaa ne nsa", "Ɔde ne nsa kaa ne ntama ano", "Ɔyɛɛ no atuu", "Ɔtweerɛ ne nwi"], correct: 1 },
-              { q: "Where was Jesus when He turned water into wine?", q_twi: "Ɛhe na na Yesu wɔ berɛ a ɔdannan nsuo yɛɛ nsa bobe no?", a: ["Jerusalem", "Cana in Galilee", "Nazareth", "Jericho"], a_twi: ["Yerusalem", "Kana a ɛwɔ Galilea", "Nasaret", "Yeriko"], correct: 1 },
-              { q: "What did Jesus tell the paralyzed man lowered through the roof?", q_twi: "Dɛn na Yesu ka kyerɛɛ obubuafoɔ a wɔsian no faa ɔdan atifi baeɛ no?", a: ["Go away", "Your sins are forgiven, arise", "Take some gold", "Go to the priest"], a_twi: ["Kɔ", "Wɔde wo bɔne akyɛ wo, sɔre", "Gye sika", "Kɔ sɔfoɔ nkyɛn"], correct: 1 },
-              { q: "How many baskets of leftovers were collected after feeding the 5000?", q_twi: "Kɛntɛn dodoɔ sɛn na nkaeɛ aduane guu mu berɛ a wɔmee nnipa 5000 no?", a: ["3", "7", "12", "5"], a_twi: ["3", "7", "12", "5"], correct: 2 },
-              { q: "What did Jesus use to heal a blind man's eyes in John 9?", q_twi: "Dɛn na Yesu de saal ifurafoɔ bi ani wɔ Yohane 9 mu?", a: ["Water only", "Mud made from spit and dirt", "Olive oil", "Leaves"], a_twi: ["Nsuo nko", "Ntari a ɔde ntasuo ne dɔteɛ fraeɛ", "Ngo pa", "Nhabam"], correct: 1 }
-            ]
-          },
-          {
-            level: 8, name: "Parables & Teachings", bgImage: "https://images.unsplash.com/photo-1461360228754-6e81c478bd42?q=80&w=1000",
-            questions: [
-              { q: "In the parable, who helped the beaten man on the road?", q_twi: "Wɔ bɛbuo mu no, hwan na ɔboaa ɔbarima a wɔbɔɔ no wɔ ɔkwan so no?", a: ["A Priest", "A Levite", "A Good Samaritan", "A Soldier"], a_twi: ["Sɔfoɔ", "Levini", "Samariafoɔ pa", "Ɔsraani"], correct: 2 },
-              { q: "What did the Prodigal Son waste his inheritance on?", q_twi: "Dɛn so na Ɔba Hwĩfɔɔ no sɛeɛ n'agyapadeɛ gueɛ?", a: ["Charity", "Wild living / partying", "Buying land", "Business"], a_twi: ["Adɔeɛ adwuma", "Ahwĩfɔɔ/asaw bɔne", "Asase tɔ", "Nguadĩ"], correct: 1 },
-              { q: "What small seed did Jesus use to describe the Kingdom of God?", q_twi: "Aba ketewa bɛn na Yesu de tontonnyɛɛ Onyankopɔn Ahenkyere?", a: ["Apple seed", "Mustard seed", "Watermelon seed", "Grape seed"], a_twi: ["Amango aba", "Mfoteɛ/Sinapi aba", "Anwaaba", "Bobe aba"], correct: 1 },
-              { q: "Who did the rich man ignore in the parable of the Rich Man and Lazarus?", q_twi: "Hwan na ɔdeadefoɔ no amfa no anyɛ hwee wɔ Sikafoɔ ne Lasaro bɛbuo mu?", a: ["The King", "A beggar named Lazarus", "His brother", "The disciples"], a_twi: ["Ɔhene no", "Ɔbisafoɔ a yɛfrɛ no Lasaro", "Ne nua", "Asuafoɔ no"], correct: 1 },
-              { q: "Where did the foolish man build his house?", q_twi: "Ɛhe na kwasea barima no sii ne dan?", a: ["On a rock", "On the sand", "In a tree", "In a cave"], a_twi: ["Ɔboɔ so", "Nwea so", "Dua atifi", "Ɔboda mu"], correct: 1 },
-              { q: "Where did the wise man build his house?", q_twi: "Ɛhe na onyansafoɔ barima no sii ne dan?", a: ["On the sand", "On the rock", "By the river", "On grass"], a_twi: ["Nwea so", "Ɔboɔ so", "Asubɔnten ho", "Wura so"], correct: 1 },
-              { q: "How many sheep did the shepherd leave behind to find 1 lost sheep?", q_twi: "Nnwan dodoɔ sɛn na oguanhwɛfoɔ no gyaw hɔ de kɔhwehwɛɛ oguan 1 a ɔyeraeɛ no?", a: ["10", "50", "99", "100"], a_twi: ["10", "50", "99", "100"], correct: 2 },
-              { q: "What prayer did Jesus teach His disciples?", q_twi: "Mpaebɔ bɛn na Yesu kyerɛɛ n'asuafoɔ no?", a: ["The Apostles Creed", "The Lord's Prayer", "Psalm 23", "The Shema"], a_twi: ["Asomafoɔ Gyedie", "Awurade Mpaebɔ", "Nnwom 23", "Shema no"], correct: 1 },
-              { q: "What does the good soil represent in the parable of the sower?", q_twi: "Dɛn na asase pa kyerɛ wɔ ɔguofoɔ bɛbuo mu?", a: ["Rich people", "Those who hear and understand God's word", "Rocks", "Birds"], a_twi: ["Sikafoɔ", "Wɔn a wɔte na wɔte Onyankopɔn asɛm ase", "Aboɔ", "Anomaa"], correct: 1 },
-              { q: "How many times did Jesus tell Peter we should forgive a brother?", q_twi: "Mprɛ dodoɔ sɛn na Yesu ka kyerɛɛ Petro sɛ yɛmfa bɔne nkyɛ onua?", a: ["7 times", "70 times 7", "3 times", "Never"], a_twi: ["Mprɛ 7", "Mprɛ 70 ahorow 7", "Mprɛ 3", "Koraa"], correct: 1 },
-              { q: "In the parable of the ten virgins, how many were foolish?", q_twi: "Wɔ mmaabun du bɛbuo mu no, hwan dodoɔ na na wɔyɛ nkwaseafoɔ?", a: ["3", "5", "7", "10"], a_twi: ["3", "5", "7", "10"], correct: 1 },
-              { q: "What did the foolish virgins forget to bring?", q_twi: "Dɛn na mmaabun nkwaseafoɔ no mfa mmaeɛ?", a: ["Torches", "Extra oil", "Food", "Money"], a_twi: ["Akanea", "Ngo pa", "Aduane", "Sika"], correct: 1 },
-              { q: "Who is the 'Bread of Life'?", q_twi: "Hwan ne 'Teatwiam Paanoo' no?", a: ["Moses", "Elijah", "Jesus", "John"], a_twi: ["Mose", "Elia", "Yesu", "Yohane"], correct: 2 }
-            ]
-          },
-          {
-            level: 9, name: "The Passion & Cross", bgImage: "https://images.unsplash.com/photo-1544767777-6e81c478bd42?q=80&w=1000",
-            questions: [
-              { q: "Which disciple betrayed Jesus?", q_twi: "Osuani bɛn na ogyee Yesu maeɛ?", a: ["Peter", "John", "Judas Iscariot", "Thomas"], a_twi: ["Petro", "Yohane", "Yuda Iskariot", "Tomas"], correct: 2 },
-              { q: "For how many pieces of silver did Judas betray Jesus?", q_twi: "Dweteɛ dodoɔ sɛn na Yuda gyee de kɔgyee Yesu?", a: ["10", "30", "50", "100"], a_twi: ["10", "30", "50", "100"], correct: 1 },
-              { q: "How many times did Peter deny Jesus before the rooster crowed?", q_twi: "Mprɛ dodoɔ sɛn na Petro paapaa Yesu ansa na akokɔ rebono?", a: ["1", "2", "3", "7"], a_twi: ["1", "2", "3", "7"], correct: 2 },
-              { q: "Who was the Roman governor who condemned Jesus to die?", q_twi: "Hwan ne Roma amradzi a ɔbuu Yesu kumfɔɔ?", a: ["Herod", "Pontius Pilate", "Caesar", "Felix"], a_twi: ["Herode", "Pontio Pilato", "Kaisare", "Feliks"], correct: 1 },
-              { q: "What was placed on Jesus' head to mock Him?", q_twi: "Dɛn na wɔde kyɛɛ Yesu atifi de bɔɔ no dapaa?", a: ["A Golden Crown", "A Crown of Thorns", "A Silk Hat", "A Helmet"], a_twi: ["Sika Abotiri", "Nnwerɛ Abotiri", "Ntama Kyɛ", "Kyɛ denden"], correct: 1 },
-              { q: "What did the inscription on the cross say?", q_twi: "Dɛn na na wɔatwerɛ afasuo no asɛndua so?", a: ["Criminal", "King of the Jews", "Blasphemer", "Son of Joseph"], a_twi: ["Ɔbɔnefoɔ", "Yudafoɔ Hene", "Onyamebɔfoɔ", "Yosef ba"], correct: 1 },
-              { q: "What was the name of the hillside where Jesus was crucified?", q_twi: "Bepo bɛn so na wɔbɔɔ Yesu asɛndua so?", a: ["Gethsemane", "Golgotha / Calvary", "Sinai", "Olivet"], a_twi: ["Getsemane", "Golgota", "Sinai", "Olifoko"], correct: 1 },
-              { q: "What was the name of the garden where Jesus prayed before arrest?", q_twi: "Tuo bɛn mu na Yesu bɔɔ mpaeɛ ansa na wɔreyere no?", a: ["Eden", "Gethsemane", "Sharon", "Carmel"], a_twi: ["Eden", "Getsemane", "Saron", "Karmel"], correct: 1 },
-              { q: "Who was released instead of Jesus?", q_twi: "Hwan na wɔgyaa no de kɔgyee Yesu?", a: ["Barabbas", "Barnabas", "Silas", "Luke"], a_twi: ["Baraba", "Barnaba", "Silas", "Luka"], correct: 0 },
-              { q: "Who helped carry Jesus' cross?", q_twi: "Hwan na ɔboaa Yesu ma ɔsoaala asɛndua no?", a: ["Peter", "Simon of Cyrene", "John", "Joseph of Arimathea"], a_twi: ["Petro", "Simon Kyrenefoɔ", "Yohane", "Yosef Arimatheafoɔ"], correct: 1 },
-              { q: "What happened to the curtain in the Temple when Jesus died?", q_twi: "Dɛn na ɛbaa Asɔredan mu ntwamutam no so berɛ a Yesu wuiɛ?", a: ["Burned up", "Torn in two from top to bottom", "Turned black", "Fell down"], a_twi: ["Ɛhyeeɛ", "Ɛtetee mmienu firii soro bɛsii aseɛ", "Ɛdannan tuntum", "Ɛbubu gueɛ"], correct: 1 },
-              { q: "Who requested Jesus' body for burial?", q_twi: "Hwan na ɔsrɛɛ Yesu amu de kɔsieeɛ?", a: ["Nicodemus", "Joseph of Arimathea", "Mary Magdalene", "Peter"], a_twi: ["Nikodemo", "Yosef Arimatheafoɔ", "Maria Magdalene", "Petro"], correct: 1 },
-              { q: "What came out of Jesus' side when the soldier pierced Him?", q_twi: "Dɛn na ɛfiri Yesu mfe mu baeɛ berɛ a ɔsraani kɔwɔɔ no mfe?", a: ["Blood only", "Water only", "Blood and Water", "Nothing"], a_twi: ["Mogya nko", "Nsuo nko", "Mogya ne Nsuo", "Hwee"], correct: 2 }
-            ]
-          },
-          {
-            level: 10, name: "Resurrection & Acts", bgImage: "https://images.unsplash.com/photo-1512253022256-19f4cb92a4dc?q=80&w=1000",
-            questions: [
-              { q: "On what day after His death did Jesus rise again?", q_twi: "Da bɛn na Yesu san sɔreeɛ wɔ ne wuo akyi?", a: ["1st", "3rd", "7th", "40th"], a_twi: ["Da a edi kan", "Da a ɛtɔ so mmeɛnsa", "Da a ɛtɔ so nson", "Da a ɛtɔ so 40"], correct: 1 },
-              { q: "Who was the first person to see the risen Jesus?", q_twi: "Hwan ne onipa a odi kan a ɔhũũ sɔreɛ Yesu?", a: ["Peter", "John", "Mary Magdalene", "His mother"], a_twi: ["Petro", "Yohane", "Maria Magdalene", "N'ena"], correct: 2 },
-              { q: "Which disciple did not believe Jesus rose until he touched His wounds?", q_twi: "Osuani bɛn na annye anni kɔsi sɛ ɔde ne nsa kaa ne nkaeɛ?", a: ["Peter", "Thomas", "James", "Andrew"], a_twi: ["Petro", "Tomas", "Yakobo", "Andreo"], correct: 1 },
-              { q: "How many days did Jesus stay on earth after resurrection before ascending?", q_twi: "Nna dodoɔ sɛn na Yesu tɛnee asase so sɔreɛ akyi ansa na ɔrekɔ soro?", a: ["10", "40", "50", "100"], a_twi: ["10", "40", "50", "100"], correct: 1 },
-              { q: "What event marks the descent of the Holy Spirit on the disciples?", q_twi: "Ahyɛdeɛ bɛn na ɛkyerɛ Honhom Kronkron sian baeɛ asuafoɔ so?", a: ["Passover", "Pentecost", "Ascension", "Christmas"], a_twi: ["Twam Afahyɛ", "Pentekoste", "Ɔsorokɔ", "Buronya"], correct: 1 },
-              { q: "What sat on the heads of the believers on Pentecost?", q_twi: "Dɛn na ɛtɛnee gyedifoɔ atifi wɔ Pentekoste da no?", a: ["Doves", "Tongues of fire", "Clouds", "Gold crowns"], a_twi: ["Nwuruburo", "Ogya tɛkrɛma", "Amununkum", "Sika abotiri"], correct: 1 },
-              { q: "Who preached the powerful sermon on Pentecost where 3000 were saved?", q_twi: "Hwan na ɔkaa asɛmpa kɛseɛ no wɔ Pentekoste da no ma nnipa 3000 gyee nkwa?", a: ["John", "Paul", "Peter", "Stephen"], a_twi: ["Yohane", "Paulo", "Petro", "Stefan"], correct: 2 },
-              { q: "Who was the first Christian martyr stoned to death?", q_twi: "Hwan ne Kristofoɔ martiri a odi kan a wɔsiibɔɔ no aboɔ kum no?", a: ["Peter", "Stephen", "James", "Paul"], a_twi: ["Petro", "Stefan", "Yakobo", "Paulo"], correct: 1 },
-              { q: "What was Paul's name before he became an apostle?", q_twi: "Dɛn ne Paulo din ansa na ɔreyɛ ɔsomafoɔ?", a: ["Saul of Tarsus", "Simon", "Silas", "Barnabas"], a_twi: ["Saulo Tarsofoɔ", "Simon", "Silas", "Barnaba"], correct: 0 },
-              { q: "Where was Saul going when he saw the blinding light of Jesus?", q_twi: "Ɛhe na na Saulo rekɔ berɛ a ɔhũũ Yesu hann kɛseɛ no?", a: ["Jerusalem", "Damascus", "Rome", "Antioch"], a_twi: ["Yerusalem", "Damasko", "Roma", "Antiokia"], correct: 1 },
-              { q: "Who was the Roman centurion who received the Holy Spirit after Peter's visit?", q_twi: "Roma mmaranimfoɔ bɛn na ɔnyaa Honhom Kronkron Petro baeɛ akyi?", a: ["Pilate", "Cornelius", "Julius", "Felix"], a_twi: ["Pilato", "Kornelio", "Yulio", "Feliks"], correct: 1 },
-              { q: "Who was Paul's main companion on his first missionary journey?", q_twi: "Hwan ne Paulo hokafoɔ titiri wɔ n'akwantuo a odi kan mu?", a: ["Peter", "Barnabas", "Silas", "Luke"], a_twi: ["Petro", "Barnaba", "Silas", "Luka"], correct: 1 },
-              { q: "In what city were believers first called 'Christians'?", q_twi: "Kuro bɛn mu na wɔdiikan frɛɛ gyedifoɔ no 'Kristofoɔ'?", a: ["Jerusalem", "Antioch", "Rome", "Ephesus"], a_twi: ["Yerusalem", "Antiokia", "Roma", "Efeso"], correct: 1 }
-            ]
-          },
-          {
-            level: 11, name: "Paul's Letters & Journeys", bgImage: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000",
-            questions: [
-              { q: "Who wrote most of the letters (Epistles) in the New Testament?", q_twi: "Hwan na ɔtwerɛɛ nkyerɛwee (Nkrataa) dodoɔ paa wɔ Apam Foforo mu?", a: ["Peter", "John", "Paul", "Luke"], a_twi: ["Petro", "Yohane", "Paulo", "Luka"], correct: 2 },
-              { q: "What happened to Paul and Silas while singing in prison at midnight?", q_twi: "Dɛn na ɛbaa Paulo ne Silas so berɛ a wɔreto dwom afiase dasuom?", a: ["Guards beat them", "An earthquake shook the prison and doors opened", "They fell asleep", "Angels carried them away"], a_twi: ["Awɛmfoɔ bɔɔ wɔn", "Asasewosowee denden wosow afiase na apon buebueeɛ", "Wɔdaa yie", "Abɔfoɔ de wɔn kɔreeɛ"], correct: 1 },
-              { q: "To what city's church did Paul write about the 'Armor of God'?", q_twi: "Kuro bɛn asɔre na Paulo twerɛ kyerɛɛ wɔn afiri 'Onyankopɔn Akodeɛ'?", a: ["Rome", "Corinth", "Ephesus", "Philippi"], a_twi: ["Roma", "Korinto", "Efeso", "Filipi"], correct: 2 },
-              { q: "Which book has the famous 'Love Chapter' (1 Corinthians 13)?", q_twi: "Nwoma bɛn na 'Ɔdɔ Ti' agye din wɔ mu (1 Korintofoɔ 13)?", a: ["Romans", "1 Corinthians", "Galatians", "Ephesians"], a_twi: ["Romanofoɔ", "1 Korintofoɔ", "Galatiafoɔ", "Efesofoɔ"], correct: 1 },
-              { q: "Who was the young pastor Paul wrote two mentorship letters to?", q_twi: "Onyameasuafoɔ kumaa bɛn na Paulo twerɛɛ krataa mmienu de kyerɛɛ no kwan?", a: ["Titus", "Timothy", "Silas", "Philemon"], a_twi: ["Tito", "Timoteo", "Silas", "Filemon"], correct: 1 },
-              { q: "What was Paul's trade that he used to support himself?", q_twi: "Dɛn ne Paulo nwuma a ɔde hwɛɛ ne ho?", a: ["Fisherman", "Tentmaker", "Scribe", "Merchant"], a_twi: ["Podwumfoɔ", "Ntomadanwunfoɔ", "Kyerɛwfoɔ", "Oguadĩfoɔ"], correct: 1 },
-              { q: "Where was Paul shipwrecked on his way to Rome?", q_twi: "Ɛhe na Paulo kodoɔ bɔeɛ wɔ n'akwantuo mu kɔɔ Roma?", a: ["Crete", "Cyprus", "Malta", "Patmos"], a_twi: ["Krete", "Kipro", "Malta", "Patmos"], correct: 2 },
-              { q: "What bit Paul's hand on the island of Malta, causing no harm?", q_twi: "Ɛdeɛn na ɛkaa Paulo nsa wɔ Malta supɔw so a annyɛ no hwee?", a: ["Scorpion", "A poisonous snake/viper", "A dog", "A lion"], a_twi: ["Ɔnyanyankyerɛ", "Ɔwɔ bɔne bi", "Ɔkraman", "Gyata"], correct: 1 },
-              { q: "Which letter did Paul write to a master about his runaway slave Onesimus?", q_twi: "Krataa bɛn na Paulo twerɛ kyerɛɛ wura bi faa n'akoa guanfoɔ Onesimo ho?", a: ["Philemon", "Colossians", "Titus", "Hebrews"], a_twi: ["Filemon", "Kolosefoɔ", "Tito", "Hebrifoor"], correct: 0 },
-              { q: "What does Paul say is the 'root of all kinds of evil' in 1 Timothy?", q_twi: "Dɛn na Paulo ka sɛ ɛyɛ 'bɔne ahorow nyinaa nnyinasoɔ' wɔ 1 Timoteo mu?", a: ["Gold", "The love of money", "Pride", "Anger"], a_twi: ["Sika", "Sika dɔ", "Ahantan", "Abufuo"], correct: 1 },
-              { q: "How many missionary journeys did Paul make in Acts?", q_twi: "Akwantuo dodoɔ sɛn na Paulo yɛeɛ wɔ Asomafoɔ Nnwuma mu?", a: ["1", "2", "3", "7"], a_twi: ["1", "2", "3", "7"], correct: 2 },
-              { q: "Who wrote the New Testament book of James?", q_twi: "Hwan na ɔtwerɛɛ Apam Foforo nwoma Yakobo no?", a: ["James the brother of Jesus", "James the son of Zebedee", "Paul", "Peter"], a_twi: ["Yakobo Yesu nua", "Yakobo Sebedeo ba", "Paulo", "Petro"], correct: 0 },
-              { q: "What is the short book before Revelation?", q_twi: "Nwoma tiatia bɛn na ɛdi Adiyisɛm anyam?", a: ["3 John", "Jude", "Philemon", "Malachi"], a_twi: ["3 Yohane", "Yuda", "Filemon", "Malaki"], correct: 1 }
-            ]
-          },
-          {
-            level: 12, name: "General Knowledge & Epistles", bgImage: "https://images.unsplash.com/photo-1544767777-6e81c478bd42?q=80&w=1000",
-            questions: [
-              { q: "According to Hebrews 11, what is the assurance of things hoped for?", q_twi: "Sɛnea Hebrifoɔ 11 kyerɛ no, dɛn ne anidasoɔ nneɛma nnyinasoɔ?", a: ["Love", "Faith", "Hope", "Wisdom"], a_twi: ["Ɔdɔ", "Gyedie", "Anidasoɔ", "Nyansa"], correct: 1 },
-              { q: "Who wrote the book of Acts?", q_twi: "Hwan na ɔtwerɛɛ Asomafoɔ Nnwuma nwoma no?", a: ["Matthew", "Mark", "Luke", "John"], a_twi: ["Mateo", "Marko", "Luka", "Yohane"], correct: 2 },
-              { q: "What is the shortest verse in the Bible?", q_twi: "Asɛm bɛn na ɛyɛ tiatia paa wɔ Bible mu?", a: ["God is love", "Jesus wept", "Rejoice always", "Pray without ceasing"], a_twi: ["Onyankopɔn yɛ ɔdɔ", "Yesu suiɛ", "Mommɔ mpaeɛ", "Di dɛ daa"], correct: 1 },
-              { q: "How many books are there in the entire Protestant Bible?", q_twi: "Nwoma dodoɔ sɛn na ɛwɔ Bible mu nyinaa?", a: ["39", "27", "66", "70"], a_twi: ["39", "27", "66", "70"], correct: 2 },
-              { q: "How many books are in the Old Testament?", q_twi: "Nwoma dodoɔ sɛn na ɛwɔ Apam Dedaw mu?", a: ["27", "39", "46", "50"], a_twi: ["27", "39", "46", "50"], correct: 1 },
-              { q: "How many books are in the New Testament?", q_twi: "Nwoma dodoɔ sɛn na ɛwɔ Apam Foforo mu?", a: ["27", "39", "12", "50"], a_twi: ["27", "39", "12", "50"], correct: 0 },
-              { q: "What is the longest chapter in the Bible?", q_twi: "Ti bɛn na ɛyɛ tentsen paa wɔ Bible mu?", a: ["Psalm 23", "Psalm 119", "Genesis 1", "Isaiah 53"], a_twi: ["Nnwom 23", "Nnwom 119", "Mfitiaseɛ 1", "Isaya 53"], correct: 1 },
-              { q: "Who is the alpha and omega?", q_twi: "Hwan ne Alfa ne Omega?", a: ["God / Jesus", "Moses", "Adam", "Abraham"], a_twi: ["Onyankopɔn / Yesu", "Mose", "Adam", "Abraham"], correct: 0 },
-              { q: "What is the first book of the Bible?", q_twi: "Nwoma bɛn ne nwoma a odi kan wɔ Bible mu?", a: ["Exodus", "Genesis", "Matthew", "Psalms"], a_twi: ["Atukɔ", "Mfitiaseɛ", "Mateo", "Nnwom"], correct: 1 },
-              { q: "What is the last book of the Old Testament?", q_twi: "Nwoma bɛn ne nwoma a ɛtwa toɔ wɔ Apam Dedaw mu?", a: ["Genesis", "Malachi", "Revelation", "Isaiah"], a_twi: ["Mfitiaseɛ", "Malaki", "Adiyisɛm", "Isaya"], correct: 1 },
-              { q: "Which Gospel was written by a doctor?", q_twi: "Asɛmpa bɛn na dɔkota bi na ɔtwerɛeɛ?", a: ["Matthew", "Mark", "Luke", "John"], a_twi: ["Mateo", "Marko", "Luka", "Yohane"], correct: 2 },
-              { q: "What is the collective name for Galatians, Ephesians, Philippians, and Colossians?", q_twi: "Din bɛn na wɔde bɔm frɛ Galatiafoɔ, Efesofoɔ, Filipi ne Kolosefoɔ?", a: ["The Gospels", "The Prison Epistles", "Major Prophets", "The Law"], a_twi: ["Asɛmpa no", "Afiase Nkrataa no", "Adiyifoɔ kɛseɛ", "Mmara no"], correct: 1 },
-              { q: "Who is recognized as the author of the Book of Hebrews?", q_twi: "Hwan na wɔtaa susu sɛ ɔtwerɛɛ Hebrifoɔ nwoma no?", a: ["Paul (traditionally)", "Unknown for certain", "Peter", "Luke"], a_twi: ["Paulo", "Yɛnnim no pɔtee", "Petro", "Luka"], correct: 1 }
-            ]
-          },
-          {
-            level: 13, name: "The Wisdom Literature", bgImage: "https://images.unsplash.com/photo-1461360228754-6e81c478bd42?q=80&w=1000",
-            questions: [
-              { q: "Who lost his family, health, and wealth but refused to curse God?", q_twi: "Hwan na ɔyeraa n'abusua, n'atifi ayaresa ne n'ahonyadeɛ nanso ɔpoeɛ sɛ ɔbɛnn bɔne?", a: ["David", "Job", "Abraham", "Daniel"], a_twi: ["Dawid", "Job", "Abraham", "Daniel"], correct: 1 },
-              { q: "Who wrote most of the book of Psalms?", q_twi: "Hwan na ɔtwerɛɛ Nnwom nwoma dodoɔ paa?", a: ["Solomon", "David", "Moses", "Asaph"], a_twi: ["Solomon", "Dawid", "Mose", "Asaf"], correct: 1 },
-              { q: "Who wrote the book of Proverbs?", q_twi: "Hwan na ɔtwerɛɛ Mmebuseɛ nwoma no?", a: ["David", "Solomon", "Hezekiah", "Isaiah"], a_twi: ["Dawid", "Solomon", "Hesekia", "Isaya"], correct: 1 },
-              { q: "According to Proverbs, what is the beginning of wisdom?", q_twi: "Sɛnea Mmebuseɛ kyerɛ no, dɛn ne nyansa mfitiaseɛ?", a: ["Going to school", "The fear of the Lord", "Reading books", "Getting rich"], a_twi: ["Sukuu kɔ", "Awurade suro", "Nnwoma akenkan", "Ahonyadeɛ"], correct: 1 },
-              { q: "What book says 'Vanity of vanities, all is vanity'?", q_twi: "Nwoma bɛn na ɛka sɛ 'Ahuhudeɛ mu ahuhudeɛ, biribiara yɛ ahuhudeɛ'?", a: ["Proverbs", "Ecclesiastes", "Song of Solomon", "Job"], a_twi: ["Mmebuseɛ", "Ɔsɛnkafoɔ", "Solomon Nwom", "Job"], correct: 1 },
-              { q: "How many lines/verses is Psalm 23?", q_twi: "Nkyekyɛm dodoɔ sɛn na ɛwɔ Nnwom 23 mu?", a: ["4", "6", "10", "5"], a_twi: ["4", "6", "10", "5"], correct: 1 },
-              { q: "What is the first line of Psalm 23?", q_twi: "Asɛm bɛn na edikani wɔ Nnwom 23 mu?", a: ["The Lord is my light", "The Lord is my shepherd", "I will lift up my eyes", "Praise the Lord"], a_twi: ["Awurade yɛ me hann", "Awurade yɛ me hwanhwɛfoɔ", "Mɛma m'ani so", "Kamfo Awurade"], correct: 1 },
-              { q: "Which book is a collection of love poems between a bride and groom?", q_twi: "Nwoma bɛn ne nnwom a ɛfa ɔdɔ ho ɔyere ne ɔkun barima ntam?", a: ["Psalms", "Song of Solomon / Songs", "Ecclesiastes", "Ruth"], a_twi: ["Nnwom", "Solomon Nwom", "Ɔsɛnkafoɔ", "Rut"], correct: 1 },
-              { q: "How many friends originally came to comfort Job?", q_twi: "Nnamfo dodoɔ sɛn na mfitiaseɛ no bɛkyekyere Job werɛ?", a: ["3", "5", "7", "12"], a_twi: ["3", "5", "7", "12"], correct: 0 },
-              { q: "What did Job's wife tell him to do during his suffering?", q_twi: "Dɛn na Job yere ka kyerɛɛ no sɛ ɔyɛ wɔ n'amanehunu mu?", a: ["Pray harder", "Curse God and die", "Go to a doctor", "Run away"], a_twi: ["Bɔ mpaeɛ denden", "Nn bɔne Nyame na wu", "Kɔ dɔkota nkyɛn", "Guan kɔ"], correct: 1 },
-              { q: "What animal did God point out to Job to show His power in Job 40?", q_twi: "Abowa kɛseɛ bɛn na Onyankopɔn kyerɛɛ Job de kyerɛɛ ne tumi wɔ Job 40 mu?", a: ["Lion", "Behemoth", "Eagle", "Lamb"], a_twi: ["Gyata", "Behemot", "Ɔkɔdeɛ", "Oguamba"], correct: 1 },
-              { q: "Who is the author of Ecclesiastes?", q_twi: "Hwan ne Ɔsɛnkafoɔ nwoma kyerɛwfoɔ?", a: ["David", "The Preacher, son of David (Solomon)", "Moses", "Samuel"], a_twi: ["Dawid", "Ɔsɛnkafoɔ, Dawid ba (Solomon)", "Mose", "Samuel"], correct: 1 },
-              { q: "What does Psalm 119 focus heavily on?", q_twi: "Dɛn so na Nnwom 119 si pi paa?", a: ["The Temple building", "The Word/Law of God", "David's battles", "The stars"], a_twi: ["Asɔredan si", "Onyankopɔn Asɛm/Mmara", "Dawid akodi ahorow", "Nsoroma"], correct: 1 }
-            ]
-          },
-          {
-            level: 14, name: "The Patriarchs & Covenant", bgImage: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000",
-            questions: [
-              { q: "Who was Ishmael's mother?", q_twi: "Hwan ne Ismael na?", a: ["Sarah", "Hagar", "Rebekah", "Keturah"], a_twi: ["Sara", "Hagar", "Rebeka", "Ketura"], correct: 1 },
-              { q: "For what did Esau sell his birthright to Jacob?", q_twi: "Dɛn nti na Esau tɔnn ne ba panyin di maa Yakobo?", a: ["Silver coins", "A bowl of stew/lentils", "A field", "A sword"], a_twi: ["Dwete sika", "Aduane/Aburo aduane nkwan", "Asase", "Afena"], correct: 1 },
-              { q: "What was Jacob's name changed to after wrestling with an angel?", q_twi: "Din bɛn na wɔsesaa Yakobo de maa no akyi a ɔne ɔbɔfoɔ kɔreeɛ?", a: ["Abraham", "Israel", "Isaac", "Judah"], a_twi: ["Abraham", "Israel", "Isak", "Yuda"], correct: 1 },
-              { q: "Who was Rachel's sister whom Jacob also married?", q_twi: "Hwan ne Rahel nua baa a Yakobo san waree no?", a: ["Leah", "Rebekah", "Hagar", "Dinah"], a_twi: ["Lea", "Rebeka", "Hagar", "Dina"], correct: 0 },
-              { q: "What were the twin cities destroyed by fire due to wickedness?", q_twi: "Nkurom mmienu bɛn na ogya sɛee wɔn bɔne nti?", a: ["Jericho and Ai", "Sodom and Gomorrah", "Nineveh and Tyre", "Babylon and Rome"], a_twi: ["Yeriko ne Ai", "Sodom ne Gomora", "Nineve ne Tiro", "Babilon ne Roma"], correct: 1 },
-              { q: "What happened to Lot's wife when she looked back?", q_twi: "Dɛn na ɛbaa Lot yere so berɛ a ɔhũũ n'akyi?", a: ["She burned up", "She turned into a pillar of salt", "She fainted", "She turned into a stone"], a_twi: ["Ɛhyeeɛ", "Ɔdannan nkyene dunu", "Ɔtwaeɛ", "Ɔdannan ɔboɔ"], correct: 1 },
-              { q: "Who was the high priest and king of Salem who blessed Abraham?", q_twi: "Hwan ne Salem sɔfopanyin ne ɔhene a ɔhyiraa Abraham?", a: ["Melchizedek", "Aaron", "Eleazar", "Eli"], a_twi: ["Melkisedek", "Aaron", "Eleasar", "Eli"], correct: 0 },
-              { q: "How old was Abraham when his son Isaac was born?", q_twi: "Mfeɛ dodoɔ sɛn na na Abraham di berɛ a wɔwoo ne ba Isak?", a: ["75", "90", "100", "120"], a_twi: ["75", "90", "100", "120"], correct: 2 },
-              { q: "What animal did God provide as a substitute for Isaac on the altar?", q_twi: "Abowa bɛn na Onyankopɔn de bɔɔ afɔreɛ hyɛɛ Isak ananmu afɔrebukyia so?", a: ["A lamb", "A ram caught in a thicket", "A dove", "A bull"], a_twi: ["Oguamba", "Odwennini a wasanyan wura mu", "Aburuburo", "Nantwinini"], correct: 1 },
-              { q: "Who was Isaac's twin sons?", q_twi: "Hwan ne Isak mma ntafoɔ?", a: ["Jacob and Joseph", "Esau and Jacob", "Ephraim and Manasseh", "Cain and Abel"], a_twi: ["Yakobo ne Yosef", "Esau ne Yakobo", "Efraim ne Manase", "Kain ne Abel"], correct: 1 },
-              { q: "Which of Jacob's wives was his favorite?", q_twi: "Yakobo yerenom mu hwan na na ɔdɔ no paa?", a: ["Leah", "Rachel", "Bilhah", "Zilpah"], a_twi: ["Lea", "Rahel", "Bilha", "Silpa"], correct: 1 },
-              { q: "Who was Joseph's master in Egypt before he was sent to prison?", q_twi: "Hwan ne Yosef wura wɔ Misraim ansa na wɔde no kɔ afiase?", a: ["Pharaoh", "Potiphar", "Malchus", "Darius"], a_twi: ["Farao", "Potifar", "Malko", "Dario"], correct: 1 },
-              { q: "What position did Pharaoh give Joseph after interpreting his dream?", q_twi: "Dibea bɛn na Farao de maa Yosef berɛ a ɔkyerɛɛ ne daeɛ ase?", a: ["Head Guard", "Second-in-command / Prime Minister", "Chief Baker", "Scribe"], a_twi: ["Awɛmfoɔ Panyin", "Amradzi Abadiakyiri / Soafoɔ Panyin", "Paanoofoɔ Panyin", "Kyerɛwfoɔ"], correct: 1 }
-            ]
-          },
-          {
-            level: 15, name: "The Final Victory", bgImage: "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=1000",
-            questions: [
-              { q: "Who wrote the book of Revelation?", q_twi: "Hwan na ɔtwerɛɛ Adiyisɛm nwoma no?", a: ["Paul", "Peter", "John", "Luke"], a_twi: ["Paulo", "Petro", "Yohane", "Luka"], correct: 2 },
-              { q: "Where was John when he had the visions of Revelation?", q_twi: "Ɛhe na na Yohane wɔ berɛ a ɔnyaa anisoadehunu no?", a: ["Rome", "Island of Patmos", "Ephesus", "Jerusalem"], a_twi: ["Roma", "Patmos Supɔw so", "Efeso", "Yerusalem"], correct: 1 },
-              { q: "How many churches were addressed in Revelation?", q_twi: "Asɔre dodoɔ sɛn na wɔtwerɛ kyerɛɛ wɔn wɔ Adiyisɛm mu?", a: ["3", "7", "12", "24"], a_twi: ["3", "7", "12", "24"], correct: 1 },
-              { q: "What is the final book of the Bible?", q_twi: "Nwoma bɛn na ɛtwa toɔ wɔ Bible mu?", a: ["Jude", "Malachi", "Revelation", "Psalms"], a_twi: ["Yuda", "Malaki", "Adiyisɛm", "Nnwom"], correct: 2 },
-              { q: "How many gates does the New Jerusalem have in Revelation?", q_twi: "Apon dodoɔ sɛn na Yerusalem Foforo no wɔ wɔ Adiyisɛm mu?", a: ["4", "7", "12", "10"], a_twi: ["4", "7", "12", "10"], correct: 2 },
-              { q: "What are the gates of the New Jerusalem made of?", q_twi: "Dɛn na wɔde yɛɛ Yerusalem Foforo apon no?", a: ["Gold", "Pearls", "Diamond", "Silver"], a_twi: ["Sika", "Nnwamfua/Ahene pa", "Diamo", "Dweteɛ"], correct: 1 },
-              { q: "What color horse represents Death in the four horsemen?", q_twi: "Ponko kɔla bɛn na ɔgyina hɔ ma Wuo wɔ apɔnkɔ baanan no mu?", a: ["White", "Red", "Black", "Pale / Greenish-gray"], a_twi: ["Fitaa", "Kɔkɔɔ", "Tuntum", "Afase/Kɔla a asɛe"], correct: 3 },
-              { q: "Who is cast into the Lake of Fire along with death and hades?", q_twi: "Hwan na wɔtow no kyene Ogya Tanoa no mu bɔm gu wuo ne asaman akyi?", a: ["The dragon / Satan", "The angels", "Adam", "Noah"], a_twi: ["Ɔbɔnsam/Satan", "Abɔfoɔ", "Adam", "Noa"], correct: 0 },
-              { q: "What tree is found on either side of the river of life in the New Jerusalem?", q_twi: "Dua bɛn na ɛwɔ nkwa subɔnten no afã mmienu nyinaa wɔ Yerusalem Foforo no mu?", a: ["The Tree of Knowledge", "The Tree of Life", "A Mustard tree", "An Olive tree"], a_twi: ["Nimdeɛ Dua", "Nkwa Dua", "Mfoteɛ dua", "Olive dua"], correct: 1 },
-              { q: "How many elders sit around the throne of God in Revelation?", q_twi: "Mpanimfoɔ dodoɔ sɛn na wɔtete Onyankopɔn ahengua no ho wɔ Adiyisɛm mu?", a: ["12", "24", "7", "144"], a_twi: ["12", "24", "7", "144"], correct: 1 },
-              { q: "What is the number of the beast mentioned in Revelation 13?", q_twi: "Abowa nambate bɛn na wɔbɔɔ ne din wɔ Adiyisɛm 13 mu?", a: ["777", "666", "12", "999"], a_twi: ["777", "666", "12", "999"], correct: 1 },
-              { q: "Who leads the angels in battle against the dragon in Revelation 12?", q_twi: "Hwan na ɔdi abɔfoɔ anim kɔko tĩa ɔbɔnsam wɔ Adiyisɛm 12 mu?", a: ["Gabriel", "Michael", "Raphael", "Uriel"], a_twi: ["Gabriel", "Mikael", "Rafael", "Uriel"], correct: 1 },
-              { q: "What is the very last word of the Bible?", q_twi: "Asɛmfua a ɛtwa toɔ koraa wɔ Bible mu ne sɛn?", a: ["Hallelujah", "Amen", "Forever", "Holy"], a_twi: ["Aleluia", "Amen", "Daa", "Kronkron"], correct: 1 }
-            ]
-          }
+            {
+                level: 1, name: "Genesis: Early Earth", bgImage: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1000",
+                questions: [
+                    { q: "Who was the first man?", q_twi: "Hwan ne onipa a odi kan?", a: ["Noah", "Adam", "Seth", "Abel"], a_twi: ["Noa", "Adam", "Set", "Abel"], correct: 1 },
+                    { q: "What was the first thing God created?", q_twi: "Dɛn ne adeɛ a Onyankopɔn bɔɔ no mfiaseɛ?", a: ["Animals", "Light", "Humans", "Trees"], a_twi: ["Mmoa", "Hann", "Nnipa", "Nnua"], correct: 1 }
+                    // ... include all other questions here ...
+                ]
+            },
+            // ... include all other levels ...
         ];
 
         let gameData = JSON.parse(localStorage.getItem('bibleQuizRPGData')) || {
-            lvl: 1, gold: 100, currentQuestionIndex: 0, lang: 'en'
+            lvl: 1, gold: 100, currentQuestionIndex: 0, lang: 'en', musicOn: false
         };
 
         let activePool = [];
@@ -346,16 +101,10 @@
 
         function renderUI() {
             isProcessing = false;
-            let levelData = quizDatabase.find(l => l.level === gameData.lvl) || quizDatabase[quizDatabase.length - 1];
+            let levelData = quizDatabase.find(l => l.level === gameData.lvl) || quizDatabase[0];
             
-            // BUILD SHUFFLED LEVEL POOL
             if (activePool.length === 0) {
                 activePool = [...levelData.questions].sort(() => Math.random() - 0.5);
-                gameData.currentQuestionIndex = 0;
-            }
-
-            // SAFETY CHECK FOR BOUNDS
-            if (gameData.currentQuestionIndex >= activePool.length) {
                 gameData.currentQuestionIndex = 0;
             }
 
@@ -365,6 +114,11 @@
             document.getElementById('gold-val').innerText = gameData.gold;
             document.getElementById('lang-label').innerText = (gameData.lang === 'en') ? "English" : "Twi";
             
+            // Toggle Skip Button Visibility
+            const skipBtn = document.getElementById('skip-btn');
+            if (gameData.gold >= 100) skipBtn.classList.remove('hidden');
+            else skipBtn.classList.add('hidden');
+
             const progress = (gameData.currentQuestionIndex / activePool.length) * 100;
             document.getElementById('xp-bar').style.width = progress + "%";
 
@@ -375,7 +129,6 @@
         function renderQuestion() {
             const qObj = activePool[gameData.currentQuestionIndex];
             const container = document.getElementById('quiz-container');
-            
             const txt = (gameData.lang === 'en') ? qObj.q : (qObj.q_twi || qObj.q);
             const opts = (gameData.lang === 'en') ? qObj.a : (qObj.a_twi || qObj.a);
 
@@ -395,51 +148,22 @@
             });
         }
 
-        function startTimer() {
-            clearInterval(timerInterval);
-            timeLeft = 10;
-            const clock = document.getElementById('timer-clock');
-            clock.classList.remove('timer-danger');
-            clock.innerText = timeLeft;
-
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                clock.innerText = timeLeft;
-                if (timeLeft <= 3) clock.classList.add('timer-danger');
-                if (timeLeft <= 0) handleTimeout();
-            }, 1000);
-        }
-
-        function handleTimeout() {
-            clearInterval(timerInterval);
-            gameData.gold = Math.max(0, gameData.gold - 20);
-            
-            // RE-SHUFFLE LEVEL ON TIME-OUT EXPIRED
-            activePool.sort(() => Math.random() - 0.5);
-            gameData.currentQuestionIndex = 0; 
-            
-            save();
-            renderUI();
-        }
-
         function handleAnswer(choice, correct, btn) {
             if (isProcessing) return;
             isProcessing = true;
             clearInterval(timerInterval);
 
             if (choice === correct) {
+                playSound('sfx-correct');
                 btn.style.background = "#dcfce7";
                 btn.style.borderColor = "#22c55e";
                 gameData.gold += 20;
                 gameData.currentQuestionIndex++;
 
-                // CHECK IF LEVEL COMPLETED
                 if (gameData.currentQuestionIndex >= activePool.length) {
-                    if (gameData.lvl < quizDatabase.length) {
-                        gameData.lvl++;
-                    }
+                    if (gameData.lvl < quizDatabase.length) gameData.lvl++;
                     gameData.currentQuestionIndex = 0;
-                    activePool = []; // Clears active deck state so next level triggers a new random pool
+                    activePool = [];
                     save();
                     setTimeout(showLevelUp, 600);
                 } else {
@@ -447,20 +171,41 @@
                     setTimeout(renderUI, 800);
                 }
             } else {
+                playSound('sfx-wrong');
                 btn.style.background = "#fee2e2";
                 btn.style.borderColor = "#ef4444";
-                gameData.gold = Math.max(0, gameData.gold - 10);
-                
-                // INSTANTLY SHUFFLE THE CURRENT POOL AND RESET PROGRESS POINTER ON WRONG ANSWER
+                deductGold(20);
+            }
+        }
+
+        function deductGold(amount) {
+            gameData.gold = Math.max(0, gameData.gold - amount);
+            save();
+            if (gameData.gold <= 0) {
+                showGameOver();
+            } else {
                 activePool.sort(() => Math.random() - 0.5);
                 gameData.currentQuestionIndex = 0;
-                
+                setTimeout(renderUI, 800);
+            }
+        }
+
+        function skipQuestion() {
+            if (gameData.gold >= 100) {
+                gameData.gold -= 100;
+                gameData.currentQuestionIndex++;
+                if (gameData.currentQuestionIndex >= activePool.length) {
+                    gameData.lvl++;
+                    gameData.currentQuestionIndex = 0;
+                    activePool = [];
+                }
                 save();
-                setTimeout(() => { isProcessing = false; renderUI(); }, 800);
+                renderUI();
             }
         }
 
         function showLevelUp() {
+            playSound('sfx-level');
             const splash = document.getElementById('level-up-splash');
             splash.classList.add('active');
             setTimeout(() => {
@@ -469,12 +214,35 @@
             }, 2000);
         }
 
-        function save() { localStorage.setItem('bibleQuizRPGData', JSON.stringify(gameData)); }
-        function toggleLanguage() { gameData.lang = (gameData.lang === 'en') ? 'tw' : 'en'; save(); renderUI(); }
-        function toggleMusic() {} 
-        function triggerReset() { localStorage.clear(); activePool = []; location.reload(); }
+        function showGameOver() {
+            const splash = document.getElementById('game-over-splash');
+            splash.classList.add('active');
+            gameData.lvl = 1;
+            gameData.gold = 100;
+            gameData.currentQuestionIndex = 0;
+            activePool = [];
+            save();
+            setTimeout(() => {
+                splash.classList.remove('active');
+                renderUI();
+            }, 3000);
+        }
 
-        window.onload = renderUI;
-    </script>
-</body>
-</html>
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 10;
+            const clock = document.getElementById('timer-clock');
+            clock.classList.remove('timer-danger');
+            clock.innerText = timeLeft;
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                clock.innerText = timeLeft;
+                if (timeLeft <= 3) clock.classList.add('timer-danger');
+                if (timeLeft <= 0) deductGold(20);
+            }, 1000);
+        }
+
+        function toggleMusic() {
+            const m = document.getElementById('bg-loop');
+            const btn = document.getElementById('music-btn');
+            if (gameData.musicOn
