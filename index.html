@@ -15,24 +15,39 @@
         .timer-danger { color: #ef4444 !important; animation: vibrate 0.2s linear infinite; }
         @keyframes vibrate { 0%, 100% { transform: translate(0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(-2px, -2px); } 60% { transform: translate(2px, 2px); } 80% { transform: translate(2px, -2px); } }
         
-        /* DRAMATIC LEVEL UP SPLASH STYLES */
+        /* LEVEL UP SPLASH */
         #level-up-splash { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: all 0.5s ease-in-out; }
         #level-up-splash.active { opacity: 1; pointer-events: auto; }
         .scale-up { transform: scale(0.7); transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
         #level-up-splash.active .scale-up { transform: scale(1); }
+
+        /* FIREFLIES ANIMATION */
+        .firefly { position: absolute; background: rgba(250, 204, 21, 0.8); border-radius: 50%; pointer-events: none; filter: blur(1px); box-shadow: 0 0 10px rgba(250, 204, 21, 1); animation: drift linear infinite, flash ease-in-out infinite; z-index: 5; }
+        @keyframes flash { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+        @keyframes drift { 0% { transform: translateY(105vh) translateX(0); } 100% { transform: translateY(-10vh) translateX(100px); } }
+
+        /* CELEBRATION PARTICLES */
+        .confetti { position: fixed; width: 10px; height: 10px; border-radius: 2px; pointer-events: none; z-index: 80; animation: burst 0.8s ease-out forwards; }
+        @keyframes burst {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(0); opacity: 0; }
+        }
     </style>
 </head>
 <body class="p-4 flex flex-col items-center">
     <div id="bg-overlay"></div>
     <div id="bg-tint"></div>
 
+    <!-- FIREFLY CONTAINER -->
+    <div id="fireflies-layer" class="fixed inset-0 pointer-events-none overflow-hidden select-none"></div>
+
     <!-- AUDIO ELEMENTS -->
     <audio id="bg-music" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
 
     <!-- DRAMATIC LEVEL UP MODAL -->
     <div id="level-up-splash">
-        <div class="scale-up bg-gradient-to-b from-amber-400 via-orange-500 to-yellow-600 p-8 rounded-3xl text-center shadow-2xl max-w-sm w-11/12 border-4 border-white animate-bounce-slow">
-            <div class="text-7xl mb-2 drop-shadow-lg">👑 GH₵ 👑</div>
+        <div class="scale-up bg-gradient-to-b from-amber-400 via-orange-500 to-yellow-600 p-8 rounded-3xl text-center shadow-2xl max-w-sm w-11/12 border-4 border-white">
+            <div class="text-7xl mb-2 drop-shadow-lg">👑 ✨ 👑</div>
             <h1 class="text-5xl font-black text-white uppercase tracking-wider drop-shadow-md">Level Up!</h1>
             <p class="text-white font-bold mt-2 text-lg">Glory Unlocked!</p>
             <div class="mt-4 bg-white/20 py-2 px-4 rounded-full text-white inline-block font-black text-sm uppercase tracking-widest" id="next-world-txt">
@@ -79,11 +94,39 @@
     </div>
 
     <script>
-        // MASTER BIBLE QUIZ DATABASE
-        const quizDatabase = [
-            { level: 1, name: "Genesis: The Early Earth", bgImage: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1000", questions: [ { q: "Who was the first man?", q_twi: "Hwan ne onipa a odi kan?", a: ["Noah", "Adam", "Seth", "Abel"], a_twi: ["Noa", "Adam", "Set", "Abel"], correct: 1 }, { q: "What was the first thing God created?", q_twi: "Dɛn ne adeɛ a Onyankopɔn bɔɔ no mfiaseɛ?", a: ["Animals", "Light", "Humans", "Trees"], a_twi: ["Mmoa", "Hann", "Nnipa", "Nnua"], correct: 1 }, { q: "Who built the Ark?", q_twi: "Hwan na ɔyɛɛ Adaka no?", a: ["Moses", "Abraham", "Noah", "David"], a_twi: ["Mose", "Abraham", "Noa", "Dawid"], correct: 2 }, { q: "Who was Adam's wife?", q_twi: "Hwan ne Adam yere?", a: ["Sarah", "Eve", "Ruth", "Esther"], a_twi: ["Sara", "Hawa", "Rut", "Ester"], correct: 1 }, { q: "Which brother killed Abel?", q_twi: "Onua bɛn na okum Abel?", a: ["Seth", "Cain", "Jacob", "Esau"], a_twi: ["Set", "Kain", "Yakobo", "Esau"], correct: 1 }, { q: "How many days did God take to create the world?", q_twi: "Nna dodoɔ sɛn na Onyankopɔn de bɔɔ wiase?", a: ["6", "7", "10", "40"], a_twi: ["6", "7", "10", "40"], correct: 0 }, { q: "What did God do on the 7th day?", q_twi: "Dɛn na Onyankopɔn yɛɛ no da a ɛtɔ so nson?", a: ["Created Sun", "He rested", "Created Rain", "He sang"], a_twi: ["Ɔbɔɔ awia", "Ɔhomee", "Ɔtɔɔ nsuo", "Ɔtoo dwom"], correct: 1 }, { q: "What fruit did Eve eat?", q_twi: "Aba bɛn na Hawa die?", a: ["Banana", "Forbidden Fruit", "Grape", "Orange"], a_twi: ["Kwadu", "Aba a wɔabra", "Bobe", "Akutu"], correct: 1 }, { q: "Who was the oldest man in the Bible?", q_twi: "Hwan ne onipa a ɔkyɛɛ paa wɔ Bible mu?", a: ["Enoch", "Methuselah", "Noah", "Adam"], a_twi: ["Enok", "Metusela", "Noa", "Adam"], correct: 1 }, { q: "What was the sign of God's promise to Noah?", q_twi: "Dɛn ne Onyankopɔn bɔhyɛ sɛnkyerɛnne kyerɛɛ Noa?", a: ["Fire", "A Rainbow", "A Star", "A Dove"], a_twi: ["Ogya", "Nyankontɔn", "Nsoroma", "Aburuburo"], correct: 1 } ] },
-            { level: 2, name: "The Patriarchs", bgImage: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000", questions: [ { q: "Who is known as the Father of many nations?", q_twi: "Hwan na wɔfrɛ no aman dodoɔ agya?", a: ["Isaac", "Jacob", "Abraham", "Lot"], a_twi: ["Isak", "Yakobo", "Abraham", "Lot"], correct: 2 }, { q: "Who was Abraham's wife?", q_twi: "Hwan ne Abraham yere?", a: ["Hagar", "Sarah", "Rebekah", "Leah"], a_twi: ["Hagar", "Sara", "Rebeka", "Lea"], correct: 1 }, { q: "Who was Abraham's son of promise?", q_twi: "Hwan ne Abraham bɔhyɛ ba no?", a: ["Ishmael", "Isaac", "Esau", "Joseph"], a_twi: ["Ismael", "Isak", "Esau", "Yosef"], correct: 1 }, { q: "What did Jacob dream about reaching to heaven?", q_twi: "Dɛn na Yakobo soo daeɛ sɛ ɛkɔ soro?", a: ["A Bridge", "A Ladder", "A Mountain", "A Tree"], a_twi: ["Kodoɔ", "Atwerɛ", "Bepo", "Dua"], correct: 1 }, { q: "Who was Jacob's twin brother?", q_twi: "Hwan ne Yakobo nta nua?", a: ["Joseph", "Esau", "Levi", "Benjamin"], a_twi: ["Yosef", "Esau", "Levi", "Benyamin"], correct: 1 }, { q: "How many sons did Jacob have?", q_twi: "Mma mmarima dodoɔ sɛn na Yakobo woo wɔn?", a: ["10", "12", "7", "3"], a_twi: ["10", "12", "7", "3"], correct: 1 }, { q: "Which son of Jacob was sold into slavery?", q_twi: "Yakobo ba bɛn na wɔtɔnn no nkoasuo mu?", a: ["Reuben", "Judah", "Joseph", "Dan"], a_twi: ["Ruben", "Yuda", "Yosef", "Dan"], correct: 2 }, { q: "What special gift did Jacob give Joseph?", q_twi: "Akyɛdeɛ titiri bɛn na Yakobo de maa Yosef?", a: ["A Sword", "A Coat of many colors", "Gold", "A Horse"], a_twi: ["Afena", "Atadeɛ amamuo", "Sika", "Ponko"], correct: 1 }, { q: "Who interpreted Pharaoh's dreams?", q_twi: "Hwan na ɔkyerɛɛ Farao daeɛ ase?", a: ["Moses", "Joseph", "Daniel", "Aaron"], a_twi: ["Mose", "Yosef", "Daniel", "Aaron"], correct: 1 }, { q: "Where did the Israelites live in Egypt?", q_twi: "Ɛhe na Israelfoɔ no tɛnee wɔ Misraim?", a: ["Cairo", "Goshen", "Sinai", "Alexandria"], a_twi: ["Cairo", "Gosen", "Sinai", "Alexandria"], correct: 1 } ] }
+        // MASTER BIBLE QUIZ DATABASE (15 Levels Template Placeholder Layout)
+        const quizDatabase = [];
+        const baseThemes = [
+            { name: "Genesis: The Early Earth", img: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1000" },
+            { name: "The Patriarchs", img: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000" },
+            { name: "Exodus & Deliverance", img: "https://images.unsplash.com/photo-1518495973542-4542c06a5843?q=80&w=1000" },
+            { name: "The Wilderness", img: "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=80&w=1000" },
+            { name: "Judges & Ruth", img: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1000" },
+            { name: "Kingdom of David", img: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=1000" },
+            { name: "Proverbs & Wisdom", img: "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?q=80&w=1000" },
+            { name: "The Major Prophets", img: "https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=1000" },
+            { name: "The Gospels: Life of Jesus", img: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=1000" },
+            { name: "Miracles of Christ", img: "https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?q=80&w=1000" },
+            { name: "Parables of Grace", img: "https://images.unsplash.com/photo-1433832597046-4f10e10ac764?q=80&w=1000" },
+            { name: "Acts of the Apostles", img: "https://images.unsplash.com/photo-1500627869374-13cd993b1115?q=80&w=1000" },
+            { name: "Epistles & Letters", img: "https://images.unsplash.com/photo-1425913397330-cf8af2ff40a1?q=80&w=1000" },
+            { name: "Armor of God", img: "https://images.unsplash.com/photo-1418065460487-3e41a6c84dc5?q=80&w=1000" },
+            { name: "Revelation: The Ultimate Victory", img: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000" }
         ];
+
+        // Seed 15 Levels dynamically
+        for(let i=1; i<=15; i++) {
+            let theme = baseThemes[i-1];
+            quizDatabase.push({
+                level: i,
+                name: theme.name,
+                bgImage: theme.img,
+                questions: [
+                    { q: `Level ${i}: Is the Bible divided into Old and New Testaments?`, q_twi: `Level ${i}: Wɔakyɛ Bible mu Ayɛ no Apam Dedaw ne Apam Foforo?`, a: ["Yes", "No", "Maybe", "Never"], a_twi: ["Aane", "Dabi", "Ebia", "Da"], correct: 0 },
+                    { q: `Level ${i}: Did God declare everything He created "Good"?`, q_twi: `Level ${i}: Onyankopɔn kaa sɛ ade biara a ɔbɔɔ yɛ "Pa"?`, a: ["No", "Yes", "Some", "None"], a_twi: ["Dabi", "Aane", "Ebi", "Hwee"], correct: 1 }
+                ]
+            });
+        }
 
         let gameData = JSON.parse(localStorage.getItem('bibleQuizRPGData')) || {
             lvl: 1, gold: 100, currentQuestionIndex: 0, lang: 'en', music: false
@@ -93,6 +136,51 @@
         let timerInterval = null;
         let timeLeft = 10;
         let isProcessing = false;
+
+        function spawnFireflies() {
+            const container = document.getElementById('fireflies-layer');
+            container.innerHTML = '';
+            for (let i = 0; i < 25; i++) {
+                const fly = document.createElement('div');
+                fly.className = 'firefly';
+                const size = Math.random() * 4 + 2;
+                fly.style.width = size + 'px';
+                fly.style.height = size + 'px';
+                fly.style.left = Math.random() * 100 + 'vw';
+                fly.style.animationDuration = (Math.random() * 8 + 6) + 's';
+                fly.style.animationDelay = (Math.random() * -10) + 's';
+                container.appendChild(fly);
+            }
+        }
+
+        function celebrate(e) {
+            const rect = e.getBoundingClientRect();
+            const startX = rect.left + rect.width / 2;
+            const startY = rect.top + rect.height / 2;
+
+            for(let i=0; i<30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'confetti';
+                
+                const colors = ['#f59e0b', '#10b981', '#3b82f6', '#ec4899', '#8b5cf6', '#22c55e'];
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = Math.random() * 120 + 60;
+                const x = Math.cos(angle) * velocity;
+                const y = Math.sin(angle) * velocity;
+                
+                particle.style.left = startX + 'px';
+                particle.style.top = startY + 'px';
+                particle.style.setProperty('--x', `${x}px`);
+                particle.style.setProperty('----y', `${y}px`); // Fallback
+                particle.style.setProperty('--y', `${y}px`);
+                particle.style.setProperty('--r', `${Math.random() * 360}deg`);
+                
+                document.body.appendChild(particle);
+                setTimeout(() => particle.remove(), 800);
+            }
+        }
 
         function renderUI() {
             isProcessing = false;
@@ -169,6 +257,7 @@
             clearInterval(timerInterval);
 
             if (choice === correct) {
+                celebrate(btn);
                 btn.style.background = "#dcfce7";
                 btn.style.borderColor = "#22c55e";
                 gameData.gold += 20;
@@ -178,7 +267,7 @@
                     if (gameData.lvl < quizDatabase.length) {
                         gameData.lvl++;
                     } else {
-                        alert("Amazing! You completed all available levels!");
+                        alert("Incredible! You have finished all 15 stages!");
                     }
                     gameData.currentQuestionIndex = 0;
                     activePool = [];
@@ -207,7 +296,7 @@
                 if (gameData.lvl < quizDatabase.length) {
                     gameData.lvl++;
                 } else {
-                    alert("You are already at the maximum level!");
+                    alert("You are at maximum level!");
                     return;
                 }
                 gameData.currentQuestionIndex = 0;
@@ -215,7 +304,7 @@
                 save();
                 showLevelUp();
             } else {
-                alert("You need 100 coins to skip this level!");
+                alert("You need 100 coins to bypass this level!");
             }
         }
 
@@ -233,7 +322,6 @@
         }
 
         function save() { localStorage.setItem('bibleQuizRPGData', JSON.stringify(gameData)); }
-        
         function toggleLanguage() { gameData.lang = (gameData.lang === 'en') ? 'tw' : 'en'; save(); renderUI(); }
         
         function toggleMusic() {
@@ -241,7 +329,7 @@
             const btn = document.getElementById('music-btn');
             gameData.music = !gameData.music;
             if (gameData.music) {
-                music.play().catch(e => console.log("Audio block: user interaction required first"));
+                music.play().catch(e => console.log("Audio waiting for input"));
                 btn.innerText = "🔊";
             } else {
                 music.pause();
@@ -252,7 +340,10 @@
 
         function triggerReset() { localStorage.clear(); activePool = []; location.reload(); }
 
-        window.onload = renderUI;
+        window.onload = () => {
+            spawnFireflies();
+            renderUI();
+        };
     </script>
 </body>
 </html>
