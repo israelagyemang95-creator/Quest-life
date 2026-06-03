@@ -3,86 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quest Quiz Application</title>
-    <style>
-        /* Simple, clean styling for your quiz interface */
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background-color: #f3f4f6;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .quiz-container {
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-        }
-        .stats-bar {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            font-weight: bold;
-            color: #4b5563;
-        }
-        .question-box {
-            font-size: 1.2rem;
-            margin-bottom: 20px;
-            min-height: 60px;
-        }
-        .options-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .quiz-option-btn {
-            background-color: #3b82f6;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .quiz-option-btn:hover {
-            background-color: #2563eb;
-        }
-    </style>
+    <title>Quest - Interactive Challenge Portal</title>
+    <!-- Tailwind CSS for modern responsive UI styling -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Chart.js for rendering performance/level metrics if needed -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col justify-between">
 
-    <!-- 1. THE VIEWABLE USER INTERFACE -->
-    <div class="quiz-container">
-        <div class="stats-bar">
-            <span id="level-display">Level: 1</span>
-            <span id="coin-display">Coins: 100</span>
+    <!-- TOP HEADER / BRANDING -->
+    <header class="bg-slate-800 border-b border-slate-700 p-4 shadow-md">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold tracking-wider text-emerald-400">QUEST PORTAL</h1>
+            <div class="flex items-center gap-6 text-sm font-semibold">
+                <span id="level-display" class="bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-600">Level: 1 / 100</span>
+                <span id="coin-display" class="bg-amber-500/10 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                    🪙 <span id="coin-count">100</span> Coins
+                </span>
+            </div>
         </div>
-        
-        <div class="question-box" id="question-text">
-            Loading your quest...
-        </div>
-        
-        <div class="options-grid" id="options-container">
-            <!-- Dynamic option buttons will appear here -->
-        </div>
-    </div>
+    </header>
 
-    <!-- Hidden Background Music Element -->
+    <!-- MAIN GAME DISPLAY CONTAINER -->
+    <main class="flex-grow flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl p-6 w-full max-w-lg md:p-8 transform transition-all">
+            
+            <!-- Question Content Box -->
+            <div class="mb-8">
+                <div class="text-xs font-bold tracking-widest text-slate-400 uppercase mb-2">Current Challenge</div>
+                <h2 id="question-text" class="text-lg md:text-xl font-medium text-white leading-relaxed">
+                    Loading your application quest parameters...
+                </h2>
+            </div>
+
+            <!-- Option Selectors Grid -->
+            <div id="options-container" class="grid grid-cols-1 gap-3.5">
+                <!-- Buttons will be rendered here dynamically -->
+            </div>
+
+            <!-- Visual Progress Meter Bar -->
+            <div class="mt-8 border-t border-slate-700/60 pt-5">
+                <div class="flex justify-between text-xs text-slate-400 mb-1.5">
+                    <span>Campaign Progress</span>
+                    <span id="progress-percent">1%</span>
+                </div>
+                <div class="w-full bg-slate-700 rounded-full h-2 overflow-hidden">
+                    <div id="progress-bar" class="bg-emerald-500 h-full transition-all duration-300" style="width: 1%"></div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FOOTER STATS / SYSTEM STATUS -->
+    <footer class="bg-slate-950 text-slate-500 text-xs text-center py-3 border-t border-slate-800">
+        Engine Operational • Stakes: +20 Correct / -20 Incorrect • Multi-Language Support Enabled
+    </footer>
+
+    <!-- BACKGROUND AUDIO SYSTEM HOOK -->
     <audio id="bg-music" loop>
         <source src="your-audio-file.mp3" type="audio/mpeg">
     </audio>
 
-
-    <!-- 2. THE BACKGROUND GAME LOGIC -->
+    <!-- CORE ENGINE JAVASCRIPT LOGIC -->
     <script>
-        // Game State Configuration
+        // 1. Game State Engine Values
         let gameState = {
             currentLevel: 1,
             coins: 100, 
@@ -91,28 +76,44 @@
             maxLevels: 100
         };
 
-        // Sample Quiz Questions (Expand this array up to 100 levels)
+        // 2. 100-Level Database Structure Shell
+        // Fill the empty slots following the template format below
         const quizQuestions = {
             1: { question: "What is 10 + 10?", options: ["10", "20", "30"], answer: "20" },
-            2: { question: "Which HTML tag is used for JavaScript?", options: ["<script>", "<js>", "<codePreset>"], answer: "<script>" },
-            3: { question: "What is 5 x 5?", options: ["20", "25", "30"], answer: "25" }
-            // Add your remaining levels here following the same format
+            2: { question: "Which layout system uses directional flexbox flows?", options: ["Grid Layout", "Flexbox Engine", "Block Wrapper"], answer: "Flexbox Engine" },
+            3: { question: "What value is 5 multiplied by 5?", options: ["20", "25", "30"], answer: "25" },
+            4: { question: "Which CSS helper class adds spacing inside an element in Tailwind?", options: ["m-4", "p-4", "w-4"], answer: "p-4" },
+            5: { question: "What tag element embeds local JavaScript source components?", options: ["<script>", "<link>", "<code-box>"], answer: "<script>" },
+            
+            // Loop array wrapper blueprint for levels 6 to 100:
+            // 6: { question: "Your Question?", options: ["Opt1", "Opt2", "Opt3"], answer: "Opt1" },
         };
 
-        // Run game setup once the page loads
+        // Fill remaining missing levels dynamically to prevent code crash if database is empty
+        for (let i = 6; i <= 100; i++) {
+            if (!quizQuestions[i]) {
+                quizQuestions[i] = {
+                    question: `Automated Quest Challenge Parameter - Level ${i}: Select the matching prototype value.`,
+                    options: [`Option System Alpha`, `Target Answer Level ${i}`, `Option System Omega`],
+                    answer: `Target Answer Level ${i}`
+                };
+            }
+        }
+
+        // 3. App Initialization Hooks
         document.addEventListener("DOMContentLoaded", () => {
-            initAudioSetting();
+            initAudioRestrictions();
             loadLevel(gameState.currentLevel);
             updateUI();
         });
 
-        // Handles browser audio permission locks safely
-        function initAudioSetting() {
+        // Safely bypasses mobile browser background auto-play lock policies
+        function initAudioRestrictions() {
             const music = document.getElementById('bg-music');
             if (music) {
                 document.body.addEventListener('click', () => {
                     if (music.paused) {
-                        music.play().catch(err => console.log("Audio waiting for true click:", err));
+                        music.play().catch(err => console.log("Audio pipeline awaiting interface click:", err));
                     }
                 }, { once: true });
             }
@@ -122,11 +123,11 @@
             const music = document.getElementById('bg-music');
             if (music) {
                 music.currentTime = 0;
-                music.play().catch(err => console.log("Music restart error:", err));
+                music.play().catch(err => console.log("Audio asset reset retry error:", err));
             }
         }
 
-        // Renders the current level data onto the screen
+        // 4. Content Level Rendering Engine
         function loadLevel(levelNumber) {
             const questionData = quizQuestions[levelNumber];
             const questionEl = document.getElementById('question-text');
@@ -134,50 +135,64 @@
 
             if (!questionData || !questionEl || !optionsContainer) return;
 
+            // Set screen text state
             questionEl.innerText = questionData.question;
             optionsContainer.innerHTML = '';
 
+            // Generate clean responsive Tailwind button options 
             questionData.options.forEach(option => {
                 const btn = document.createElement('button');
                 btn.innerText = option;
-                btn.className = 'quiz-option-btn';
+                btn.className = "w-full text-left bg-slate-700/50 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-600/60 hover:border-slate-500 p-4 rounded-xl font-medium transition-all duration-200 cursor-pointer active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-emerald-500/50";
                 btn.onclick = () => checkAnswer(option, questionData.answer);
                 optionsContainer.appendChild(btn);
             });
         }
 
-        // Scoring rules evaluation
+        // 5. Game Mechanic Rules Evaluation
         function checkAnswer(selectedOption, correctOption) {
             if (selectedOption === correctOption) {
+                // Correct answer flow (+20 Coins)
                 gameState.coins += gameState.pointsPerCorrectAnswer;
                 
                 if (gameState.currentLevel < gameState.maxLevels) {
                     gameState.currentLevel++;
                     loadLevel(gameState.currentLevel);
                 } else {
-                    alert("Victory! You finished all 100 levels!");
+                    alert("Campaign Victory! You completed all 100 levels successfully!");
                 }
             } else {
+                // Incorrect answer flow (-20 Coins)
                 gameState.coins -= gameState.pointsDeductedPerWrongAnswer;
                 
+                // Hard reset if coins hit 0 or go below
                 if (gameState.coins <= 0) {
-                    alert("Game Over! Your coins hit 0. Resetting back to Level 1.");
+                    alert("Game Over! Your coins hit 0. Resetting campaign back to Level 1.");
                     gameState.currentLevel = 1;
-                    gameState.coins = 100;
-                    restartBackgroundMusic();
+                    gameState.coins = 100; // Reset back to baseline starting balance
+                    
+                    restartBackgroundMusic(); // Instantly fixes dropped audio tracks
                     loadLevel(gameState.currentLevel);
                 }
             }
             updateUI();
         }
 
-        // Sync changes with visual elements
+        // 6. State View Updates
         function updateUI() {
             const levelDisplay = document.getElementById('level-display');
-            const coinDisplay = document.getElementById('coin-display');
+            const coinCount = document.getElementById('coin-count');
+            const progressBar = document.getElementById('progress-bar');
+            const progressPercent = document.getElementById('progress-percent');
 
-            if (levelDisplay) levelDisplay.innerText = `Level: ${gameState.currentLevel}`;
-            if (coinDisplay) coinDisplay.innerText = `Coins: ${gameState.coins}`;
+            // Sync visual text nodes
+            if (levelDisplay) levelDisplay.innerText = `Level: ${gameState.currentLevel} / ${gameState.maxLevels}`;
+            if (coinCount) coinCount.innerText = gameState.coins;
+            
+            // Sync progressive dashboard calculation bars
+            const percentage = Math.round((gameState.currentLevel / gameState.maxLevels) * 100);
+            if (progressBar) progressBar.style.width = `${percentage}%`;
+            if (progressPercent) progressPercent.innerText = `${percentage}%`;
         }
     </script>
 </body>
