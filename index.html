@@ -13,7 +13,6 @@
         .quiz-card { background: rgba(255, 255, 255, 0.95); border-radius: 20px; color: #1e293b; position: relative; z-index: 10; }
         .btn-opt { width: 100%; text-align: left; padding: 1rem; border-radius: 12px; border: 1px solid #e2e8f0; background: white; font-weight: bold; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; }
         
-        /* TIMER ANIMATION */
         @keyframes vibrate {
             0% { transform: translate(0); }
             20% { transform: translate(-2px, 2px); }
@@ -32,6 +31,7 @@
     <div id="bg-overlay"></div>
     <div id="bg-tint"></div>
 
+    <!-- LEVEL UP SPLASH -->
     <div id="level-up-splash">
         <div class="bg-gradient-to-b from-indigo-600 to-indigo-900 p-8 rounded-3xl text-center shadow-2xl max-w-sm w-11/12 border border-white/20">
             <div class="text-6xl mb-2 animate-bounce">✨🏆✨</div>
@@ -40,18 +40,24 @@
         </div>
     </div>
 
+    <!-- SETTINGS BAR -->
     <div class="fixed top-4 left-4 right-4 flex justify-between z-50">
         <button onclick="toggleLanguage()" class="bg-indigo-600 text-white px-4 py-2 rounded-full font-bold shadow-lg text-sm border border-white/20">
             🌐 <span id="lang-label">English</span>
         </button>
-        <button onclick="toggleMusic()" id="music-btn" class="bg-slate-900/80 backdrop-blur p-3 rounded-full text-lg border border-white/10">🔇</button>
+        <button onclick="toggleMusic()" id="music-btn" class="bg-slate-900/80 backdrop-blur p-3 h-11 w-11 rounded-full text-lg border border-white/10 flex items-center justify-center shadow-lg active:scale-95 transition-all">
+            🔇
+        </button>
     </div>
 
     <div id="game-content" class="w-full max-w-md space-y-6 mt-16 relative z-10">
+        <!-- HEADER -->
         <div class="quiz-card p-6 shadow-2xl">
+            <h1 id="world-title" class="text-xs font-black uppercase tracking-widest mb-3 text-indigo-600 text-center">LOADING...</h1>
             <div class="flex justify-between items-center mb-4">
                 <div id="lvl-badge" class="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-black">1</div>
                 
+                <!-- TIMER CLOCK -->
                 <div class="flex flex-col items-center">
                     <span id="timer-clock" class="text-3xl font-black text-slate-700">10</span>
                     <span class="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Seconds</span>
@@ -66,10 +72,17 @@
             </div>
         </div>
 
+        <!-- QUIZ AREA -->
         <div id="quiz-container" class="space-y-4"></div>
+        
+        <button onclick="triggerReset()" class="w-full text-center text-xs text-white/30 mt-10 uppercase tracking-widest block">Reset Game Data</button>
     </div>
 
     <script>
+        const bgMusic = new Audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3");
+        bgMusic.loop = true;
+        bgMusic.volume = 0.25;
+
         const soundCorrect = new Audio("https://assets.mixkit.co/active_storage/sfx/2019/2019-84.wav");
         const soundWrong = new Audio("https://assets.mixkit.co/active_storage/sfx/2958/2958-84.wav");
         const soundLevelUp = new Audio("https://assets.mixkit.co/active_storage/sfx/1435/1435-84.wav");
@@ -82,19 +95,38 @@
         let timerInterval = null;
         let activeQuestions = [];
         let isProcessing = false;
+        let isMusicPlaying = false;
+
+        function toggleMusic() {
+            const btn = document.getElementById('music-btn');
+            if (!isMusicPlaying) {
+                bgMusic.play().then(() => {
+                    btn.innerText = "🔊";
+                    isMusicPlaying = true;
+                }).catch(e => console.log("Audio waiting for interaction: ", e));
+            } else {
+                bgMusic.pause();
+                btn.innerText = "🔇";
+                isMusicPlaying = false;
+            }
+        }
 
         function toggleLanguage() {
             gameData.lang = gameData.lang === 'en' ? 'tw' : 'en';
             document.getElementById('lang-label').innerText = gameData.lang === 'en' ? 'English' : 'Twi';
             save();
-            renderUI();
+            
+            // Re-render UI text elements instantly without resetting the ongoing timer engine
+            renderCurrentQuestionText();
         }
 
         function startTimer() {
             clearInterval(timerInterval);
-            timeLeft = 10;
             const clock = document.getElementById('timer-clock');
-            clock.classList.remove('timer-danger');
+            
+            if (timeLeft <= 3) clock.classList.add('timer-danger');
+            else clock.classList.remove('timer-danger');
+            
             clock.innerText = timeLeft;
 
             timerInterval = setInterval(() => {
@@ -115,45 +147,67 @@
             isProcessing = true;
             playSfx(soundWrong);
             
-            // Penalty
+            // Lose 20 coins
             gameData.gold = Math.max(0, gameData.gold - 20);
             gameData.currentQuestionIndex++;
 
+            // Check if level needs to switch ONLY when current question index crosses total count
             if (gameData.currentQuestionIndex >= activeQuestions.length) {
                 gameData.lvl++;
                 gameData.currentQuestionIndex = 0;
+                activeQuestions = [];
                 save();
                 showLevelUp();
             } else {
                 save();
+                timeLeft = 10; // Reset time back to 10 for the new question
                 setTimeout(renderUI, 500);
             }
         }
 
         function renderUI() {
             isProcessing = false;
+            if (typeof quizDatabase === 'undefined') {
+                document.getElementById('quiz-container').innerHTML = `<div class="quiz-card p-6 text-center text-red-600">quizDatabase variable missing in questions.js</div>`;
+                return;
+            }
+
             const level = quizDatabase.find(l => l.level === gameData.lvl);
-            if (!level) return;
+            if (!level) {
+                if (gameData.lvl > quizDatabase.length) {
+                    document.getElementById('world-title').innerText = gameData.lang === 'en' ? "QUEST COMPLETED" : "NKONIMDI KƐSEƐ";
+                    document.getElementById('quiz-container').innerHTML = `<div class="quiz-card p-8 text-center font-bold text-slate-800">Mo! W’asua biribiara awie!</div>`;
+                }
+                clearInterval(timerInterval);
+                return;
+            }
 
             if (activeQuestions.length === 0) {
                 activeQuestions = [...level.questions].sort(() => Math.random() - 0.5);
             }
 
             document.getElementById('bg-overlay').style.backgroundImage = `url('${level.bgImage}')`;
+            document.getElementById('world-title').innerText = level.name;
             document.getElementById('lvl-badge').innerText = gameData.lvl;
             document.getElementById('gold-val').innerText = gameData.gold;
             document.getElementById('xp-bar').style.width = (gameData.currentQuestionIndex / activeQuestions.length * 100) + "%";
+            document.getElementById('lang-label').innerText = gameData.lang === 'en' ? 'English' : 'Twi';
 
+            renderCurrentQuestionText();
+            startTimer();
+        }
+
+        function renderCurrentQuestionText() {
+            if (activeQuestions.length === 0) return;
             const qObj = activeQuestions[gameData.currentQuestionIndex];
             const container = document.getElementById('quiz-container');
             
-            // Language Selection
             const questionText = gameData.lang === 'en' ? qObj.q : (qObj.q_twi || qObj.q);
             const options = gameData.lang === 'en' ? qObj.a : (qObj.a_twi || qObj.a);
 
             container.innerHTML = `
-                <div class="quiz-card p-6 shadow-xl animate-in fade-in duration-500">
-                    <h2 class="text-xl font-bold text-slate-800 mb-6">${questionText}</h2>
+                <div class="quiz-card p-6 shadow-xl">
+                    <h2 id="question-text-el" class="text-xl font-bold text-slate-800 mb-6">${questionText}</h2>
                     <div class="space-y-3" id="opt-box"></div>
                 </div>
             `;
@@ -165,8 +219,6 @@
                 btn.onclick = () => handleAnswer(idx, qObj.correct, btn);
                 document.getElementById('opt-box').appendChild(btn);
             });
-
-            startTimer();
         }
 
         function handleAnswer(selected, correct, btn) {
@@ -177,6 +229,7 @@
             if (selected === correct) {
                 playSfx(soundCorrect);
                 btn.style.background = "#dcfce7";
+                btn.style.borderColor = "#22c55e";
                 gameData.gold += 20;
                 gameData.currentQuestionIndex++;
                 
@@ -188,14 +241,27 @@
                     setTimeout(showLevelUp, 600);
                 } else {
                     save();
+                    timeLeft = 10;
                     setTimeout(renderUI, 800);
                 }
             } else {
                 playSfx(soundWrong);
                 btn.style.background = "#fee2e2";
+                btn.style.borderColor = "#ef4444";
                 gameData.gold = Math.max(0, gameData.gold - 10);
-                save();
-                setTimeout(renderUI, 800);
+                gameData.currentQuestionIndex++; // Move forward into next question even if wrong
+
+                if (gameData.currentQuestionIndex >= activeQuestions.length) {
+                    gameData.lvl++;
+                    gameData.currentQuestionIndex = 0;
+                    activeQuestions = [];
+                    save();
+                    setTimeout(showLevelUp, 600);
+                } else {
+                    save();
+                    timeLeft = 10;
+                    setTimeout(renderUI, 800);
+                }
             }
         }
 
@@ -207,14 +273,14 @@
             splash.classList.add('active');
             setTimeout(() => {
                 splash.classList.remove('active');
+                timeLeft = 10;
                 renderUI();
             }, 2500);
         }
 
         function save() { localStorage.setItem('bibleQuizRPGData', JSON.stringify(gameData)); }
         function playSfx(sfx) { sfx.currentTime = 0; sfx.play().catch(()=>{}); }
-        function toggleMusic() { /* Existing Music Logic */ }
-        function triggerReset() { if(confirm("Reset?")){ localStorage.clear(); location.reload(); } }
+        function triggerReset() { if(confirm("Reset progress?")){ localStorage.clear(); location.reload(); } }
 
         window.onload = renderUI;
     </script>
