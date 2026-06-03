@@ -1,11 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bible Quest Blitz</title>
-    <!-- Tailwind CSS Script CDN for layout styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         #bg-overlay { 
@@ -48,9 +46,6 @@
             border-color: #cbd5e1;
             transform: translateY(-1px);
         }
-        .btn-opt:active {
-            transform: translateY(1px);
-        }
         .timer-danger {
             color: #ef4444 !important;
             animation: pulse 1s infinite alternate;
@@ -61,25 +56,21 @@
         }
     </style>
 </head>
-<body class="p-4 min-h-screen flex flex-col items-center justify-start overflow-x-hidden selection:bg-indigo-200">
+<body class="p-4 min-h-screen flex flex-col items-center justify-start overflow-x-hidden select-none">
     
-    <!-- Background Architecture -->
     <div id="bg-overlay"></div>
     <div id="bg-tint"></div>
 
-    <!-- Background Music Audio Tag (Add your audio link in src) -->
     <audio id="bg-music" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
 
     <!-- Top Dashboard Header (HUD) -->
     <div class="fixed top-4 left-4 right-4 flex flex-col gap-2 z-50 max-w-md mx-auto w-full px-2">
         <div class="flex justify-between items-center">
             <div class="flex gap-2">
-                <!-- Language Toggle -->
-                <button onclick="toggleLanguage()" class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 transition-all text-white px-3 py-2 rounded-full font-bold text-xs uppercase tracking-wider shadow-lg">
+                <button onclick="toggleLanguage()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-full font-bold text-xs uppercase shadow-lg">
                     🌐 <span id="lang-label">English</span>
                 </button>
-                <!-- Music Toggle -->
-                <button onclick="toggleMusic()" id="music-btn" class="bg-slate-700 hover:bg-slate-800 active:scale-95 transition-all text-white px-3 py-2 rounded-full font-bold text-xs uppercase tracking-wider shadow-lg">
+                <button onclick="toggleMusic()" id="music-btn" class="bg-slate-700 hover:bg-slate-800 text-white px-3 py-2 rounded-full font-bold text-xs uppercase shadow-lg">
                     🔈 Music: Off
                 </button>
             </div>
@@ -90,9 +81,8 @@
             </div>
         </div>
 
-        <!-- Level Skip Action Row -->
         <div class="flex justify-end">
-            <button onclick="skipLevel()" class="bg-amber-500 hover:bg-amber-600 active:scale-95 transition-all text-slate-950 px-4 py-1.5 rounded-full font-black text-xs uppercase tracking-wider shadow-md border border-amber-300">
+            <button onclick="skipLevel()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 px-4 py-1.5 rounded-full font-black text-xs uppercase tracking-wider shadow-md">
                 ⏩ Skip Book (-100 💰)
             </button>
         </div>
@@ -101,86 +91,93 @@
     <!-- Centered Principal Game Dashboard -->
     <div id="game-content" class="w-full max-w-md space-y-5 mt-24 relative z-10">
         
-        <!-- Level Progress & Book Metadata Banner -->
         <div class="quiz-card p-6 shadow-2xl text-center border border-white/20">
             <h1 id="world-title" class="text-xs font-black uppercase tracking-widest mb-3 text-indigo-600">LOADING DATA...</h1>
             
             <div class="flex justify-between items-center mb-4 px-1">
                 <div id="lvl-badge" class="px-3 py-1 rounded-full bg-indigo-600 text-white font-black text-[10px] uppercase tracking-wider">Book --</div>
-                <span id="timer-clock" class="text-3xl font-black text-slate-700 tabular-nums">--</span>
+                
+                <!-- Time Box Controls (Clock, Pause, Restart) -->
+                <div class="flex items-center gap-3">
+                    <button onclick="restartLevel()" class="text-slate-400 hover:text-indigo-600 text-xl font-bold transition-all" title="Restart Book">
+                        🔄
+                    </button>
+                    <button onclick="togglePause()" id="pause-btn" class="text-slate-400 hover:text-indigo-600 text-xl font-bold transition-all" title="Pause Game">
+                        ⏸️
+                    </button>
+                    <span id="timer-clock" class="text-3xl font-black text-slate-700 tabular-nums">--</span>
+                </div>
             </div>
             
-            <!-- Structural XP Bar Setup -->
             <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden shadow-inner">
                 <div id="xp-bar" class="h-full bg-gradient-to-r from-emerald-400 to-green-500 transition-all duration-500" style="width: 0%"></div>
             </div>
             <p id="q-counter-txt" class="text-[10px] text-slate-400 mt-2 font-bold uppercase tracking-wider">Progress: 0 / 0</p>
         </div>
 
-        <!-- Target Injection Container for Dynamic Question Cards -->
         <div id="quiz-container" class="space-y-4"></div>
     </div>
 
-    <!-- SCRIPT INJECTION LINK -->
     <script src="questions.js"></script>
 
-    <!-- Engine Control Logic -->
     <script>
-        // Centralized State Engine
         let gameData = JSON.parse(localStorage.getItem('bibleQuestData')) || {
-            lvl: 1, 
-            gold: 100, 
-            progress: 0, 
-            lang: 'en'
+            lvl: 1, gold: 100, progress: 0, lang: 'en'
         };
 
         let currentPool = [];
         let timerInterval = null;
         let isProcessing = false;
         let isMusicPlaying = false;
+        let isPaused = false;
+        let currentTimeLeft = 0;
 
         function save() { 
             localStorage.setItem('bibleQuestData', JSON.stringify(gameData)); 
         }
 
-        // Framework Initialization Loop
         function initLevel() {
             isProcessing = false;
+            isPaused = false;
+            document.getElementById('pause-btn').innerText = "⏸️";
             
             if (typeof quizDatabase === 'undefined' || quizDatabase.length === 0) {
-                console.error("Database connection missing. Check your questions.js injection script path.");
+                alert("Critical: database not loaded. Refresh your browser window.");
                 return;
             }
 
-            const book = quizDatabase.find(b => b.level === gameData.lvl) || quizDatabase[0];
+            // Fallback safety filter
+            let book = quizDatabase.find(b => b.level === gameData.lvl);
+            if (!book) {
+                gameData.lvl = 1;
+                gameData.progress = 0;
+                save();
+                book = quizDatabase[0];
+            }
             
-            // Layout Updates
             document.getElementById('bg-overlay').style.backgroundImage = `url('${book.bg}')`;
             document.getElementById('world-title').innerText = `${book.name} (${book.group})`;
             document.getElementById('lvl-badge').innerText = `Book ${gameData.lvl}`;
             document.getElementById('gold-val').innerText = gameData.gold;
             document.getElementById('lang-label').innerText = gameData.lang === 'en' ? "English" : "Twi";
             
-            // Dynamic Progress Calculations
             const percent = (gameData.progress / book.target) * 100;
             document.getElementById('xp-bar').style.width = `${percent}%`;
             document.getElementById('q-counter-txt').innerText = `Progress: ${gameData.progress} / ${book.target}`;
 
-            // Anti-Repetition Logic Setup
             if (currentPool.length === 0) {
                 currentPool = [...book.questions].sort(() => Math.random() - 0.5);
             }
 
             renderQuestion(book);
-            startTimer(book.timer);
+            currentTimeLeft = book.timer;
+            startTimer(currentTimeLeft);
         }
 
-        // Question Injector Block
         function renderQuestion(book) {
             if (currentPool.length === 0) return;
             const qObj = currentPool[0];
             const container = document.getElementById('quiz-container');
-            
             const qText = gameData.lang === 'en' ? qObj.q : (qObj.q_twi || qObj.q);
             
             container.innerHTML = `
@@ -199,33 +196,58 @@
             });
         }
 
-        // Countdown Timer Engine
         function startTimer(duration) {
             clearInterval(timerInterval);
-            let time = duration;
             const timerClock = document.getElementById('timer-clock');
             timerClock.classList.remove('timer-danger');
-            timerClock.innerText = time;
+            timerClock.innerText = duration;
 
             timerInterval = setInterval(() => {
-                time--;
-                timerClock.innerText = time;
+                if (isPaused) return; // Freeze countdown loop execution if paused
                 
-                if (time <= 3) {
+                currentTimeLeft--;
+                timerClock.innerText = currentTimeLeft;
+                
+                if (currentTimeLeft <= 3) {
                     timerClock.classList.add('timer-danger');
                 }
                 
-                if (time <= 0) {
+                if (currentTimeLeft <= 0) {
                     clearInterval(timerInterval);
-                    gameData.gold -= 20; // Time Out Penalty
+                    gameData.gold -= 20; 
                     checkStatus();
                 }
             }, 1000);
         }
 
-        // Interactive Assessment Logic
+        function togglePause() {
+            const pauseBtn = document.getElementById('pause-btn');
+            if (!isPaused) {
+                isPaused = true;
+                pauseBtn.innerText = "▶️";
+                // Disable choice options visually during active pause sequence
+                document.getElementById('quiz-container').style.opacity = "0.3";
+                document.getElementById('quiz-container').style.pointerEvents = "none";
+            } else {
+                isPaused = false;
+                pauseBtn.innerText = "⏸️";
+                document.getElementById('quiz-container').style.opacity = "1";
+                document.getElementById('quiz-container').style.pointerEvents = "auto";
+            }
+        }
+
+        function restartLevel() {
+            if (confirm("Restart this entire book level? Your current progress in this book will be cleared.")) {
+                clearInterval(timerInterval);
+                gameData.progress = 0;
+                currentPool = [];
+                save();
+                initLevel();
+            }
+        }
+
         function handleAnswer(choice, correct, btn, book) {
-            if (isProcessing) return;
+            if (isProcessing || isPaused) return;
             isProcessing = true;
             clearInterval(timerInterval);
 
@@ -253,36 +275,32 @@
             }
         }
 
-        // Skip Level Feature Mechanics
         function skipLevel() {
             if (gameData.gold < 100) {
-                alert("You don't have enough coins! You need at least 100 💰 to skip a book.");
+                alert("You don't have enough coins!");
                 return;
             }
-            
-            if (confirm("Are you sure you want to spend 100 💰 to skip this entire book?")) {
+            if (confirm("Spend 100 💰 to skip this entire book?")) {
                 clearInterval(timerInterval);
                 gameData.gold -= 100;
                 gameData.lvl++;
                 gameData.progress = 0;
-                currentPool = []; // Flush old questions pool
+                currentPool = [];
                 save();
                 initLevel();
             }
         }
 
-        // Music Framework System Trigger
         function toggleMusic() {
             const music = document.getElementById('bg-music');
             const musicBtn = document.getElementById('music-btn');
-            
             if (!isMusicPlaying) {
                 music.play().then(() => {
                     isMusicPlaying = true;
                     musicBtn.innerText = "🔊 Music: On";
                     musicBtn.classList.replace('bg-slate-700', 'bg-emerald-600');
-                }).catch(err => {
-                    alert("Click anywhere on the screen first to allow audio playbacks.");
+                }).catch(() => {
+                    alert("Interact with the screen before enabling track elements.");
                 });
             } else {
                 music.pause();
@@ -292,11 +310,10 @@
             }
         }
 
-        // Game Over & State Status Controller
         function checkStatus() {
             if (gameData.gold <= 0) {
                 clearInterval(timerInterval);
-                alert("OUT OF COINS! Game over. Resetting progress completely back to Genesis Level 1.");
+                alert("OUT OF COINS! Resetting progress entirely back to Genesis Level 1.");
                 localStorage.removeItem('bibleQuestData');
                 location.reload(); 
             } else {
@@ -305,7 +322,6 @@
             }
         }
 
-        // Interactive Interface Translations Trigger
         function toggleLanguage() {
             gameData.lang = gameData.lang === 'en' ? 'tw' : 'en';
             save();
