@@ -6,118 +6,236 @@
     <title>Bible Quest Blitz</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        #bg-overlay { position: fixed; inset: 0; background-color: #0f172a; z-index: 0; }
+        #bg-overlay { position: fixed; inset: 0; background-color: #0f172a; background-size: cover; background-position: center; transition: background-image 1s ease-in-out; z-index: 0; }
         #bg-tint { position: fixed; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.5), rgba(0,0,0,0.8)); z-index: 1; }
-        body { min-height: 100vh; color: white; font-family: sans-serif; overflow-x: hidden; position: relative; }
-        .quiz-card { background: rgba(255, 255, 255, 0.95); border-radius: 20px; color: #1e293b; position: relative; z-index: 10; width: 90%; max-width: 400px; }
-        .btn-opt { width: 100%; text-align: left; padding: 1rem; border-radius: 12px; border: 1px solid #e2e8f0; background: white; font-weight: bold; transition: all 0.2s; margin-bottom: 0.5rem; color: #1e293b; }
-        .btn-opt:active { transform: scale(0.98); background: #f8fafc; }
+        body { min-height: 100vh; background: #0f172a; color: white; font-family: sans-serif; overflow-x: hidden; }
+        .quiz-card { background: rgba(255, 255, 255, 0.95); border-radius: 20px; color: #1e293b; position: relative; z-index: 10; }
+        .btn-opt { width: 100%; text-align: left; padding: 1rem; border-radius: 12px; border: 1px solid #e2e8f0; background: white; font-weight: bold; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .btn-opt:hover { background: #f8fafc; border-color: #cbd5e1; }
+        .timer-danger { color: #ef4444 !important; animation: vibrate 0.2s linear infinite; }
+        @keyframes vibrate { 0%, 100% { transform: translate(0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(-2px, -2px); } 60% { transform: translate(2px, 2px); } 80% { transform: translate(2px, -2px); } }
+        #level-up-splash { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: all 0.5s; }
+        #level-up-splash.active { opacity: 1; pointer-events: auto; }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center p-4">
+<body class="p-4 flex flex-col items-center">
     <div id="bg-overlay"></div>
     <div id="bg-tint"></div>
 
-    <div class="relative z-10 w-full max-w-md flex justify-between mb-4 px-2 font-bold text-lg">
-        <div id="level-display">Level: 1</div>
-        <div id="coin-display">💰 100</div>
+    <audio id="bg-music" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+
+    <div id="level-up-splash">
+        <div class="bg-gradient-to-b from-indigo-600 to-indigo-900 p-8 rounded-3xl text-center shadow-2xl max-w-sm w-11/12 border border-white/20">
+            <div class="text-6xl mb-2">✨🏆</div>
+            <h1 class="text-4xl font-black text-amber-400 uppercase">Level Up!</h1>
+            <p id="next-world-txt" class="text-white font-bold mt-4">Moving to next level...</p>
+        </div>
     </div>
 
-    <div class="quiz-card p-6 shadow-2xl">
-        <h2 id="question-text" class="text-xl font-bold text-center mb-6">Initializing Quest...</h2>
-        <div id="options-container"></div>
+    <div class="fixed top-4 left-4 right-4 flex justify-between z-50">
+        <button onclick="toggleLanguage()" class="bg-indigo-600 text-white px-4 py-2 rounded-full font-bold shadow-lg text-sm border border-white/20">
+            🌐 <span id="lang-label">English</span>
+        </button>
+        <button onclick="toggleMusic()" id="music-btn" class="bg-slate-900/80 backdrop-blur p-3 h-11 w-11 rounded-full text-lg border border-white/10 flex items-center justify-center shadow-lg active:scale-95 transition-all">🔇</button>
     </div>
 
-    <button onclick="resetGame()" class="relative z-10 mt-8 text-xs uppercase tracking-widest opacity-50">Reset Progress</button>
+    <div id="game-content" class="w-full max-w-md space-y-6 mt-16 relative z-10">
+        <div class="quiz-card p-6 shadow-2xl">
+            <h1 id="world-title" class="text-xs font-black uppercase tracking-widest mb-3 text-indigo-600 text-center">LOADING BLITZ...</h1>
+            <div class="flex justify-between items-center mb-4">
+                <div id="lvl-badge" class="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-black">1</div>
+                <div class="flex flex-col items-center">
+                    <span id="timer-clock" class="text-3xl font-black text-slate-700">10</span>
+                </div>
+                <div class="text-right">
+                    <p class="text-xl font-black text-slate-800">💰 <span id="gold-val">0</span></p>
+                </div>
+            </div>
+            <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                <div id="xp-bar" class="h-full bg-green-500 transition-all duration-500" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div id="quiz-container" class="space-y-4"></div>
+        
+        <button id="skip-btn" onclick="skipLevel()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl shadow-lg transition-all active:scale-95 border-b-4 border-amber-700 flex justify-center items-center gap-2">
+            ⏭️ Skip Level (Cost: 💰100)
+        </button>
+
+        <button onclick="triggerReset()" class="w-full text-center text-xs text-white/30 mt-10 uppercase tracking-widest block bg-slate-900/40 py-2 rounded-xl border border-white/5 tracking-wider">Tap Here to Hard Reset Data</button>
+    </div>
 
     <script>
-        // Database directly in the file to prevent "File Not Found" errors
-        const quizDatabase = {
-            1: {
-                question: "Who was the first man created?",
-                options: ["Noah", "Adam", "Moses"],
-                answer: "Adam"
-            },
-            2: {
-                question: "What is 5 x 5?",
-                options: ["20", "25", "30"],
-                answer: "25"
-            },
-            3: {
-                question: "Which layout tool uses flexbox?",
-                options: ["Grid", "Flex", "Float"],
-                answer: "Flex"
+        // MASTER BIBLE QUIZ DATABASE (Same as provided)
+        const quizDatabase = [
+            { level: 1, name: "Genesis: The Early Earth", bgImage: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1000", questions: [ { q: "Who was the first man?", q_twi: "Hwan ne onipa a odi kan?", a: ["Noah", "Adam", "Seth", "Abel"], a_twi: ["Noa", "Adam", "Set", "Abel"], correct: 1 }, { q: "What was the first thing God created?", q_twi: "Dɛn ne adeɛ a Onyankopɔn bɔɔ no mfiaseɛ?", a: ["Animals", "Light", "Humans", "Trees"], a_twi: ["Mmoa", "Hann", "Nnipa", "Nnua"], correct: 1 }, { q: "Who built the Ark?", q_twi: "Hwan na ɔyɛɛ Adaka no?", a: ["Moses", "Abraham", "Noah", "David"], a_twi: ["Mose", "Abraham", "Noa", "Dawid"], correct: 2 }, { q: "Who was Adam's wife?", q_twi: "Hwan ne Adam yere?", a: ["Sarah", "Eve", "Ruth", "Esther"], a_twi: ["Sara", "Hawa", "Rut", "Ester"], correct: 1 }, { q: "Which brother killed Abel?", q_twi: "Onua bɛn na okum Abel?", a: ["Seth", "Cain", "Jacob", "Esau"], a_twi: ["Set", "Kain", "Yakobo", "Esau"], correct: 1 }, { q: "How many days did God take to create the world?", q_twi: "Nna dodoɔ sɛn na Onyankopɔn de bɔɔ wiase?", a: ["6", "7", "10", "40"], a_twi: ["6", "7", "10", "40"], correct: 0 }, { q: "What did God do on the 7th day?", q_twi: "Dɛn na Onyankopɔn yɛɛ no da a ɛtɔ so nson?", a: ["Created Sun", "He rested", "Created Rain", "He sang"], a_twi: ["Ɔbɔɔ awia", "Ɔhomee", "Ɔtɔɔ nsuo", "Ɔtoo dwom"], correct: 1 }, { q: "What fruit did Eve eat?", q_twi: "Aba bɛn na Hawa die?", a: ["Banana", "Forbidden Fruit", "Grape", "Orange"], a_twi: ["Kwadu", "Aba a wɔabra", "Bobe", "Akutu"], correct: 1 }, { q: "Who was the oldest man in the Bible?", q_twi: "Hwan ne onipa a ɔkyɛɛ paa wɔ Bible mu?", a: ["Enoch", "Methuselah", "Noah", "Adam"], a_twi: ["Enok", "Metusela", "Noa", "Adam"], correct: 1 }, { q: "What was the sign of God's promise to Noah?", q_twi: "Dɛn ne Onyankopɔn bɔhyɛ sɛnkyerɛnne kyerɛɛ Noa?", a: ["Fire", "A Rainbow", "A Star", "A Dove"], a_twi: ["Ogya", "Nyankontɔn", "Nsoroma", "Aburuburo"], correct: 1 } ] },
+            { level: 2, name: "The Patriarchs", bgImage: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000", questions: [ { q: "Who is known as the Father of many nations?", q_twi: "Hwan na wɔfrɛ no aman dodoɔ agya?", a: ["Isaac", "Jacob", "Abraham", "Lot"], a_twi: ["Isak", "Yakobo", "Abraham", "Lot"], correct: 2 }, { q: "Who was Abraham's wife?", q_twi: "Hwan ne Abraham yere?", a: ["Hagar", "Sarah", "Rebekah", "Leah"], a_twi: ["Hagar", "Sara", "Rebeka", "Lea"], correct: 1 }, { q: "Who was Abraham's son of promise?", q_twi: "Hwan ne Abraham bɔhyɛ ba no?", a: ["Ishmael", "Isaac", "Esau", "Joseph"], a_twi: ["Ismael", "Isak", "Esau", "Yosef"], correct: 1 }, { q: "What did Jacob dream about reaching to heaven?", q_twi: "Dɛn na Yakobo soo daeɛ sɛ ɛkɔ soro?", a: ["A Bridge", "A Ladder", "A Mountain", "A Tree"], a_twi: ["Kodoɔ", "Atwerɛ", "Bepo", "Dua"], correct: 1 }, { q: "Who was Jacob's twin brother?", q_twi: "Hwan ne Yakobo nta nua?", a: ["Joseph", "Esau", "Levi", "Benjamin"], a_twi: ["Yosef", "Esau", "Levi", "Benyamin"], correct: 1 }, { q: "How many sons did Jacob have?", q_twi: "Mma mmarima dodoɔ sɛn na Yakobo woo wɔn?", a: ["10", "12", "7", "3"], a_twi: ["10", "12", "7", "3"], correct: 1 }, { q: "Which son of Jacob was sold into slavery?", q_twi: "Yakobo ba bɛn na wɔtɔnn no nkoasuo mu?", a: ["Reuben", "Judah", "Joseph", "Dan"], a_twi: ["Ruben", "Yuda", "Yosef", "Dan"], correct: 2 }, { q: "What special gift did Jacob give Joseph?", q_twi: "Akyɛdeɛ titiri bɛn na Yakobo de maa Yosef?", a: ["A Sword", "A Coat of many colors", "Gold", "A Horse"], a_twi: ["Afena", "Atadeɛ amamuo", "Sika", "Ponko"], correct: 1 }, { q: "Who interpreted Pharaoh's dreams?", q_twi: "Hwan na ɔkyerɛɛ Farao daeɛ ase?", a: ["Moses", "Joseph", "Daniel", "Aaron"], a_twi: ["Mose", "Yosef", "Daniel", "Aaron"], correct: 1 }, { q: "Where did the Israelites live in Egypt?", q_twi: "Ɛhe na Israelfoɔ no tɛnee wɔ Misraim?", a: ["Cairo", "Goshen", "Sinai", "Alexandria"], a_twi: ["Cairo", "Gosen", "Sinai", "Alexandria"], correct: 1 }, { q: "Who was Joseph's younger full brother?", q_twi: "Hwan ne Yosef nua kumaa?", a: ["Benjamin", "Dan", "Gad", "Levi"], a_twi: ["Benyamin", "Dan", "Gad", "Levi"], correct: 0 }, { q: "What did Joseph's brothers dip his coat in?", q_twi: "Dɛn mu na Yosef nua mmarima de ne kɔto dɔmeeɛ?", a: ["Water", "Goat blood", "Mud", "Wine"], a_twi: ["Nsuo", "Aponkye mogya", "Dɔteɛ", "Nsa"], correct: 1 }, { q: "Who was Isaac's wife?", q_twi: "Hwan ne Isak yere?", a: ["Sarah", "Rebekah", "Rachel", "Leah"], a_twi: ["Sara", "Rebeka", "Rahel", "Lea"], correct: 1 } ] }
+            // ... (rest of your levels go here as before)
+        ];
+
+        let gameData = JSON.parse(localStorage.getItem('bibleQuizRPGData')) || {
+            lvl: 1, gold: 100, currentQuestionIndex: 0, lang: 'en', music: false
+        };
+
+        let activePool = [];
+        let timerInterval = null;
+        let timeLeft = 10;
+        let isProcessing = false;
+
+        function renderUI() {
+            isProcessing = false;
+            let levelData = quizDatabase.find(l => l.level === gameData.lvl) || quizDatabase[quizDatabase.length - 1];
+            
+            if (activePool.length === 0) {
+                activePool = [...levelData.questions].sort(() => Math.random() - 0.5);
+                gameData.currentQuestionIndex = 0;
             }
-        };
 
-        let gameState = {
-            currentLevel: 1,
-            coins: 100,
-            penalty: 20
-        };
+            if (gameData.currentQuestionIndex >= activePool.length) {
+                gameData.currentQuestionIndex = 0;
+            }
 
-        function init() {
-            // Load saved progress if it exists
-            const saved = localStorage.getItem('questState');
-            if (saved) gameState = JSON.parse(saved);
-            renderLevel();
+            document.getElementById('bg-overlay').style.backgroundImage = `url('${levelData.bgImage}')`;
+            document.getElementById('world-title').innerText = levelData.name;
+            document.getElementById('lvl-badge').innerText = gameData.lvl;
+            document.getElementById('gold-val').innerText = gameData.gold;
+            document.getElementById('lang-label').innerText = (gameData.lang === 'en') ? "English" : "Twi";
+            
+            const progress = (gameData.currentQuestionIndex / activePool.length) * 100;
+            document.getElementById('xp-bar').style.width = progress + "%";
+
+            renderQuestion();
+            startTimer();
         }
 
-        function renderLevel() {
-            const data = quizDatabase[gameState.currentLevel];
-            const qText = document.getElementById('question-text');
-            const optCont = document.getElementById('options-container');
+        function renderQuestion() {
+            const qObj = activePool[gameData.currentQuestionIndex];
+            const container = document.getElementById('quiz-container');
             
-            document.getElementById('level-display').innerText = `Level: ${gameState.currentLevel}`;
-            document.getElementById('coin-display').innerText = `💰 ${gameState.coins}`;
+            const txt = (gameData.lang === 'en') ? qObj.q : (qObj.q_twi || qObj.q);
+            const opts = (gameData.lang === 'en') ? qObj.a : (qObj.a_twi || qObj.a);
 
-            if (!data) {
-                qText.innerText = "🎉 Mo! W’asua biribiara awie!"; // Victory message
-                optCont.innerHTML = "";
-                return;
-            }
+            container.innerHTML = `
+                <div class="quiz-card p-6 shadow-xl">
+                    <h2 class="text-xl font-bold text-slate-800 mb-6">${txt}</h2>
+                    <div class="space-y-3" id="opt-box"></div>
+                </div>
+            `;
 
-            qText.innerText = data.question;
-            optCont.innerHTML = "";
-
-            data.options.forEach(opt => {
+            opts.forEach((opt, idx) => {
                 const btn = document.createElement('button');
                 btn.className = "btn-opt";
-                btn.innerText = opt;
-                btn.onclick = () => checkAnswer(opt, data.answer);
-                optCont.appendChild(btn);
+                btn.innerHTML = `<span>${opt}</span>`;
+                btn.onclick = () => handleAnswer(idx, qObj.correct, btn);
+                document.getElementById('opt-box').appendChild(btn);
             });
         }
 
-        function checkAnswer(selected, correct) {
-            if (selected === correct) {
-                gameState.currentLevel++;
-                gameState.coins += 10;
-                saveAndRefresh();
-            } else {
-                gameState.coins -= gameState.penalty;
-                if (gameState.coins <= 0) {
-                    alert("Game Over! Restarting...");
-                    resetGame();
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 10;
+            const clock = document.getElementById('timer-clock');
+            clock.classList.remove('timer-danger');
+            clock.innerText = timeLeft;
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                clock.innerText = timeLeft;
+                if (timeLeft <= 3) clock.classList.add('timer-danger');
+                if (timeLeft <= 0) handleTimeout();
+            }, 1000);
+        }
+
+        function handleTimeout() {
+            clearInterval(timerInterval);
+            gameData.gold = Math.max(0, gameData.gold - 20); // Penalty for timeout
+            activePool.sort(() => Math.random() - 0.5);
+            gameData.currentQuestionIndex = 0; 
+            save();
+            renderUI();
+        }
+
+        function handleAnswer(choice, correct, btn) {
+            if (isProcessing) return;
+            isProcessing = true;
+            clearInterval(timerInterval);
+
+            if (choice === correct) {
+                btn.style.background = "#dcfce7";
+                btn.style.borderColor = "#22c55e";
+                gameData.gold += 20;
+                gameData.currentQuestionIndex++;
+
+                if (gameData.currentQuestionIndex >= activePool.length) {
+                    if (gameData.lvl < quizDatabase.length) {
+                        gameData.lvl++;
+                    }
+                    gameData.currentQuestionIndex = 0;
+                    activePool = [];
+                    save();
+                    setTimeout(showLevelUp, 600);
                 } else {
-                    alert("Wrong! Try again.");
-                    saveAndRefresh();
+                    save();
+                    setTimeout(renderUI, 800);
                 }
+            } else {
+                btn.style.background = "#fee2e2";
+                btn.style.borderColor = "#ef4444";
+                gameData.gold = Math.max(0, gameData.gold - 20); // Deduction set to 20
+                
+                activePool.sort(() => Math.random() - 0.5);
+                gameData.currentQuestionIndex = 0;
+                
+                save();
+                setTimeout(() => { isProcessing = false; renderUI(); }, 800);
             }
         }
 
-        function saveAndRefresh() {
-            localStorage.setItem('questState', JSON.stringify(gameState));
-            renderLevel();
+        function skipLevel() {
+            if (gameData.gold >= 100) {
+                gameData.gold -= 100;
+                if (gameData.lvl < quizDatabase.length) {
+                    gameData.lvl++;
+                }
+                gameData.currentQuestionIndex = 0;
+                activePool = [];
+                save();
+                showLevelUp();
+            } else {
+                alert("You don't have enough coins (Need 100)!");
+            }
         }
 
-        function resetGame() {
-            localStorage.removeItem('questState');
-            gameState = { currentLevel: 1, coins: 100, penalty: 20 };
-            renderLevel();
+        function showLevelUp() {
+            const splash = document.getElementById('level-up-splash');
+            splash.classList.add('active');
+            setTimeout(() => {
+                splash.classList.remove('active');
+                renderUI();
+            }, 2000);
         }
 
-        init();
+        function save() { localStorage.setItem('bibleQuizRPGData', JSON.stringify(gameData)); }
+        
+        function toggleLanguage() { gameData.lang = (gameData.lang === 'en') ? 'tw' : 'en'; save(); renderUI(); }
+        
+        function toggleMusic() {
+            const music = document.getElementById('bg-music');
+            const btn = document.getElementById('music-btn');
+            gameData.music = !gameData.music;
+            if (gameData.music) {
+                music.play();
+                btn.innerText = "🔊";
+            } else {
+                music.pause();
+                btn.innerText = "🔇";
+            }
+            save();
+        }
+
+        function triggerReset() { localStorage.clear(); activePool = []; location.reload(); }
+
+        window.onload = renderUI;
     </script>
 </body>
 </html>
