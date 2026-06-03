@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bible Quest</title>
+    <title>Bible Quest 200</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         #bg-overlay {
@@ -23,7 +23,7 @@
         .btn-opt { width: 100%; text-align: left; padding: 1rem; border-radius: 12px; border: 1px solid #e2e8f0; background: white; font-weight: bold; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .btn-opt:active { transform: scale(0.98); }
 
-        /* DRAMATIC LEVEL UP ANIMATION STYLES */
+        /* LEVEL UP ANIMATION */
         #level-up-splash {
             position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -38,23 +38,16 @@
     <div id="bg-overlay"></div>
     <div id="bg-tint"></div>
 
-    <!-- DRAMATIC ANIMATION SPLASH LAYER -->
     <div id="level-up-splash">
         <div class="pop-card bg-gradient-to-b from-indigo-600 to-indigo-900 p-8 rounded-3xl text-center shadow-2xl max-w-sm w-11/12 border border-indigo-400/30">
             <div class="text-6xl mb-2 animate-bounce">✨🏆✨</div>
             <h1 class="text-4xl font-black text-amber-400 tracking-wider uppercase animate-pulse">Level Up!</h1>
-            <p class="text-indigo-200 text-sm font-bold tracking-widest mt-1">STAGE CLEARED</p>
             <div class="my-6 inline-block bg-white/10 px-6 py-2 rounded-full border border-white/10">
-                <span class="text-xs font-bold text-white block uppercase">Next Destination</span>
-                <span id="next-world-txt" class="text-xl font-extrabold text-white">Loading Stage...</span>
+                <span id="next-world-txt" class="text-xl font-extrabold text-white">Loading...</span>
             </div>
-            <p class="text-xs text-amber-300 font-semibold flex items-center justify-center gap-1">
-                🎉 Bonus Reward Deposited!
-            </p>
         </div>
     </div>
 
-    <!-- AUDIO CONTROLLER FLOATING BUTTON -->
     <div class="fixed top-4 right-4 z-50">
         <button onclick="toggleMusic()" id="music-btn" class="bg-slate-900/80 backdrop-blur border border-white/10 p-3 rounded-full text-lg shadow-lg active:scale-95 transition-all">
             🔇 Music Off
@@ -62,13 +55,12 @@
     </div>
 
     <div id="game-content" class="w-full max-w-md space-y-6 mt-12 relative z-10">
-        <!-- HEADER -->
         <div class="quiz-card p-6 shadow-2xl">
-            <h1 id="world-title" class="text-xs font-black uppercase tracking-widest mb-2 text-indigo-600 text-center">LEVEL LOADING...</h1>
+            <h1 id="world-title" class="text-xs font-black uppercase tracking-widest mb-2 text-indigo-600 text-center">INITIALIZING...</h1>
             <div class="flex justify-between items-center">
                 <div id="lvl-badge" class="w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xl font-black shadow-md">1</div>
                 <div class="text-right">
-                    <p class="text-2xl font-black text-slate-800">💰 <span id="gold-val">100</span></p>
+                    <p class="text-2xl font-black text-slate-800">💰 <span id="gold-val">0</span></p>
                 </div>
             </div>
             <div class="mt-4 w-full h-2 bg-slate-200 rounded-full overflow-hidden">
@@ -76,37 +68,42 @@
             </div>
         </div>
 
-        <!-- QUESTIONS AREA -->
-        <div id="quiz-container" class="space-y-4"></div>
+        <div id="quiz-container" class="space-y-4">
+            <div class="quiz-card p-6 text-center italic text-slate-400">Loading questions from file...</div>
+        </div>
 
-        <!-- SKIP LEVEL BUTTON -->
         <div id="skip-container" class="w-full text-center relative z-10 hidden">
-            <button onclick="skipLevel()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-2 px-4 rounded-xl text-xs shadow-md transition-all">
-                ⏭️ Skip Level (Costs 100 Gold)
+            <button onclick="skipLevel()" class="bg-amber-500 text-slate-900 font-bold py-2 px-4 rounded-xl text-xs shadow-md">
+                ⏭️ Skip Level (100 Gold)
             </button>
         </div>
         
-        <button onclick="triggerReset()" class="w-full text-center text-xs text-white/30 mt-10">Reset Progress</button>
+        <button onclick="triggerReset()" class="w-full text-center text-xs text-white/30 mt-10 uppercase tracking-widest">Reset Game Data</button>
     </div>
 
     <script>
-        // --- AUDIO ENGINE ASSETS ---
-        // Utilizing clear loopable audio assets hosted on public repositories
-        const bgMusic = new Audio("https://actions.google.com/sounds/v1/weather/rain_heavy_loud.ogg"); // Placeholder audio stream or substitute direct midis
-        bgMusic.src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"; // Instrumental track
+        // AUDIO SETUP
+        const bgMusic = new Audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3");
         bgMusic.loop = true;
-        bgMusic.volume = 0.25; // Set ambient volume low so it doesn't overpower
+        bgMusic.volume = 0.25;
 
-        const soundCorrect = new Audio("https://assets.mixkit.co/active_storage/sfx/2019/2019-84.wav"); // Retro point chime
-        const soundWrong = new Audio("https://assets.mixkit.co/active_storage/sfx/2958/2958-84.wav"); // Vintage fail buzzer
-        const soundLevelUp = new Audio("https://assets.mixkit.co/active_storage/sfx/1435/1435-84.wav"); // Grand fan-fare chime
+        const soundCorrect = new Audio("https://assets.mixkit.co/active_storage/sfx/2019/2019-84.wav");
+        const soundWrong = new Audio("https://assets.mixkit.co/active_storage/sfx/2958/2958-84.wav");
+        const soundLevelUp = new Audio("https://assets.mixkit.co/active_storage/sfx/1435/1435-84.wav");
 
         let isMusicPlaying = false;
+        let quizDatabase = []; // Populated via Fetch
+        let activeLevelQuestions = [];
+        let isProcessingClick = false;
+
+        let gameData = JSON.parse(localStorage.getItem('bibleQuizRPGData')) || {
+            lvl: 1, gold: 100, currentQuestionIndex: 0
+        };
 
         function toggleMusic() {
             const btn = document.getElementById('music-btn');
             if (!isMusicPlaying) {
-                bgMusic.play().catch(e => console.log("Audio playback waiting for user click interaction."));
+                bgMusic.play().catch(() => {});
                 btn.innerText = "🔊 Music On";
                 btn.className = "bg-green-600 border border-white/20 p-3 rounded-full text-lg shadow-lg active:scale-95 transition-all";
                 isMusicPlaying = true;
@@ -118,330 +115,153 @@
             }
         }
 
-        function playSound(audioObject) {
-            // Reset track playback position immediately to allow rapid-fire clicks
-            audioObject.currentTime = 0;
-            audioObject.play().catch(e => console.log("Audio interaction triggered."));
+        function playSfx(sfx) {
+            sfx.currentTime = 0;
+            sfx.play().catch(() => {});
         }
 
-        const quizDatabase = [
-            {
-                level: 1, 
-                name: "Genesis Beginnings", 
-                bgImage: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1000",
-                questions: [
-                    { q: "Who was the first man created?", a: ["Noah", "Adam", "Abraham", "Moses"], correct: 1 },
-                    { q: "What did Noah build to survive the flood?", a: ["A tower", "A castle", "An ark", "A temple"], correct: 2 },
-                    { q: "How many commandments did God give Moses?", a: ["5", "12", "7", "10"], correct: 3 },
-                    { q: "Who was swallowed by a great fish?", a: ["Jonah", "Peter", "Daniel", "Paul"], correct: 0 }
-                ]
-            },
-            {
-                level: 2, 
-                name: "The Great Flood", 
-                bgImage: "https://images.unsplash.com/photo-1433086966358-54859d0ed716?q=80&w=1000",
-                questions: [
-                    { q: "How many days did it rain during the flood?", a: ["7", "40", "100", "3"], correct: 1 },
-                    { q: "Which bird did Noah first send out to look for land?", a: ["Dove", "Raven", "Eagle", "Sparrow"], correct: 1 },
-                    { q: "What was the sign of God's promise to never flood the earth again?", a: ["A burning bush", "A rainbow", "A pillar of cloud", "A golden star"], correct: 1 }
-                ]
-            },
-            {
-                level: 3, 
-                name: "The Patriarchs", 
-                bgImage: "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=80&w=1000",
-                questions: [
-                    { q: "Who was Abraham's wife?", a: ["Rebekah", "Rachel", "Sarah", "Leah"], correct: 2 },
-                    { q: "Who was Isaac's son that bought Esau's birthright?", a: ["Jacob", "Joseph", "Benjamin", "Levi"], correct: 0 },
-                    { q: "What special gift did Jacob give to his favorite son, Joseph?", a: ["A gold ring", "A coat of many colors", "A silver cup", "A royal crown"], correct: 1 }
-                ]
-            },
-            {
-                level: 4, 
-                name: "Exodus From Egypt", 
-                bgImage: "https://images.unsplash.com/photo-1547234935-80c7145ec969?q=80&w=1000",
-                questions: [
-                    { q: "Through what object did God first speak to Moses?", a: ["A cloud", "A burning bush", "A stone tablet", "A stormy wind"], correct: 1 },
-                    { q: "What body of water did God part for the Israelites to cross?", a: ["The Jordan River", "The Nile River", "The Red Sea", "The Dead Sea"], correct: 2 },
-                    { q: "What was the final plague sent upon Egypt?", a: ["Locusts", "Darkness", "Death of the firstborn", "Frogs"], correct: 2 }
-                ]
-            },
-            {
-                level: 5, 
-                name: "The Wilderness", 
-                bgImage: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1000",
-                questions: [
-                    { q: "What miraculous food did God provide daily in the desert?", a: ["Manna", "Figs", "Honey cakes", "Wild wheat"], correct: 0 },
-                    { q: "From what did Moses miraculously bring forth water in the desert?", a: ["A well", "A rock", "The sand", "A tree stump"], correct: 1 },
-                    { q: "On which mountain did Moses receive the Ten Commandments?", a: ["Mount Nebo", "Mount Ararat", "Mount Sinai", "Mount Carmel"], correct: 2 }
-                ]
-            },
-            {
-                level: 6, 
-                name: "Conquering Canaan", 
-                bgImage: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=1000",
-                questions: [
-                    { q: "Who succeeded Moses as the leader of Israel?", a: ["Caleb", "Joshua", "Aaron", "Gideon"], correct: 1 },
-                    { q: "Which city's walls collapsed after Israel marched around them?", a: ["Jericho", "Ai", "Hebron", "Jerusalem"], correct: 0 },
-                    { q: "How many spies did Joshua secretly send to scope out Jericho?", a: ["12", "2", "7", "3"], correct: 1 }
-                ]
-            },
-            {
-                level: 7, 
-                name: "The Age of Judges", 
-                bgImage: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1000",
-                questions: [
-                    { q: "Who was the incredibly strong judge betrayed by Delilah?", a: ["Gideon", "Samson", "Barak", "Jephthah"], correct: 1 },
-                    { q: "Who was the only female judge mentioned in the book of Judges?", a: ["Ruth", "Esther", "Deborah", "Hannah"], correct: 2 },
-                    { q: "With how many men did Gideon defeat the Midianite army?", a: ["300", "10,000", "3,000", "22,000"], correct: 0 }
-                ]
-            },
-            {
-                level: 8, 
-                name: "The First King", 
-                bgImage: "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=1000",
-                questions: [
-                    { q: "Who was the last judge of Israel who anointed its first king?", a: ["Nathan", "Samuel", "Eli", "Elisha"], correct: 1 },
-                    { q: "Who was chosen as the very first king of Israel?", a: ["David", "Saul", "Solomon", "Jonathan"], correct: 1 },
-                    { q: "From which tribe did King Saul come from?", a: ["Judah", "Levi", "Benjamin", "Ephraim"], correct: 2 }
-                ]
-            },
-            {
-                level: 9, 
-                name: "David's Rise", 
-                bgImage: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?q=80&w=1000",
-                questions: [
-                    { q: "What was David's occupation before being anointed king?", a: ["Blacksmith", "Shepherd", "Fisherman", "Carpenter"], correct: 1 },
-                    { q: "What weapon did David use to defeat the giant Goliath?", a: ["A sword", "A spear", "A sling and stone", "A bow and arrow"], correct: 2 },
-                    { q: "Who was King Saul's son and David's loyal best friend?", a: ["Jonathan", "Abner", "Absalom", "Solomon"], correct: 0 }
-                ]
-            },
-            {
-                level: 10, 
-                name: "The Wise Kingdom", 
-                bgImage: "https://images.unsplash.com/photo-1439853949127-fa647821eba0?q=80&w=1000",
-                questions: [
-                    { q: "Which son of David succeeded him as king and built the Temple?", a: ["Absalom", "Adonijah", "Solomon", "Rehoboam"], correct: 2 },
-                    { q: "For what attribute was King Solomon globally famous?", a: ["His strength", "His speed", "His wisdom", "His humility"], correct: 2 },
-                    { q: "Which queen visited Solomon to test him with hard questions?", a: ["Queen of Jezreel", "Queen of Sheba", "Queen of Persia", "Queen of Babylon"], correct: 1 }
-                ]
-            },
-            {
-                level: 11,
-                name: "The Prophets of Fire",
-                bgImage: "https://images.unsplash.com/photo-1501854140801-50d01698950b?q=80&w=1000",
-                questions: [
-                    { q: "Which prophet was taken up to heaven in a whirlwind of fire?", a: ["Isaiah", "Elijah", "Elisha", "Jeremiah"], correct: 1 },
-                    { q: "Who was Elijah's successor who asked for a double portion of his spirit?", a: ["Elisha", "Daniel", "Amos", "Hosea"], correct: 0 },
-                    { q: "On what mountain did Elijah challenge the prophets of Baal?", a: ["Mount Sinai", "Mount Carmel", "Mount Nebo", "Mount Hermon"], correct: 1 }
-                ]
-            },
-            {
-                level: 12,
-                name: "Exile and Courage",
-                bgImage: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=1000",
-                questions: [
-                    { q: "Where was Daniel thrown for refusing to stop praying to God?", a: ["A fiery furnace", "A prison dungeon", "A den of lions", "The sea"], correct: 2 },
-                    { q: "Which Jewish queen risked her life to save her people from destruction in Persia?", a: ["Ruth", "Esther", "Vashti", "Naomi"], correct: 1 },
-                    { q: "How many friends of Daniel were thrown into the fiery furnace?", a: ["2", "4", "3", "7"], correct: 2 }
-                ]
-            },
-            {
-                level: 13,
-                name: "The Gospels Begin",
-                bgImage: "https://images.unsplash.com/photo-1510798831971-661eb04b3739?q=80&w=1000",
-                questions: [
-                    { q: "In what town was Jesus born?", a: ["Nazareth", "Jerusalem", "Bethlehem", "Capernaum"], correct: 2 },
-                    { q: "Who baptized Jesus in the Jordan River?", a: ["Peter", "John the Baptist", "An angel", "Nicodemus"], correct: 1 },
-                    { q: "How many disciples did Jesus specifically choose as apostles?", a: ["10", "12", "7", "70"], correct: 1 }
-                ]
-            },
-            {
-                level: 14,
-                name: "Miracles & Ministry",
-                bgImage: "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?q=80&w=1000",
-                questions: [
-                    { q: "What was Jesus' first recorded miracle?", a: ["Healing a blind man", "Turning water into wine", "Walking on water", "Calming a storm"], correct: 1 },
-                    { q: "Whom did Jesus raise from the dead after he had been in the tomb four days?", a: ["Lazarus", "Jairus' daughter", "The widow's son", "Tabitha"], correct: 0 },
-                    { q: "With how many loaves of bread and fish did Jesus feed the 5,000?", a: ["7 loaves and 2 fish", "5 loaves and 2 fish", "12 loaves and 5 fish", "3 loaves and 3 fish"], correct: 1 }
-                ]
-            },
-            {
-                level: 15,
-                name: "The Early Church",
-                bgImage: "https://images.unsplash.com/photo-1472214222541-d510753a8707?q=80&w=1000",
-                questions: [
-                    { q: "On what day did the Holy Spirit descend upon the believers as tongues of fire?", a: ["Passover", "Pentecost", "Tabernacles", "Purim"], correct: 1 },
-                    { q: "What was the original name of the Apostle Paul before his conversion?", a: ["Saul", "Simon", "Silas", "Stephen"], correct: 0 },
-                    { q: "Which book tells the history of the early Church's growth?", a: ["Romans", "Revelation", "Acts of the Apostles", "Hebrews"], correct: 2 }
-                ]
+        // LOAD QUESTIONS FROM EXTERNAL FILE
+        async function loadData() {
+            try {
+                const response = await fetch('questions.json');
+                if (!response.ok) throw new Error("File not found");
+                quizDatabase = await response.json();
+                startLevel();
+            } catch (err) {
+                document.getElementById('world-title').innerText = "ERROR";
+                document.getElementById('quiz-container').innerHTML = `
+                    <div class="quiz-card p-6 text-center border-red-200 border bg-red-50 text-red-700">
+                        <b>questions.json not found!</b><br>
+                        Please ensure the file is in the same folder and you are using a local server.
+                    </div>`;
             }
-        ];
-
-        let gameData = JSON.parse(localStorage.getItem('bibleQuizRPGData')) || {
-            lvl: 1, gold: 100, currentQuestionIndex: 0
-        };
-
-        let isProcessingClick = false;
-        let activeLevelQuestions = [];
-
-        function shuffleQuestions(array) {
-            let shuffled = JSON.parse(JSON.stringify(array));
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-            }
-            return shuffled;
         }
 
-        function initLevel() {
+        function shuffle(array) {
+            return array.sort(() => Math.random() - 0.5);
+        }
+
+        function startLevel() {
             const levelData = quizDatabase.find(l => l.level === gameData.lvl);
             if (levelData) {
-                activeLevelQuestions = shuffleQuestions(levelData.questions);
+                activeLevelQuestions = shuffle([...levelData.questions]);
+                renderUI();
+            } else if (quizDatabase.length > 0 && gameData.lvl > quizDatabase.length) {
+                // End Game State
+                document.getElementById('world-title').innerText = "FINISHED";
+                document.getElementById('quiz-container').innerHTML = `<div class="quiz-card p-8 text-center font-bold">You've completed all levels!</div>`;
             }
         }
 
-        function updateUI() {
+        function renderUI() {
             isProcessingClick = false;
-            
-            if (gameData.lvl > quizDatabase.length) {
-                document.getElementById('bg-overlay').style.backgroundImage = `url('https://images.unsplash.com/photo-1472214222541-d510753a8707?q=80&w=1000')`;
-                document.getElementById('world-title').innerText = "CAMP COMPLETED";
-                document.getElementById('lvl-badge').innerText = "🏆";
-                document.getElementById('xp-bar').style.width = "100%";
-                document.getElementById('skip-container').classList.add('hidden');
-                document.getElementById('quiz-container').innerHTML = `
-                    <div class="quiz-card p-6 text-center space-y-4 shadow-xl">
-                        <h2 class="text-2xl font-black text-indigo-600">🎉 Spectacular!</h2>
-                        <p class="text-slate-600 font-medium">You have mastered all 15 scriptural stages and completed the quest!</p>
-                    </div>`;
-                return;
-            }
+            const levelData = quizDatabase.find(l => l.level === gameData.lvl);
+            if (!levelData) return;
 
-            const levelData = quizDatabase.find(l => l.level === gameData.lvl) || quizDatabase[0];
-            if (activeLevelQuestions.length === 0) {
-                initLevel();
-            }
-
+            // Background & Headers
             document.getElementById('bg-overlay').style.backgroundImage = `url('${levelData.bgImage}')`;
             document.getElementById('world-title').innerText = levelData.name;
             document.getElementById('lvl-badge').innerText = gameData.lvl;
             document.getElementById('gold-val').innerText = gameData.gold;
-            
-            const pct = (gameData.currentQuestionIndex / activeLevelQuestions.length) * 100;
-            document.getElementById('xp-bar').style.width = pct + "%";
 
-            const skipContainer = document.getElementById('skip-container');
-            if (gameData.gold >= 100 && gameData.lvl <= quizDatabase.length) {
-                skipContainer.classList.remove('hidden');
-            } else {
-                skipContainer.classList.add('hidden');
-            }
+            // Progress Bar
+            const progress = (gameData.currentQuestionIndex / activeLevelQuestions.length) * 100;
+            document.getElementById('xp-bar').style.width = progress + "%";
 
+            // Skip Button Visibility
+            document.getElementById('skip-container').classList.toggle('hidden', gameData.gold < 100);
+
+            // Render Question
             const container = document.getElementById('quiz-container');
             container.innerHTML = "";
 
             if (gameData.currentQuestionIndex < activeLevelQuestions.length) {
                 const qObj = activeLevelQuestions[gameData.currentQuestionIndex];
-                let qCard = document.createElement('div');
-                qCard.className = "quiz-card p-6 shadow-xl space-y-6";
-                qCard.innerHTML = `<h2 class="text-xl font-bold text-slate-800">${qObj.q}</h2><div id="options-box" class="space-y-3"></div>`;
-                container.appendChild(qCard);
-
-                qObj.a.forEach((option, idx) => {
-                    let btn = document.createElement('button');
+                const card = document.createElement('div');
+                card.className = "quiz-card p-6 shadow-xl space-y-4";
+                card.innerHTML = `<h2 class="text-xl font-bold text-slate-800">${qObj.q}</h2>`;
+                
+                const optBox = document.createElement('div');
+                optBox.className = "space-y-3";
+                
+                qObj.a.forEach((opt, idx) => {
+                    const btn = document.createElement('button');
                     btn.className = "btn-opt";
-                    btn.innerHTML = `<span>${option}</span><span class="emoji-status"></span>`;
-                    
-                    btn.onclick = () => {
-                        if (isProcessingClick) return; 
-                        isProcessingClick = true;
-
-                        const emojiSpan = btn.querySelector('.emoji-status');
-
-                        if (idx === qObj.correct) {
-                            // PLAY CORRECT ANSWER SOUND
-                            playSound(soundCorrect);
-
-                            btn.style.background = "#dcfce7";
-                            btn.style.borderColor = "#22c55e";
-                            emojiSpan.innerText = "✅";
-                            gameData.gold += 20;
-                            gameData.currentQuestionIndex++;
-                            
-                            if (gameData.currentQuestionIndex >= activeLevelQuestions.length) {
-                                gameData.lvl++;
-                                gameData.currentQuestionIndex = 0;
-                                activeLevelQuestions = []; 
-                                localStorage.setItem('bibleQuizRPGData', JSON.stringify(gameData));
-                                
-                                // Delay slightly so correct chime plays before level up fan-fare
-                                setTimeout(triggerLevelUpAnimation, 500);
-                                return;
-                            }
-                        } else {
-                            // PLAY WRONG ANSWER SOUND
-                            playSound(soundWrong);
-
-                            btn.style.background = "#fee2e2";
-                            btn.style.borderColor = "#ef4444";
-                            emojiSpan.innerText = "❌";
-                            gameData.gold -= 10;
-                            if (gameData.gold < 0) gameData.gold = 0;
-                        }
-                        
-                        localStorage.setItem('bibleQuizRPGData', JSON.stringify(gameData));
-                        setTimeout(updateUI, 800);
-                    };
-                    document.getElementById('options-box').appendChild(btn);
+                    btn.innerHTML = `<span>${opt}</span><span id="mark-${idx}"></span>`;
+                    btn.onclick = () => handleAnswer(idx, qObj.correct, btn);
+                    optBox.appendChild(btn);
                 });
+
+                card.appendChild(optBox);
+                container.appendChild(card);
             }
         }
 
-        function triggerLevelUpAnimation() {
-            // PLAY LEVEL UP FLASH SOUND
-            playSound(soundLevelUp);
+        function handleAnswer(selected, correct, btn) {
+            if (isProcessingClick) return;
+            isProcessingClick = true;
 
+            if (selected === correct) {
+                playSfx(soundCorrect);
+                btn.style.background = "#dcfce7";
+                btn.style.borderColor = "#22c55e";
+                gameData.gold += 20;
+                gameData.currentQuestionIndex++;
+                
+                if (gameData.currentQuestionIndex >= activeLevelQuestions.length) {
+                    gameData.lvl++;
+                    gameData.currentQuestionIndex = 0;
+                    save();
+                    setTimeout(showLevelUp, 600);
+                } else {
+                    save();
+                    setTimeout(renderUI, 800);
+                }
+            } else {
+                playSfx(soundWrong);
+                btn.style.background = "#fee2e2";
+                btn.style.borderColor = "#ef4444";
+                gameData.gold = Math.max(0, gameData.gold - 10);
+                save();
+                setTimeout(renderUI, 800);
+            }
+        }
+
+        function showLevelUp() {
+            playSfx(soundLevelUp);
             const splash = document.getElementById('level-up-splash');
-            const nextWorldTxt = document.getElementById('next-world-txt');
-            
-            const nextLevelData = quizDatabase.find(l => l.level === gameData.lvl);
-            nextWorldTxt.innerText = nextLevelData ? nextLevelData.name : "Final Victory!";
+            const nextLvl = quizDatabase.find(l => l.level === gameData.lvl);
+            document.getElementById('next-world-txt').innerText = nextLvl ? nextLvl.name : "Final Chapter";
             
             splash.classList.add('active');
-            
             setTimeout(() => {
                 splash.classList.remove('active');
-                initLevel(); 
-                updateUI();
+                startLevel();
             }, 2500);
         }
 
         function skipLevel() {
-            if (gameData.gold >= 100) {
-                if (confirm("Spend 100 gold to advance directly to the next level?")) {
-                    gameData.gold -= 100;
-                    gameData.lvl++;
-                    gameData.currentQuestionIndex = 0;
-                    activeLevelQuestions = []; 
-                    localStorage.setItem('bibleQuizRPGData', JSON.stringify(gameData));
-                    triggerLevelUpAnimation();
-                }
-            } else {
-                alert("You need at least 100 Gold to skip a level!");
+            if (gameData.gold >= 100 && confirm("Skip this level for 100 Gold?")) {
+                gameData.gold -= 100;
+                gameData.lvl++;
+                gameData.currentQuestionIndex = 0;
+                save();
+                showLevelUp();
             }
         }
 
+        function save() {
+            localStorage.setItem('bibleQuizRPGData', JSON.stringify(gameData));
+        }
+
         function triggerReset() {
-            if(confirm("Start over from Level 1?")) {
+            if (confirm("Reset all progress?")) {
                 localStorage.removeItem('bibleQuizRPGData');
-                activeLevelQuestions = [];
                 location.reload();
             }
         }
 
-        initLevel();
-        updateUI();
+        loadData();
     </script>
 </body>
 </html>
