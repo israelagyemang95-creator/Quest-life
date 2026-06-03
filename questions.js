@@ -50,6 +50,66 @@ const quizDatabase = [
     },
     {
         level: 4,
+        name: "Numbers",
+        group: "Easy",
+        target: 5,
+        timer: 15,
+        bg: "https://images.unsplash.com/photo-1500627869374-13cd993b1115?q=80&w=1000",
+        questions: [
+            { q: "How many spies were sent to Canaan?", a: ["2", "10", "12", "70"], correct: 2 },
+            { q: "Which two spies gave a good report?", a: ["Moses", "Joshua & Caleb", "Aaron", "Korah"], correct: 1 },
+            { q: "How long did Israel wander in the desert?", a: ["7 years", "12 years", "40 years", "50 years"], correct: 2 },
+            { q: "Whose donkey spoke to him?", a: ["Moses", "Balaam", "Balak", "Joshua"], correct: 1 },
+            { q: "What did Moses lift up to heal snake bites?", a: ["A staff", "A Bronze Serpent", "A Sword", "An Altar"], correct: 1 }
+        ]
+    },
+    {
+        level: 5,
+        name: "Deuteronomy",
+        group: "Easy",
+        target: 5,
+        timer: 15,
+        bg: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000",
+        questions: [
+            { q: "What does the name 'Deuteronomy' mean?", a: ["First Law", "Second Law", "History", "Prophecy"], correct: 1 },
+            { q: "On which mountain did Moses die?", a: ["Sinai", "Nebo", "Ararat", "Carmel"], correct: 1 },
+            { q: "How old was Moses when he died?", a: ["80", "100", "120", "150"], correct: 2 },
+            { q: "Who was chosen to lead Israel after Moses?", a: ["Caleb", "Aaron", "Joshua", "Eleazar"], correct: 2 },
+            { q: "What is the core commandment repeated in this book?", a: ["Build a temple", "Love God with all your heart", "Go to war", "Fast weekly"], correct: 1 }
+        ]
+    },
+    {
+        level: 6,
+        name: "Joshua",
+        group: "Easy",
+        target: 5,
+        timer: 15,
+        bg: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000",
+        questions: [
+            { q: "Which city's walls fell after Israel marched around it?", a: ["Ai", "Jericho", "Gibeon", "Hebron"], correct: 1 },
+            { q: "Who hid the Israeli spies in Jericho?", a: ["Deborah", "Rahab", "Ruth", "Delilah"], correct: 1 },
+            { q: "What river did Israel cross on dry land to enter Canaan?", a: ["Nile", "Euphrates", "Jordan", "Tigris"], correct: 2 },
+            { q: "How many stones did they take from the Jordan as a memorial?", a: ["3", "7", "12", "40"], correct: 2 },
+            { q: "What did the sun do during Joshua's battle at Gibeon?", a: ["Turned red", "Stood still", "Went dark", "Disappeared"], correct: 1 }
+        ]
+    },
+    {
+        level: 7,
+        name: "Judges",
+        group: "Easy",
+        target: 5,
+        timer: 15,
+        bg: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000",
+        questions: [
+            { q: "Who was the extremely strong judge who fought the Philistines?", a: ["Gideon", "Samson", "Ehud", "Barak"], correct: 1 },
+            { q: "Who was the only female judge mentioned?", a: ["Ruth", "Deborah", "Jael", "Hannah"], correct: 1 },
+            { q: "What weapon did Gideon's army use along with trumpets?", a: ["Swords", "Jars with torches", "Bows", "Spears"], correct: 1 },
+            { q: "Who betrayed Samson to the Philistines?", a: ["Rahab", "Delilah", "Michal", "Jezebel"], correct: 1 },
+            { q: "How many men were in Gideon's final chosen army?", a: ["300", "1,000", "10,000", "32,000"], correct: 0 }
+        ]
+    },
+    {
+        level: 8,
         name: "Ruth",
         group: "Easy",
         target: 5,
@@ -63,106 +123,102 @@ const quizDatabase = [
             { q: "Who was Ruth's famous great-grandson?", q_twi: "Hwan ne Ruth nana kankeseɔ a ɔgye din?", a: ["Solomon", "Saul", "Samuel", "King David"], correct: 3 }
         ]
     },
-    {
-        level: 5,
-        name: "Esther",
-        group: "Easy",
-        target: 5,
-        timer: 15,
-        bg: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000",
-        questions: [
-            { q: "Who raised Esther after her parents died?", a: ["Haman", "Mordecai", "King Xerxes", "Nehemiah"], correct: 1 },
-            { q: "Which empire did Esther become queen of?", a: ["Babylon", "Egypt", "Persia", "Greece"], correct: 2 },
-            { q: "Who plotted to destroy all the Jews?", a: ["Mordecai", "Haman", "Bigthana", "Teresh"], correct: 1 },
-            { q: "What did Esther ask the Jews to do before she went to the King?", a: ["Fight", "Run away", "Fast and pray", "Sing"], correct: 2 },
-            { q: "What holiday was established to celebrate the survival of the Jews?", a: ["Passover", "Purim", "Pentecost", "Hanukkah"], correct: 1 }
-        ]
-    },
-    {
-        level: 6,
-        name: "Jonah",
-        group: "Easy",
-        target: 5,
-        timer: 15,
-        bg: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000",
-        questions: [
-            { q: "Which city did God tell Jonah to preach to?", a: ["Tarshish", "Nineveh", "Jerusalem", "Babylon"], correct: 1 },
-            { q: "Where did Jonah try to flee instead?", a: ["Nineveh", "Joppa", "Tarshish", "Sodom"], correct: 2 },
-            { q: "How long was Jonah inside the great fish?", a: ["1 day", "3 days and 3 nights", "7 days", "40 days"], correct: 1 },
-            { q: "What did the people of Nineveh do when Jonah preached?", a: ["They laughed", "They threw rocks", "They repented and fasted", "They fled"], correct: 2 },
-            { q: "What grew over Jonah to give him shade outside the city?", a: ["A vine/plant", "An oak tree", "A tent", "A cloud"], correct: 0 }
-        ]
-    },
-
-    // Remaining Easy placeholders (You can fill out questions here just like Ruth/Esther/Jonah above)
-    ...["Haggai", "Malachi", "Philemon", "2 John", "3 John"].map((name, index) => ({
-        level: 7 + index,
-        name: name,
-        group: "Easy",
-        target: 5,
-        timer: 15,
-        bg: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000",
-        questions: [
-            { q: `Who wrote the book of ${name}?`, a: ["Moses", `${name} or structural author`, "Paul", "Peter"], correct: 1 },
-            { q: `What test number is this question for ${name}?`, a: ["One", "Two", "Three", "Four"], correct: 1 },
-            { q: `Is the book of ${name} in Old or New Testament?`, a: ["Old", "New", "Apocrypha", "Historical"], correct: 1 },
-            { q: `Select the correct thematic choice for ${name}.`, a: ["Faithfulness", "Prophecy and Trust", "Kingdom Judgments", "Grace"], correct: 1 },
-            { q: `Final foundational quiz question option for ${name}?`, a: ["Incorrect choice", "Correct biblical fact", "Wrong data", "False statement"], correct: 1 }
-        ]
-    })),
 
     // ==========================================
     // MODERATE BOOKS (10 Questions Each / Target: 10)
     // ==========================================
     {
-        level: 12,
-        name: "Numbers",
-        group: "Moderate",
-        target: 10,
-        timer: 12,
-        bg: "https://images.unsplash.com/photo-1500627869374-13cd993b1115?q=80&w=1000",
-        questions: [
-            { q: "How many spies were sent to Canaan?", a: ["2", "10", "12", "70"], correct: 2 },
-            { q: "Which two spies gave a good report?", a: ["Moses & Aaron", "Joshua & Caleb", "Nadab & Abihu", "Dathan & Abiram"], correct: 1 },
-            { q: "How long did Israel wander in the desert?", a: ["7 years", "12 years", "40 years", "100 years"], correct: 2 },
-            { q: "What happened to Miriam for speaking against Moses?", a: ["Exiled", "Leprosy", "Blindness", "Death"], correct: 1 },
-            { q: "Whose donkey spoke to him?", a: ["Moses", "Balaam", "Joshua", "Balak"], correct: 1 },
-            { q: "What did Moses lift up to heal the people from snakes?", a: ["A staff", "A Bronze Serpent", "A Sword", "A Prayer"], correct: 1 },
-            { q: "Who led a rebellion against Moses and was swallowed by the earth?", a: ["Korah", "Caleb", "Balaam", "Aaron"], correct: 0 },
-            { q: "What budded to show God chose Aaron?", a: ["A flower", "Aaron's Staff", "A tree", "A stone"], correct: 1 },
-            { q: "Why was Moses not allowed into the Promised Land?", a: ["He was old", "He hit the rock instead of speaking", "He was scared", "He died too soon"], correct: 1 },
-            { q: "Which king asked Balaam to curse Israel?", a: ["Pharaoh", "Balak", "Og", "Sihon"], correct: 1 }
-        ]
-    },
-    // Moderate placeholder arrays
-    ...["Deuteronomy", "Joshua", "Judges", "1 Samuel", "2 Samuel", "1 Kings", "2 Kings", "Ezra", "Nehemiah", "Job", "Proverbs", "Ecclesiastes", "Song of Solomon", "Lamentations", "Hosea", "Joel", "Amos", "Obadiah", "Micah", "Nahum", "Habakkuk", "Zephaniah", "Zechariah", "Mark", "Luke", "Acts", "Galatians", "Ephesians", "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians", "1 Timothy", "2 Timothy", "Titus", "Hebrews", "James", "1 Peter", "2 Peter", "1 John", "Jude"].map((name, index) => ({
-        level: 13 + index,
-        name: name,
+        level: 9,
+        name: "1 Samuel",
         group: "Moderate",
         target: 10,
         timer: 12,
         bg: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000",
-        questions: Array.from({ length: 10 }, (_, i) => ({
-            q: `Factual Question ${i + 1} regarding the book of ${name}?`,
-            a: ["Wrong option history", "True statement text", "False concept placeholder", "Incorrect option answer"],
-            correct: 1
-        }))
-    })),
+        questions: [
+            { q: "Who was Samuel's mother?", a: ["Peninnah", "Hannah", "Sarah", "Elizabeth"], correct: 1 },
+            { q: "Who was the high priest who trained Samuel?", a: ["Aaron", "Eli", "Phinehas", "Zadok"], correct: 1 },
+            { q: "Who was the first king anointed over Israel?", a: ["David", "Saul", "Solomon", "Hezekiah"], correct: 1 },
+            { q: "What giant did David defeat with a sling?", a: ["Og", "Goliath", "Sihon"], correct: 1 },
+            { q: "Who was Saul's son and David's best friend?", a: ["Jonathan", "Abner", "Absalom", "Ishbosheth"], correct: 0 },
+            { q: "What did David play to soothe King Saul?", a: ["Flute", "Harp", "Trumpet", "Cymbal"], correct: 1 },
+            { q: "Where did David hide from Saul?", a: ["Caves of En Gedi", "Jericho", "Babylon", "Hebron"], correct: 0 },
+            { q: "How did Saul die?", a: ["In battle by arrows", "Fell on his own sword", "Old age", "Poison"], correct: 1 },
+            { q: "What tribe was King Saul from?", a: ["Judah", "Benjamin", "Levi", "Ephraim"], correct: 1 },
+            { q: "What did Samuel's mother bring him every year?", a: ["A new sword", "A little robe", "Gold coins", "Bread"], correct: 1 }
+        ]
+    },
+    {
+        level: 10,
+        name: "2 Samuel",
+        group: "Moderate",
+        target: 10,
+        timer: 12,
+        bg: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000",
+        questions: [
+            { q: "Which city did David make his capital city?", a: ["Hebron", "Jerusalem", "Samaria", "Gaza"], correct: 1 },
+            { q: "Who was Jonathan's lame son whom David showed kindness to?", a: ["Mephibosheth", "Ishbosheth", "Absalom", "Adonijah"], correct: 0 },
+            { q: "Who was the prophet that confronted David about his sin?", a: ["Samuel", "Nathan", "Elijah", "Elisha"], correct: 1 },
+            { q: "Which of David's sons rebelled and tried to steal the kingdom?", a: ["Solomon", "Absalom", "Amnon", "Adonijah"], correct: 1 },
+            { q: "How did Absalom get caught during a battle in the forest?", a: ["Trapped in a cave", "His hair caught in an oak tree", "Fell off a cliff", "Captured by guards"], correct: 1 },
+            { q: "Who was Bathsheba's husband whom David sent to the frontline?", a: ["Joab", "Uriah", "Abner", "Benaiah"], correct: 1 },
+            { q: "Who was the commander of David's army?", a: ["Abner", "Joab", "Uriah", "Jonathan"], correct: 1 },
+            { q: "What did David bring back to Jerusalem with dancing?", a: ["The Golden Calf", "The Ark of the Covenant", "The Bronze Altar", "The Royal Treasury"], correct: 1 },
+            { q: "How long did David reign over all Israel and Judah?", a: ["20 years", "33 years", "40 years", "50 years"], correct: 2 },
+            { q: "Who cursed David as he fled from Absalom?", a: ["Shimei", "Ziba", "Ahithophel", "Mephibosheth"], correct: 0 }
+        ]
+    },
+    {
+        level: 11,
+        name: "Jude",
+        group: "Moderate",
+        target: 10,
+        timer: 12,
+        bg: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000",
+        questions: [
+            { q: "How many chapters does the book of Jude have?", a: ["1", "2", "5", "10"], correct: 0 },
+            { q: "Jude identifies himself as the brother of whom?", a: ["Paul", "James", "Peter", "John"], correct: 1 },
+            { q: "Which archangel argued with the devil over the body of Moses?", a: ["Gabriel", "Michael", "Raphael", "Uriel"], correct: 1 },
+            { q: "What did the archangel say to the devil when disputing?", a: ["I destroy you", "The Lord rebuke you", "Leave this place", "You are bound"], correct: 1 },
+            { q: "Jude warns against people who have gone the way of which brother?", a: ["Abel", "Cain", "Seth", "Lot"], correct: 1 },
+            { q: "Which Old Testament prophet is quoted as saying 'See, the Lord is coming with thousands'?", a: ["Noah", "Enoch", "Abraham", "Moses"], correct: 1 },
+            { q: "Jude warns about the error of which greedy prophet?", a: ["Balaam", "Balak", "Korah", "Jonah"], correct: 0 },
+            { q: "Whose rebellion does Jude reference regarding destruction?", a: ["Korah", "Dathan", "Absalom", "Saul"], correct: 0 },
+            { q: "What cities does Jude mention as examples of suffering eternal fire?", a: ["Jerusalem and Rome", "Sodom and Gomorrah", "Nineveh and Babylon", "Tyre and Sidon"], correct: 1 },
+            { q: "The book of Jude ends with a famous prayer of praise called a what?", a: ["Psalm", "Doxology", "Proverb", "Lament"], correct: 1 }
+        ]
+    },
 
     // ==========================================
     // DIFFICULT BOOKS (20 Questions Each / Target: 20)
     // ==========================================
-    ...["1 Chronicles", "2 Chronicles", "Major Psalms", "Isaiah", "Jeremiah", "Ezekiel", "Daniel", "Matthew", "Romans", "1 Corinthians", "2 Corinthians", "Revelation"].map((name, index) => ({
-        level: 54 + index,
-        name: name,
+    {
+        level: 12,
+        name: "Revelation",
         group: "Difficult",
         target: 20,
         timer: 10,
         bg: "https://images.unsplash.com/photo-1518495973542-4542c06a5843?q=80&w=1000",
-        questions: Array.from({ length: 20 }, (_, i) => ({
-            q: `Deep theological scriptural analysis query ${i + 1} for ${name}?`,
-            a: ["Faulty Option A", "Faulty Option B", "True verified text context", "Faulty Option D"],
-            correct: 2
-        }))
-    }))
+        questions: [
+            { q: "Who wrote the Book of Revelation?", a: ["Paul", "John", "Peter", "Luke"], correct: 1 },
+            { q: "On which island was the author exiled when he received the visions?", a: ["Cyprus", "Patmos", "Malta", "Crete"], correct: 1 },
+            { q: "How many churches were addressed at the beginning of Revelation?", a: ["3", "5", "7", "12"], correct: 2 },
+            { q: "What color was the first horse in the opening of the seals?", a: ["Red", "Black", "Pale", "White"], correct: 3 },
+            { q: "What did the rider of the black horse hold in his hand?", a: ["A bow", "A sword", "A pair of scales", "A crown"], correct: 2 },
+            { q: "What was the name given to the rider of the pale horse?", a: ["Hades", "Death", "Famine", "War"], correct: 1 },
+            { q: "How many elders sat around the heavenly throne?", a: ["4", "12", "24", "144"], correct: 2 },
+            { q: "How many sealed individuals were marked from the tribes of Israel?", a: ["12,000", "24,000", "144,000", "1,000,000"], correct: 2 },
+            { q: "What fell from heaven when the third trumpet sounded?", a: ["A mountain of fire", "A great burning star", "Hail and blood", "An angel"], correct: 1 },
+            { q: "What was the name of the burning star that turned the waters bitter?", a: ["Absinthe", "Wormwood", "Lucifer", "Marah"], correct: 1 },
+            { q: "Who led the heavenly angels in battle against the dragon?", a: ["Gabriel", "Michael", "Uriel", "The Author"], correct: 1 },
+            { q: "How many heads did the dragon have?", a: ["1", "3", "7", "10"], correct: 2 },
+            { q: "What is the number of the beast?", a: ["777", "616", "666", "999"], correct: 2 },
+            { q: "Where will the final battle of the great day of God take place?", a: ["Megiddo / Armageddon", "Jerusalem", "Babylon", "Mount Sinai"], correct: 0 },
+            { q: "How many golden bowls full of the wrath of God were poured out?", a: ["3", "7", "10", "12"], correct: 1 },
+            { q: "What city is described as falling in a single hour?", a: ["Rome", "Jerusalem", "Babylon", "Nineveh"], correct: 2 },
+            { q: "For how many years is the dragon bound in the abyss?", a: ["40", "100", "1,000", "10,000"], correct: 2 },
+            { q: "What is the name of the book where the names of the saved are written?", a: ["Book of Deeds", "Book of Life", "Book of Law", "Book of Kings"], correct: 1 },
+            { q: "How many gates does the New Jerusalem have?", a: ["4", "7", "12", "24"], correct: 2 },
+            { q: "What is the very last word of the book of Revelation?", a: ["Hallelujah", "Amen", "Maranatha", "Forever"], correct: 1 }
+        ]
+    }
 ];
