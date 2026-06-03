@@ -1,468 +1,86 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bible Quest Blitz</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        #bg-overlay { position: fixed; inset: 0; background-color: #0f172a; background-size: cover; background-position: center; transition: background-image 1s ease-in-out; z-index: 0; }
-        #bg-tint { position: fixed; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.5), rgba(0,0,0,0.8)); z-index: 1; }
-        body { min-height: 100vh; background: #0f172a; color: white; font-family: sans-serif; overflow-x: hidden; }
-        .quiz-card { background: rgba(255, 255, 255, 0.95); border-radius: 20px; color: #1e293b; position: relative; z-index: 10; }
-        .btn-opt { width: 100%; text-align: left; padding: 1rem; border-radius: 12px; border: 1px solid #e2e8f0; background: white; font-weight: bold; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-        .btn-opt:hover { background: #f8fafc; border-color: #cbd5e1; }
-        .timer-danger { color: #ef4444 !important; animation: vibrate 0.2s linear infinite; }
-        @keyframes vibrate { 0%, 100% { transform: translate(0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(-2px, -2px); } 60% { transform: translate(2px, 2px); } 80% { transform: translate(2px, -2px); } }
-        
-        #level-up-splash { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: all 0.5s ease-in-out; }
-        #level-up-splash.active { opacity: 1; pointer-events: auto; }
-        .scale-up { transform: scale(0.7); transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        #level-up-splash.active .scale-up { transform: scale(1); }
+// 1. Define the correct structural order of the Books
+const BOOK_ORDER = [
+    "Genesis",
+    "Exodus",
+    "Leviticus",
+    "Numbers",
+    "Deuteronomy",
+    "Joshua",
+    "Judges",
+    "Ruth",
+    // ... add subsequent books here in order
+];
 
-        .firefly { position: absolute; background: rgba(250, 204, 21, 0.8); border-radius: 50%; pointer-events: none; filter: blur(1px); box-shadow: 0 0 10px rgba(250, 204, 21, 1); animation: drift linear infinite, flash ease-in-out infinite; z-index: 5; }
-        @keyframes flash { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
-        @keyframes drift { 0% { transform: translateY(105vh) translateX(0); } 100% { transform: translateY(-10vh) translateX(100px); } }
+// 2. Initialize or fetch the game state
+let gameState = {
+    currentBookIndex: 0, // Starts at Genesis (index 0)
+    currentLevel: 1,     // Starts at Level 1
+    coins: 10            // Starting coins
+};
 
-        .confetti { position: fixed; width: 10px; height: 10px; border-radius: 2px; pointer-events: none; z-index: 80; animation: burst 0.8s ease-out forwards; }
-        @keyframes burst {
-            0% { transform: translate(0, 0) scale(1); opacity: 1; }
-            100% { transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(0); opacity: 0; }
-        }
-    </style>
-</head>
-<body class="p-4 flex flex-col items-center">
-    <div id="bg-overlay"></div>
-    <div id="bg-tint"></div>
-    <div id="fireflies-layer" class="fixed inset-0 pointer-events-none overflow-hidden select-none"></div>
+/**
+ * Handles the logic when a player loses coins (e.g., wrong answer, level skip)
+ * @param {number} amount - The number of coins to deduct
+ */
+function deductCoins(amount) {
+    gameState.coins -= amount;
+    
+    // Ensure coins don't drop below 0 natively before checking the condition
+    if (gameState.coins <= 0) {
+        gameState.coins = 0;
+        handleGameOverReset();
+    } else {
+        updateUI();
+    }
+}
 
-    <audio id="bg-music" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+/**
+ * Resets the game completely back to Genesis when coins reach 0
+ */
+function handleGameOverReset() {
+    alert("Game Over! You ran out of coins. Returning to Genesis.");
+    
+    gameState.currentBookIndex = 0; // Explicitly forces it back to Genesis
+    gameState.currentLevel = 1;     // Resets back to the first level
+    gameState.coins = 10;           // Reset to default starting coins
+    
+    loadLevel();
+}
 
-    <!-- LEVEL UP MODAL -->
-    <div id="level-up-splash">
-        <div class="scale-up bg-gradient-to-b from-amber-400 via-orange-500 to-yellow-600 p-8 rounded-3xl text-center shadow-2xl max-w-sm w-11/12 border-4 border-white">
-            <div class="text-7xl mb-2 drop-shadow-lg">👑 ✨ 👑</div>
-            <h1 class="text-4xl font-black text-white uppercase tracking-wider drop-shadow-md">Book Cleared!</h1>
-            <p class="text-white font-bold mt-2 text-lg">Scripture Mastery Growing!</p>
-            <div class="mt-4 bg-white/20 py-2 px-4 rounded-full text-white inline-block font-black text-sm uppercase tracking-widest" id="next-world-txt">
-                Advancing Next Book...
-            </div>
-        </div>
-    </div>
+/**
+ * Handles progression to the next level/book when an answer is correct
+ */
+function advanceProgress() {
+    // If your app advances the Book after every single level:
+    gameState.currentBookIndex++;
+    gameState.currentLevel++;
 
-    <!-- HUD -->
-    <div class="fixed top-4 left-4 right-4 flex justify-between z-50">
-        <button onclick="toggleLanguage()" class="bg-indigo-600 text-white px-4 py-2 rounded-full font-bold shadow-lg text-sm border border-white/20">
-            🌐 <span id="lang-label">English</span>
-        </button>
-        <button onclick="toggleMusic()" id="music-btn" class="bg-slate-900/80 backdrop-blur p-3 h-11 w-11 rounded-full text-lg border border-white/10 flex items-center justify-center shadow-lg active:scale-95 transition-all">🔇</button>
-    </div>
+    // Safety check: If they surpass the last book in your array, loop or trigger win
+    if (gameState.currentBookIndex >= BOOK_ORDER.length) {
+        alert("Congratulations! You've completed the journey!");
+        gameState.currentBookIndex = 0; // Or handle a victory screen
+    }
 
-    <!-- MAIN GAME BOARD -->
-    <div id="game-content" class="w-full max-w-md space-y-6 mt-16 relative z-10">
-        <div class="quiz-card p-6 shadow-2xl">
-            <h1 id="world-title" class="text-xs font-black uppercase tracking-widest mb-3 text-indigo-600 text-center">LOADING BLITZ...</h1>
-            <div class="flex justify-between items-center mb-4">
-                <div id="lvl-badge" class="px-3 py-1 rounded-full bg-indigo-600 text-white flex items-center justify-center font-black text-xs shadow-md uppercase tracking-wider">Book 1</div>
-                <div class="flex flex-col items-center">
-                    <span id="timer-clock" class="text-3xl font-black text-slate-700">10</span>
-                </div>
-                <div class="text-right">
-                    <p class="text-xl font-black text-slate-800">💰 <span id="gold-val">0</span></p>
-                </div>
-            </div>
-            <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                <div id="xp-bar" class="h-full bg-green-500 transition-all duration-500" style="width: 0%"></div>
-            </div>
-            <div class="text-center text-[10px] text-slate-400 mt-2 font-bold tracking-wider" id="q-counter-txt">Progress: 0 / 10</div>
-        </div>
+    // Award standard completion coins if applicable
+    gameState.coins += 2; 
 
-        <div id="quiz-container" class="space-y-4"></div>
-        
-        <button id="skip-btn" onclick="skipLevel()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl shadow-lg transition-all active:scale-95 border-b-4 border-amber-700 flex justify-center items-center gap-2">
-            Skip Current Book (Cost: 💰100) ⏭️
-        </button>
+    loadLevel();
+}
 
-        <button onclick="triggerReset()" class="w-full text-center text-xs text-white/30 mt-10 uppercase tracking-widest block bg-slate-900/40 py-2 rounded-xl border border-white/5 tracking-wider">Tap Here to Hard Reset Data</button>
-    </div>
+/**
+ * Updates the UI elements on the screen
+ */
+function updateUI() {
+    document.getElementById("current-book").innerText = BOOK_ORDER[gameState.currentBookIndex];
+    document.getElementById("current-level").innerText = `Level ${gameState.currentLevel}`;
+    document.getElementById("coin-count").innerText = gameState.coins;
+}
 
-    <script>
-        // COMPACT STRUCTURE: Grouped into Easy (10q), Moderate (15q), and Difficult (20q) in historical order.
-        const quizDatabase = [
-            // ================= GROUP 1: EASY (10 QUESTIONS EACH) =================
-            {
-                level: 1, name: "1. Genesis (Group: Easy)", targetQuestions: 10, timerDuration: 12,
-                bgImage: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1000",
-                questions: [
-                    { q: "Who was the first man created?", q_twi: "Hwan ne onipa a odi kan a wɔbɔɔ no?", a: ["Noah", "Adam", "Abel", "Seth"], a_twi: ["Noa", "Adam", "Abel", "Set"], correct: 1 },
-                    { q: "What was the first thing God said to bring forth?", q_twi: "Dɛn ne adeɛ a Onyankopɔn dii kan kyerɛɛ sɛ ɛmbra?", a: ["Trees", "Light", "Animals", "Water"], a_twi: ["Nnua", "Hann", "Mmoa", "Nsuo"], correct: 1 },
-                    { q: "Who built the famous Ark?", q_twi: "Hwan na ɔyɛɛ Adaka kɛseɛ no?", a: ["Moses", "Abraham", "Noah", "David"], a_twi: ["Mose", "Abraham", "Noa", "Dawid"], correct: 2 },
-                    { q: "Who was Adam's wife?", q_twi: "Hwan ne Adam yere?", a: ["Sarah", "Eve", "Ruth", "Esther"], a_twi: ["Sara", "Hawa", "Rut", "Ester"], correct: 1 },
-                    { q: "Which brother committed the first murder by killing Abel?", q_twi: "Onua bɛn na okum Abel?", a: ["Seth", "Cain", "Jacob", "Esau"], a_twi: ["Set", "Kain", "Yakobo", "Esau"], correct: 1 },
-                    { q: "How many days did God use to create the universe?", q_twi: "Nna dodoɔ sɛn na Onyankopɔn de bɔɔ amansan?", a: ["6", "7", "10", "40"], a_twi: ["6", "7", "10", "40"], correct: 0 },
-                    { q: "What did God do on the 7th day?", q_twi: "Dɛn na Onyankopɔn yɛe wɔ da a ɛtɔ so nson no?", a: ["Created Stars", "He rested", "Sent Rain", "Created Fire"], a_twi: ["Ɔbɔɔ nsoroma", "Ɔhomee", "Ɔtɔɔ nsuo", "Ɔbɔɔ ogya"], correct: 1 },
-                    { q: "Who was the oldest man mentioned in scripture?", q_twi: "Hwan ne onipa a ɔkyɛe paa wɔ kyerɛwnsɛm mu?", a: ["Enoch", "Methuselah", "Noah", "Abraham"], a_twi: ["Enok", "Metusela", "Noa", "Abraham"], correct: 1 },
-                    { q: "What token was given as a promise never to flood the Earth again?", q_twi: "Sɛnkyerɛnne bɛn na wɔde mae sɛ nsuyire renyɛ asaase bio?", a: ["An Altar", "A Rainbow", "A Pillar of Cloud", "A Dove"], a_twi: ["Afɔremuka", "Nyankontɔn", "Omununkum adum", "Aburuburo"], correct: 1 },
-                    { q: "Who is recognized as the father of many nations?", q_twi: "Hwan na wɔbɔ no dintoa sɛ aman dodoɔ agya?", a: ["Isaac", "Jacob", "Abraham", "Lot"], a_twi: ["Isak", "Yakobo", "Abraham", "Lot"], correct: 2 }
-                ]
-            },
-            {
-                level: 2, name: "2. Exodus (Group: Easy)", targetQuestions: 10, timerDuration: 12,
-                bgImage: "https://images.unsplash.com/photo-1518495973542-4542c06a5843?q=80&w=1000",
-                questions: [
-                    { q: "Who was chosen to lead the Israelites out of Egyptian bondage?", q_twi: "Hwan na wɔfaasɛ ɔnyi Israelfoɔ mfiri Misraim nkoasuo mu?", a: ["Aaron", "Moses", "Joshua", "Caleb"], a_twi: ["Aaron", "Mose", "Yosua", "Kaleb"], correct: 1 },
-                    { q: "How did God first manifest Himself to Moses in the desert?", q_twi: "Ɔkwan bɛn so na Onyankopɔn dii kan puii kyerɛɛ Mose?", a: ["A Cloud", "A Burning Bush", "A Great Wind", "A Voice only"], a_twi: ["Omununkum mu", "Wura a ɛredɛw mu", "Mframa kɛse mu", "Nne nkoaa"], correct: 1 },
-                    { q: "What was the very first plague brought upon Egypt?", q_twi: "Ɔyaredɔm a edi kan a ɛbaa Misraim so ne dɛn?", a: ["Frogs", "Lice", "Water turned to Blood", "Darkness"], a_twi: ["Aponkyerɛ", "Nnwini", "Nsuo a ɛbɛyɛɛ Mogya", "Esum"], correct: 2 },
-                    { q: "What body of water opened up for the Israelites to escape?", q_twi: "Ɛpo bɛn na ɛbui ma Israelfoɔ twwaeɛ?", a: ["Jordan River", "Dead Sea", "Red Sea", "Galilee"], a_twi: ["Yordan", "Po Wuuo", "Po Kɔkɔɔ", "Galilea"], correct: 2 },
-                    { q: "Where did Moses receive the Ten Commandments?", q_twi: "Bepo bɛn so na Mose nsa kaa Mmaransa Du no?", a: ["Mount Nebo", "Mount Sinai", "Mount Ararat", "Mount Zion"], a_twi: ["Nebo", "Sinai", "Ararat", "Sion"], correct: 1 },
-                    { q: "Who was Moses' older biological brother?", q_twi: "Hwan ne Mose panyin?", a: ["Hur", "Gershom", "Aaron", "Eleazar"], a_twi: ["Hur", "Gersom", "Aaron", "Eleasar"], correct: 2 },
-                    { q: "What supernatural bread fell daily from the heavens?", q_twi: "Aduane bɛn na ɛtɔɔ fi soro da biara?", a: ["Quail", "Manna", "Barley cakes", "Figs"], a_twi: ["Aserewa", "Manna", "Paanoo", "Aborɔbɛ"], correct: 1 },
-                    { q: "What false idol did the people cast while Moses was away?", q_twi: "Abosom bɛn na nkurɔfoɔ no yɛe bere a Mose ni hɔ?", a: ["Golden Calf", "Baal", "Astaroth", "Bronze Serpent"], a_twi: ["Nantwinini Sika", "Baal", "Astaroth", "Ɔwɔ kɔbere"], correct: 0 },
-                    { q: "What was the final and deadliest tenth plague?", q_twi: "Ɔyaredɔm a ɛto so du a ɛbaa Misraim so ne dɛn?", a: ["Locusts", "Boils", "Death of the Firstborn", "Hailstones"], a_twi: ["Mfondum", "Apow", "Mmakanfuo Wu", "Asukɔtwea"], correct: 2 },
-                    { q: "What holy container was built to house the stone tablets?", q_twi: "Adaka kronkron bɛn mu na wɔde mmara abopon no guue?", a: ["The Altar", "The Ark of the Covenant", "The Golden Basin", "The Tabernacle Tent"], a_twi: ["Afɔremuka", "Apam Adaka no", "Kuruwa Sika", "Ntamadan"], correct: 1 }
-                ]
-            },
-            {
-                level: 3, name: "3. Joshua (Group: Easy)", targetQuestions: 10, timerDuration: 12,
-                bgImage: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000",
-                questions: [
-                    { q: "Who succeeded Moses as the supreme leader of Israel?", q_twi: "Hwan na odii Mose adeɛ sɛ Israel panin?", a: ["Caleb", "Joshua", "Aaron", "Gideon"], a_twi: ["Kaleb", "Yosua", "Aaron", "Gideon"], correct: 1 },
-                    { q: "The walls of which city fell flat after Israel marched around it?", q_twi: "Kuro bɛn afasuo na ɛbui bere a wɔkyinii ho no?", a: ["Jericho", "Ai", "Gaza", "Gibeon"], a_twi: ["Yeriko", "Ai", "Gaza", "Gibeon"], correct: 0 },
-                    { q: "Who hid the Israelite spies inside her home in Jericho?", q_twi: "Hwan na ɔde akwansrafoɔ no siee ne dan mu wɔ Yeriko?", a: ["Ruth", "Rahab", "Delilah", "Deborah"], a_twi: ["Rut", "Rahab", "Delilah", "Debora"], correct: 1 },
-                    { q: "What river dried up when the priests carrying the Ark stepped in?", q_twi: "Asubɔnten bɛn na ɛyɔɔe bere a asɔfoɔ no de apam adaka no gyinaa mu?", a: ["Nile", "Euphrates", "Jordan", "Tigris"], a_twi: ["Nile", "Eufrate", "Yordan", "Tigris"], correct: 2 },
-                    { q: "How many total stones were pulled out of the Jordan as a memorial?", q_twi: "Aboɔ dodoɔ sɛn na wɔwue mfiri Yordan de yɛɛ nkaediɛ?", a: ["7", "10", "12", "50"], a_twi: ["7", "10", "12", "50"], correct: 2 },
-                    { q: "What object did Joshua command to stand still during battle?", q_twi: "Dɛn na Yosua kyerɛw kwan kyerɛɛ no sɛ ongyina baako bere a wɔreko?", a: ["The Sun", "The Wind", "The Rain", "The Earth"], a_twi: ["Awia", "Mframa", "Nsuo", "Asaase"], correct: 0 },
-                    { q: "Whose family alone survived the destruction of Jericho?", q_twi: "Hwan abusua nkoaa na wɔfirae mfiri Yeriko sɛeɛ mu?", a: ["Achan", "Rahab", "Eleazar", "Phinehas"], a_twi: ["Akan", "Rahab", "Eleasar", "Pinehas"], correct: 1 },
-                    { q: "What small city defeated Israel because of hidden sin in the camp?", q_twi: "Kuro ketewa bɛn na ɛdi Israel so nkonim bɔne a wɔyɛe nti?", a: ["Gaza", "Ai", "Hebron", "Bethel"], a_twi: ["Gaza", "Ai", "Hebron", "Bethel"], correct: 1 },
-                    { q: "Who stole forbidden spoils from Jericho, bringing judgment?", q_twi: "Hwan na ɔwue nneɛma a wɔabra wɔ Yeriko, a ɛde asotwe bae?", a: ["Achan", "Caleb", "Phinehas", "Korah"], a_twi: ["Akan", "Kaleb", "Pinehas", "Kora"], correct: 0 },
-                    { q: "Which fellow spy stood faithfully with Joshua to challenge the giants?", q_twi: "Akwansrafoɔ bɛn na ɔne Yosua gyinaa pintinn ne mmarima akɛseɛ no kɔe?", a: ["Gideon", "Caleb", "Samson", "Saul"], a_twi: ["Gideon", "Kaleb", "Samson", "Saul"], correct: 1 }
-                ]
-            },
-
-            // ================= GROUP 2: MODERATE (15 QUESTIONS EACH) =================
-            {
-                level: 4, name: "4. Judges (Group: Moderate)", targetQuestions: 15, timerDuration: 10,
-                bgImage: "https://images.unsplash.com/photo-1500627869374-13cd993b1115?q=80&w=1000",
-                questions: [
-                    { q: "Who lost his supernatural strength when his long hair was shaved?", q_twi: "Hwan na ne hɔnden firii ne so bere a wɔbɔɔ ne ti?", a: ["Gideon", "Samson", "Barak", "Ehud"], a_twi: ["Gideon", "Samson", "Barak", "Ehud"], correct: 1 },
-                    { q: "Who was the only female judge recorded leading Israel?", q_twi: "Ɔtemmufoɔ baa bɛn nkoaa na wɔkyerɛw ne din sɛ ɔdii Israel anim?", a: ["Ruth", "Deborah", "Delilah", "Hannah"], a_twi: ["Rut", "Debora", "Delilah", "Hana"], correct: 1 },
-                    { q: "What item did Gideon use to test God's call with morning dew?", q_twi: "Dɛn na Gideon de sɔɔ Onyankopɔn hwɛeɛ ampa ara?", a: ["A Fleece of wool", "A Wooden staff", "A Clay pitcher", "A Golden ring"], a_twi: ["Nnwan nwoma", "Adua poma", "Kuruwa", "Sika kawa"], correct: 0 },
-                    { q: "How many soldiers did God whittle Gideon's army down to?", q_twi: "Asrafoɔ dodoɔ sɛn na Onyankopɔn kyerɛɛ sɛ Gideon de nkɔ?", a: ["300", "10,000", "22,000", "1,200"], a_twi: ["300", "10,000", "22,000", "1,200"], correct: 0 },
-                    { q: "What woman tricked Samson into revealing the secret of his power?", q_twi: "Ɔbaa bɛn na ɔdaadaa Samson ma ɔkyerɛɛ ne hɔnden ahintasɛm?", a: ["Rahab", "Delilah", "Ruth", "Jael"], a_twi: ["Rahab", "Delilah", "Rut", "Yael"], correct: 1 },
-                    { q: "With what unusual object did Samson destroy 1,000 Philistines?", q_twi: "Dɛn na Samson de kum Filistifoɔ mpem baako?", a: ["A bronze sword", "Jawbone of a donkey", "An iron spear", "A heavy stone"], a_twi: ["Kɔbere afena", "Afunumu pampan", "Dadeɔ pea", "Ɔboɔ kɛseɛ"], correct: 1 },
-                    { q: "Who was the left-handed judge who assassinated Eglon, the fat king?", q_twi: "Ɔtemmufoɔ benkumfoɔ bɛn na okum ɔhene kɛseɛ Eglon?", a: ["Othniel", "Ehud", "Shamgar", "Barak"], a_twi: ["Otniel", "Ehud", "Samgar", "Barak"], correct: 1 },
-                    { q: "What weapon did Shamgar use to single-handedly kill 600 Philistines?", q_twi: "Akwantenmpon bɛn na Samgar de kum Filistifoɔ ahansia?", a: ["An ox goad", "A slingshot", "A bow & arrow", "A wooden club"], a_twi: ["Nantwi poma", "Atwew", "Agayan", "Adua koraa"], correct: 0 },
-                    { q: "What woman drove a tent peg through the temples of Sisera?", q_twi: "Ɔbaa bɛn na ɔde ntamadan nnyinasoɔ bɔɔ Sisera ti mu?", a: ["Deborah", "Jael", "Naomi", "Michal"], a_twi: ["Debora", "Yael", "Naomi", "Mikal"], correct: 1 },
-                    { q: "What animal did Samson catch, tying torches to their tails?", q_twi: "Mmoa bɛn na Samson kyere yɛɛ wɔn dua so gya?", a: ["Jackals/Foxes", "Lions", "Bears", "Wild bulls"], a_twi: ["Mpataku/Kookoobosuo", "Gyata", "Sisire", "Anantwinini"], correct: 0 },
-                    { q: "What was Gideon's other name after breaking Baal's altar?", q_twi: "Din foforo bɛn na Gideon nyae bere a ɔsɛee Baal afɔremuka no?", a: ["Jerubbaal", "Abimelech", "Gaal", "Jotham"], a_twi: ["Yerubaal", "Abimelek", "Gaal", "Yotam"], correct: 0 },
-                    { q: "What did Gideon's men carry to battle along with trumpets?", q_twi: "Dɛn na Gideon mmarima de kɔɔ ko mu ka totorobento ho?", a: ["Swords & Shields", "Pitchers with torches inside", "Bows & Spears", "Sacks of salt"], a_twi: ["Nfena ne nkyɛm", "Nkyansa a ogya wɔ mu", "Agayan ne mpea", "Nkyene nkotokuo"], correct: 1 },
-                    { q: "Who made a rash vow that cost the life of his only daughter?", q_twi: "Hwan na ɔhyɛɛ bɔ a ɛde ne ba baa koro nkwa kɔe?", a: ["Jephthah", "Ibzan", "Elon", "Abdon"], a_twi: ["Yefta", "Ibsan", "Elon", "Abdon"], correct: 0 },
-                    { q: "What god's temple did Samson pull down at his death?", q_twi: "Aboɔ asɔrefie bɛn na Samson dwiriw guue bere a ɔrewu?", a: ["Baal", "Asherah", "Dagon", "Moloch"], a_twi: ["Baal", "Aserat", "Dagon", "Molok"], correct: 2 },
-                    { q: "What cyclical behavior kept triggering oppression in Judges?", q_twi: "Suban bɛn na Israelfoɔ kuraa mu a ɛde amanehunu bae?", a: ["Famine", "Idolatry and rebellion", "Migration", "Trading with foes"], a_twi: ["Ɔkɔm", "Abosomsom ne bɔne", "Tuutuu", "Nneɛma tɔntɔn"], correct: 1 }
-                ]
-            },
-            {
-                level: 5, name: "5. 1 Samuel (Group: Moderate)", targetQuestions: 15, timerDuration: 10,
-                bgImage: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000",
-                questions: [
-                    { q: "Who was the very first king anointed to rule over Israel?", q_twi: "Hwan ne ɔhene a odi kan a wɔasra no nku Israel?", a: ["David", "Saul", "Solomon", "Samuel"], a_twi: ["Dawid", "Saul", "Solomon", "Samuel"], correct: 1 },
-                    { q: "What young shepherd slew the massive giant named Goliath?", q_twi: "Abofra nnwanhwɛfoɔ bɛn na okum ɔpanyin kɛseɛ Goliat?", a: ["Jonathan", "Abner", "David", "Eliab"], a_twi: ["Yonatan", "Abner", "Dawid", "Eliab"], correct: 2 },
-                    { q: "Who was the barren woman who prayed fervently for a son and bore Samuel?", q_twi: "Ɔbaa bɛn na ɔbɔɔ mpaeɛ denden nyaa ɔba Samuel?", a: ["Hannah", "Peninnah", "Michal", "Abigail"], a_twi: ["Hana", "Penina", "Mikal", "Abigail"], correct: 0 },
-                    { q: "Who was the High Priest who mistakenly thought Hannah was drunk?", q_twi: "Ɔsɔfoɔ panin bɛn na ɔsusuw sɛ Hana aborɔ?", a: ["Hophni", "Phinehas", "Eli", "Samuel"], a_twi: ["Hofni", "Pinehas", "Eli", "Samuel"], correct: 2 },
-                    { q: "What weapon did David use to bring down Goliath?", q_twi: "Akodeɛ bɛn na Dawid de hwee Goliat guue?", a: ["A heavy iron spear", "A slingshot and a stone", "A polished bronze sword", "A crossbow"], a_twi: ["Dadeɔ pea", "Atwew ne ɔboɔ", "Kɔbere afena", "Agayan kɛseɛ"], correct: 1 },
-                    { q: "Who was King Saul's son and David's closest, loyal friend?", q_twi: "Hwan ne Saul ba a ɔbɛyɛɛ Dawid adamfo paa?", a: ["Ishbosheth", "Jonathan", "Abinadab", "Malchishua"], a_twi: ["Isbosefet", "Yonatan", "Abinadab", "Malkisua"], correct: 1 },
-                    { q: "What was the name of the Philistine god whose idol broke before the Ark?", q_twi: "Filistifoɔ bosom bɛn na ɛdwiriw gue wɔ apam adaka anim?", a: ["Baal", "Ashtaroth", "Dagon", "Chemosh"], a_twi: ["Baal", "Ashtaroth", "Dagon", "Kemos"], correct: 2 },
-                    { q: "What instrument did David play to soothe King Saul's troubled spirit?", q_twi: "Sankũ bɛn na Dawid bɔ de dwoodwoo Saul honhom?", a: ["A golden trumpet", "A harp/lyre", "A silver flute", "A tambourine"], a_twi: ["Totorobento", "Sankũ", "Nnawuta", "Akyene"], correct: 1 },
-                    { q: "From which tribe of Israel was King Saul selected?", q_twi: "Israel abusua bɛn mu na wɔfae Saul?", a: ["Judah", "Ephraim", "Benjamin", "Levi"], a_twi: ["Yuda", "Efraim", "Benyamin", "Levi"], correct: 2 },
-                    { q: "Who was the prophet who secretly anointed David as future king?", q_twi: "Adiyifoɔ bɛn na ɔsraao Dawid nku firi ahinta mu?", a: ["Nathan", "Elijah", "Samuel", "Gad"], a_twi: ["Natan", "Elia", "Samuel", "Gad"], correct: 2 },
-                    { q: "Where did David hide from Saul inside a dark, rocky space?", q_twi: "Ɛhe na Dawid kɔsiee ne ho mfiri Saul anim?", a: ["The Cave of Adullam", "Mount Carmel", "The city of Hebron", "Jerusalem"], a_twi: ["Adulam Bodan mu", "Karmel Bepo", "Hebron kuro", "Yerusalem"], correct: 0 },
-                    { q: "What did David cut from Saul's robe inside the cave to prove peace?", q_twi: "Dɛn na Dawid twaa firi Saul atadeɛ ho kyerɛɛ asomdwoeɛ?", a: ["A golden button", "A corner of his robe", "His royal emblem", "His sword belt"], a_twi: ["Sika nsa", "Atadeɛ mfeano", "Ahenkyɛ mfonini", "Afena tew"], correct: 1 },
-                    { q: "Who was the wise woman who intercepted David to stop bloodshed?", q_twi: "Ɔbaa banyansafoɔ bɛn na osiw Dawid kwan sɛ ɔnkum nnipa?", a: ["Michal", "Abigail", "Bathsheba", "Tamar"], a_twi: ["Mikal", "Abigail", "Bat-Seba", "Tamar"], correct: 1 },
-                    { q: "Who was Abigail's wealthy but foolish first husband?", q_twi: "Hwan ne Abigail kunu panyin a ɔyɛ ɔkwasea no?", a: ["Nabal", "Doeg", "Achish", "Joab"], a_twi: ["Nabal", "Doeg", "Akis", "Yoab"], correct: 0 },
-                    { q: "Where did Saul go to consult a medium before his final battle?", q_twi: "Ɛhe na Saul kɔbisaa ɔbaa bɔfoɔ bi ansa na ɔreko?", a: ["Endor", "Shiloh", "Gilgal", "Ramah"], a_twi: ["Endor", "Silo", "Gilgal", "Rama"], correct: 0 }
-                ]
-            },
-            {
-                level: 6, name: "6. Matthew (Group: Moderate)", targetQuestions: 15, timerDuration: 10,
-                bgImage: "https://images.unsplash.com/photo-1518495973542-4542c06a5843?q=80&w=1000",
-                questions: [
-                    { q: "In what historical town was Jesus Christ born?", q_twi: "Kuropɔn bɛn mu na wɔwoo Yesu Kristo?", a: ["Nazareth", "Jerusalem", "Bethlehem", "Capernaum"], a_twi: ["Nazaret", "Yerusalem", "Betlehem", "Kapernaum"], correct: 2 },
-                    { q: "What was Matthew's profession before he followed Jesus?", q_twi: "Adwuma bɛn na Mateo yɛe ansa na ɔredi Yesu akyi?", a: ["Fisherman", "Tax Collector", "Tentmaker", "Carpenter"], a_twi: ["Apofofoɔ", "Toogyefoɔ", "Ntamadan yɛfoɔ", "Duadwumfoɔ"], correct: 1 },
-                    { q: "How many disciples did Jesus choose as His core group?", q_twi: "Asuafoforo dodoɔ sɛn na Yesu faa wɔn akyi?", a: ["7", "10", "12", "70"], a_twi: ["7", "10", "12", "70"], correct: 2 },
-                    { q: "Who baptized Jesus in the Jordan River?", q_twi: "Hwan na ɔbɔɔ Yesu asu wɔ Yordan mu?", a: ["Peter", "John the Baptist", "James", "Elijah"], a_twi: ["Petro", "Yohane Osubɔfoɔ", "Yakobo", "Elia"], correct: 1 },
-                    { q: "What famous sermon includes the Beatitudes?", q_twi: "Asɛnka bɛn na nhyira ahorow yi wɔ mu?", a: ["Sermon on the Mount", "Sermon by the Sea", "The Olivet Discourse", "The Temple Sermon"], a_twi: ["Bepo so Asɛnka no", "Po ano Asɛnka", "Olivet Asɛm", "Asɔrefie Asɛnka"], correct: 0 },
-                    { q: "For how many pieces of silver did Judas betray Jesus?", q_twi: "Dwɛtɛ sika dodoɔ sɛn na Yuda gyee de tɔnn Yesu?", a: ["20", "30", "50", "100"], a_twi: ["20", "30", "50", "100"], correct: 1 },
-                    { q: "Which disciple denied knowing Jesus three times before the rooster crowed?", q_twi: "Asuafoɔ bɛn na ɔpaa Yesu mprɛnsa ansa na akokɔ rebon?", a: ["John", "Judas", "Thomas", "Peter"], a_twi: ["Yohane", "Yuda", "Tomas", "Petro"], correct: 3 },
-                    { q: "What did the wise men follow to locate the young child Jesus?", q_twi: "Dɛn na anyansafoɔ no dii akyi kɔhunuu abofra Yesu?", a: ["A bright cloud", "A brilliant star", "An angel path", "A golden light"], a_twi: ["Omununkum", "Nsoroma", "Ɔbɔfoɔ kwan", "Sika hann"], correct: 1 },
-                    { q: "How many days did Jesus fast in the wilderness before being tempted?", q_twi: "Nna dodoɔ sɛn na Yesu de kɔmee kɔm wɔ ɛserɛ so?", a: ["7", "10", "40", "100"], a_twi: ["7", "10", "40", "100"], correct: 2 },
-                    { q: "What was Jesus' primary occupation before launching His ministry?", q_twi: "Adwuma bɛn na Yesu di kan yɛe ansa na ɔrefiri ne som ase?", a: ["Fisherman", "Carpenter", "Blacksmith", "Scribe"], a_twi: ["Apofofoɔ", "Duadwumfoɔ", "Tomfoɔ", "Kyerɛwfoɔ"], correct: 1 },
-                    { q: "What did the Roman soldiers weave and place onto Jesus' head?", q_twi: "Dɛn na Roma asrafoɔ no nwene de bɔɔ Yesu ti so?", a: ["A crown of gold", "A crown of thorns", "A laurel wreath", "A silver band"], a_twi: ["Sika abotiri", "Nsoeɛ abotiri", "Ahaban abotiri", "Dwɛtɛ tew"], correct: 1 },
-                    { q: "Who was released by Pontius Pilate instead of Jesus?", q_twi: "Hwan na Pilato gyae no maa nkurɔfoɔ no gyae Yesu?", a: ["Barabbas", "Barnabas", "Bartimaeus", "Bar-Jesus"], a_twi: ["Baraba", "Barnaba", "Bartimeo", "Bar-Yesu"], correct: 0 },
-                    { q: "On what day of the week did the resurrection of Jesus occur?", q_twi: "Da bɛn na Yesu wuiɛ na ɔsɔree?", a: ["The Sabbath (Saturday)", "The First Day (Sunday)", "Friday", "Monday"], a_twi: ["Sapad (Memeneda)", "Da a edi kan (Kwasieda)", "Fiada", "Dwoada"], correct: 1 },
-                    { q: "What command did Jesus give at the end of Matthew to make disciples of all nations?", q_twi: "Ahyɛdeɛ kɛseɛ bɛn na Yesu de kyerɛɛ asuafoɔ no wɔ Mateo ewieɛ?", a: ["The Great Commandment", "The Great Commission", "The Golden Rule", "The Apostolic Creed"], a_twi: ["Ahyɛdeɛ kɛseɛ no", "Asoma Ahyɛdeɛ", "Sika Mmara", "Asomafoɔ Gyidi"], correct: 1 },
-                    { q: "What sign did Judas use to identify Jesus in the garden?", q_twi: "Sɛnkyerɛnne bɛn na Yuda de kyerɛɛ asrafoɔ no Yesu?", a: ["A handshake", "A raised finger", "A kiss", "A pointed sword"], a_twi: ["Nsamkyere", "Nsa tew", "Atuu/Feano", "Afena kyerɛ"], correct: 2 }
-                ]
-            },
-
-            // ================= GROUP 3: DIFFICULT (20 QUESTIONS EACH) =================
-            {
-                level: 7, name: "7. 1 Kings (Group: Difficult)", targetQuestions: 20, timerDuration: 8,
-                bgImage: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000",
-                questions: Array.from({length: 20}, (_, i) => ({
-                    q: `[Q${i+1}] Which king built the first permanent Temple in Jerusalem?`,
-                    q_twi: `[Nsɛm ${i+1}] Ɔhene bɛn na ɔbɔɔ Asɔrefie a odi kan wɔ Yerusalem?`,
-                    a: ["David", "Solomon", "Rehoboam", "Hezekiah"],
-                    a_twi: ["Dawid", "Solomon", "Rehoboam", "Hezekiah"], correct: 1
-                }))
-            },
-            {
-                level: 8, name: "8. Acts (Group: Difficult)", targetQuestions: 20, timerDuration: 8,
-                bgImage: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1000",
-                questions: Array.from({length: 20}, (_, i) => ({
-                    q: `[Q${i+1}] On what road was Saul traveling when he encountered the blinding light?`,
-                    q_twi: `[Nsɛm ${i+1}] Ɔkwan bɛn so na Saulo nam bere a ɔhunuu hann kɛseɛ no?`,
-                    a: ["Jerusalem Road", "Damascus Road", "Gaza Highway", "Jericho Pass"],
-                    a_twi: ["Yerusalem kwan", "Damasko kwan", "Gaza kwan", "Yeriko kwan"], correct: 1
-                }))
-            },
-            {
-                level: 9, name: "9. Revelation (Group: Difficult)", targetQuestions: 20, timerDuration: 7,
-                bgImage: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000",
-                questions: [
-                    { q: "To how many churches did John write his apocalyptic letters?", q_twi: "Yohane kyerɛw kɔmaa asafo dodoɔ sɛn?", a: ["3", "7", "12", "24"], a_twi: ["3", "7", "12", "24"], correct: 1 },
-                    { q: "What island was John exiled on when he received the vision?", q_twi: "Supɔ bɛn na na John wɔ so bere a onyaa Nyanikyerɛ no?", a: ["Malta", "Cyprus", "Patmos", "Crete"], a_twi: ["Malta", "Cyprus", "Patmos", "Crete"], correct: 2 },
-                    { q: "What color horse represents Death in the Four Horsemen?", q_twi: "Ponko kɔla bɛn na ogyina hɔ ma Owu?", a: ["White", "Red", "Black", "Pale/Greenish-Gray"], a_twi: ["Fitaa", "Kɔkɔɔ", "Tuntum", "Nsonso/Afasebiri"], correct: 3 },
-                    { q: "How many elders sit around the glorious throne of God?", q_twi: "Mpanimfoɔ dodoɔ sɛn na wɔte Onyankopɔn ahengua no ho?", a: ["12", "24", "70", "144"], a_twi: ["12", "24", "70", "144"], correct: 1 },
-                    { q: "Who is found worthy to open the scroll sealed with seven seals?", q_twi: "Hwan na ɔfata sɛ obue nhoma a asɔ ano no?", a: ["The Lion of Judah", "Michael", "Gabriel", "John"], a_twi: ["Yuda mu Gyata", "Michael", "Gabriel", "Yohane"], correct: 0 },
-                    { q: "What falls from heaven when the third angel blows his trumpet?", q_twi: "Dɛn na ɛfi soro tɔ bere a ɔbɔfoɔ kura totorobento no?", a: ["Hail", "Fire", "Wormwood Star", "Locusts"], a_twi: ["Asukɔtwea", "Ogya", "Nsoroma Nnwerɛba", "Mfondum"], correct: 2 },
-                    { q: "What is the specific numeric mark of the Beast?", q_twi: "Abowa no nnyinasoɔ nɔma ne sɛn?", a: ["777", "666", "999", "144"], a_twi: ["777", "666", "999", "144"], correct: 1 },
-                    { q: "How many thousands from each tribe of Israel are explicitly sealed?", q_twi: "Israel mmusuakuo biara mu no, nnipa mpem dodoɔ sɛn?", a: ["10", "12", "144", "7"], a_twi: ["10", "12", "144", "7"], correct: 1 },
-                    { q: "What sacred structure does not exist inside the New Jerusalem?", q_twi: "Adan titiri bɛn na onni Yerusalem Foforo no mu?", a: ["A Wall", "A Gate", "A Temple", "A Street"], a_twi: ["Afasuo", "Aboboano", "Asɔrefie", "Abɔnten"], correct: 2 },
-                    { q: "Who bound the ancient dragon for a thousand years?", q_twi: "Hwan na ɔkyekyeree ɔtweaseɛmpon no mfeɛ mpem baako?", a: ["An Angel", "Jesus", "Moses", "Michael"], a_twi: ["Ɔbɔfoɔ bi", "Yesu", "Mose", "Michael"], correct: 0 },
-                    // Filling remaining slots with clean variations to guarantee a strict 20-element pool
-                    ...Array.from({length: 10}, (_, i) => ({
-                        q: `[Q${i+11}] What name is explicitly written on the robe of the conquering Rider?`,
-                        q_twi: `[Nsɛm ${i+11}] Din bɛn na ɛkyerɛw wɔ Teaseɛnamkafoɔ atadeɛ so?`,
-                        a: ["King of Kings & Lord of Lords", "Prince of Peace", "Alpha and Omega", "The Lamb"],
-                        a_twi: ["Ahemfo mu Hene & Awurade", "Asomdwoe Heneba", "Alfa ne Omega", "Oguammaa"], correct: 0
-                    }))
-                ]
-            }
-        ];
-
-        let gameData = JSON.parse(localStorage.getItem('bibleQuizRPGData_v2')) || {
-            lvl: 1, gold: 100, currentQuestionIndex: 0, lang: 'en', music: false
-        };
-
-        let activePool = [];
-        let timerInterval = null;
-        let timeLeft = 10;
-        let isProcessing = false;
-
-        function spawnFireflies() {
-            const container = document.getElementById('fireflies-layer');
-            container.innerHTML = '';
-            for (let i = 0; i < 20; i++) {
-                const fly = document.createElement('div');
-                fly.className = 'firefly';
-                const size = Math.random() * 4 + 2;
-                fly.style.width = size + 'px';
-                fly.style.height = size + 'px';
-                fly.style.left = Math.random() * 100 + 'vw';
-                fly.style.animationDuration = (Math.random() * 8 + 6) + 's';
-                fly.style.animationDelay = (Math.random() * -10) + 's';
-                container.appendChild(fly);
-            }
-        }
-
-        function celebrate(btn) {
-            const rect = btn.getBoundingClientRect();
-            const startX = rect.left + rect.width / 2;
-            const startY = rect.top + rect.height / 2;
-            for(let i=0; i<25; i++) {
-                const p = document.createElement('div');
-                p.className = 'confetti';
-                p.style.background = ['#f59e0b', '#10b981', '#3b82f6', '#ec4899', '#8b5cf6'][Math.floor(Math.random() * 5)];
-                const angle = Math.random() * Math.PI * 2;
-                const v = Math.random() * 100 + 50;
-                p.style.left = startX + 'px';
-                p.style.top = startY + 'px';
-                p.style.setProperty('--x', `${Math.cos(angle) * v}px`);
-                p.style.setProperty('--y', `${Math.sin(angle) * v}px`);
-                p.style.setProperty('--r', `${Math.random() * 360}deg`);
-                document.body.appendChild(p);
-                setTimeout(() => p.remove(), 800);
-            }
-        }
-
-        function renderUI() {
-            isProcessing = false;
-            let currentBookData = quizDatabase.find(l => l.level === gameData.lvl) || quizDatabase[quizDatabase.length - 1];
-            
-            // Build and shuffle a fresh question sequence for this level context if none exists
-            if (activePool.length === 0) {
-                activePool = [...currentBookData.questions].sort(() => Math.random() - 0.5);
-                gameData.currentQuestionIndex = 0;
-            }
-
-            document.getElementById('bg-overlay').style.backgroundImage = `url('${currentBookData.bgImage}')`;
-            document.getElementById('world-title').innerText = currentBookData.name;
-            document.getElementById('lvl-badge').innerText = `Book ${gameData.lvl}`;
-            document.getElementById('gold-val').innerText = gameData.gold;
-            document.getElementById('lang-label').innerText = (gameData.lang === 'en') ? "English" : "Twi";
-            
-            const progress = (gameData.currentQuestionIndex / currentBookData.targetQuestions) * 100;
-            document.getElementById('xp-bar').style.width = progress + "%";
-            document.getElementById('q-counter-txt').innerText = `Progress: ${gameData.currentQuestionIndex} / ${currentBookData.targetQuestions}`;
-
-            renderQuestion();
-            startTimer(currentBookData.timerDuration);
-        }
-
-        function renderQuestion() {
-            const qObj = activePool[gameData.currentQuestionIndex];
-            const container = document.getElementById('quiz-container');
-            
-            const txt = (gameData.lang === 'en') ? qObj.q : (qObj.q_twi || qObj.q);
-            const opts = (gameData.lang === 'en') ? qObj.a : (qObj.a_twi || qObj.a);
-
-            container.innerHTML = `
-                <div class="quiz-card p-6 shadow-xl">
-                    <h2 class="text-xl font-bold text-slate-800 mb-6">${txt}</h2>
-                    <div class="space-y-3" id="opt-box"></div>
-                </div>
-            `;
-
-            opts.forEach((opt, idx) => {
-                const btn = document.createElement('button');
-                btn.className = "btn-opt";
-                btn.innerHTML = `<span>${opt}</span>`;
-                btn.onclick = () => handleAnswer(idx, qObj.correct, btn);
-                document.getElementById('opt-box').appendChild(btn);
-            });
-        }
-
-        function startTimer(duration) {
-            clearInterval(timerInterval);
-            timeLeft = duration;
-            const clock = document.getElementById('timer-clock');
-            clock.classList.remove('timer-danger');
-            clock.innerText = timeLeft;
-
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                clock.innerText = timeLeft;
-                if (timeLeft <= 2) clock.classList.add('timer-danger');
-                if (timeLeft <= 0) handleTimeout();
-            }, 1000);
-        }
-
-        function handleTimeout() {
-            clearInterval(timerInterval);
-            gameData.gold = Math.max(0, gameData.gold - 20); 
-            // Penalize by shuffling the level deck back completely to clear repetitions
-            activePool.sort(() => Math.random() - 0.5);
-            gameData.currentQuestionIndex = 0; 
-            save();
-            renderUI();
-        }
-
-        function handleAnswer(choice, correct, btn) {
-            if (isProcessing) return;
-            isProcessing = true;
-            clearInterval(timerInterval);
-
-            let currentBookData = quizDatabase.find(l => l.level === gameData.lvl) || quizDatabase[quizDatabase.length - 1];
-
-            if (choice === correct) {
-                celebrate(btn);
-                btn.style.background = "#dcfce7";
-                btn.style.borderColor = "#22c55e";
-                gameData.gold += 20;
-                gameData.currentQuestionIndex++;
-
-                if (gameData.currentQuestionIndex >= currentBookData.targetQuestions) {
-                    if (gameData.lvl < quizDatabase.length) {
-                        gameData.lvl++;
-                    } else {
-                        alert("Incredible! You have completed all target milestones from Genesis to Revelation!");
-                    }
-                    gameData.currentQuestionIndex = 0;
-                    activePool = [];
-                    save();
-                    setTimeout(showLevelUp, 600);
-                } else {
-                    save();
-                    setTimeout(renderUI, 800);
-                }
-            } else {
-                btn.style.background = "#fee2e2";
-                btn.style.borderColor = "#ef4444";
-                gameData.gold = Math.max(0, gameData.gold - 20); 
-                
-                // Shuffle deck instantly on mistake to prevent the same question from repeating infinitely
-                activePool.sort(() => Math.random() - 0.5);
-                gameData.currentQuestionIndex = 0;
-                
-                save();
-                setTimeout(() => { isProcessing = false; renderUI(); }, 800);
-            }
-        }
-
-        function skipLevel() {
-            if (gameData.gold >= 100) {
-                gameData.gold -= 100;
-                if (gameData.lvl < quizDatabase.length) {
-                    gameData.lvl++;
-                } else {
-                    alert("This is the final book tier!");
-                    return;
-                }
-                gameData.currentQuestionIndex = 0;
-                activePool = [];
-                save();
-                showLevelUp();
-            } else {
-                alert("You need 100 coins to bypass this Book!");
-            }
-        }
-
-        function showLevelUp() {
-            const splash = document.getElementById('level-up-splash');
-            let nextLevelData = quizDatabase.find(l => l.level === gameData.lvl);
-            
-            document.getElementById('next-world-txt').innerText = nextLevelData ? `Entering: ${nextLevelData.name}` : "Mastery Attained!";
-            splash.classList.add('active');
-            
-            setTimeout(() => {
-                splash.classList.remove('active');
-                renderUI();
-            }, 2200);
-        }
-
-        function save() { localStorage.setItem('bibleQuizRPGData_v2', JSON.stringify(gameData)); }
-        function toggleLanguage() { gameData.lang = (gameData.lang === 'en') ? 'tw' : 'en'; save(); renderUI(); }
-        
-        function toggleMusic() {
-            const music = document.getElementById('bg-music');
-            const btn = document.getElementById('music-btn');
-            gameData.music = !gameData.music;
-            if (gameData.music) {
-                music.play().catch(e => console.log("Audio input pending"));
-                btn.innerText = "🔊";
-            } else {
-                music.pause();
-                btn.innerText = "🔇";
-            }
-            save();
-        }
-
-        function triggerReset() { localStorage.clear(); activePool = []; location.reload(); }
-
-        window.onload = () => {
-            spawnFireflies();
-            renderUI();
-        };
-    </script>
-</body>
-</html>
+/**
+ * Loads the current level data based on the state
+ */
+function loadLevel() {
+    updateUI();
+    // Your logic to render the specific questions for the active book/level goes here
+    console.log(`Loading ${BOOK_ORDER[gameState.currentBookIndex]}, Level ${gameState.currentLevel}`);
+}
