@@ -1,141 +1,184 @@
-/**
- * QUEST QUIZ APPLICATION - CORE LOGIC
- * Features: 100 levels, +20/-20 coin mechanics, level 1 reset on 0 coins.
- */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quest Quiz Application</title>
+    <style>
+        /* Simple, clean styling for your quiz interface */
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .quiz-container {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #4b5563;
+        }
+        .question-box {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            min-height: 60px;
+        }
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .quiz-option-btn {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .quiz-option-btn:hover {
+            background-color: #2563eb;
+        }
+    </style>
+</head>
+<body>
 
-// 1. Game State Configuration
-let gameState = {
-    currentLevel: 1,
-    coins: 100, // Starting coin balance
-    pointsPerCorrectAnswer: 20,
-    pointsDeductedPerWrongAnswer: 20,
-    maxLevels: 100
-};
+    <!-- 1. THE VIEWABLE USER INTERFACE -->
+    <div class="quiz-container">
+        <div class="stats-bar">
+            <span id="level-display">Level: 1</span>
+            <span id="coin-display">Coins: 100</span>
+        </div>
+        
+        <div class="question-box" id="question-text">
+            Loading your quest...
+        </div>
+        
+        <div class="options-grid" id="options-container">
+            <!-- Dynamic option buttons will appear here -->
+        </div>
+    </div>
 
-// 2. Mock Level Data (Replace with your actual 100-level database/array)
-const quizQuestions = {
-    1: { question: "What is 10 + 10?", options: ["10", "20", "30"], answer: "20" },
-    2: { question: "Which layout tool uses flexbox?", options: ["Grid", "Flex", "Block"], answer: "Flex" },
-    // Add levels 3 through 100 here...
-};
+    <!-- Hidden Background Music Element -->
+    <audio id="bg-music" loop>
+        <source src="your-audio-file.mp3" type="audio/mpeg">
+    </audio>
 
-// 3. Initialize Game on Load
-document.addEventListener("DOMContentLoaded", () => {
-    initAudio();
-    loadLevel(gameState.currentLevel);
-    updateUI();
-});
 
-// 4. Audio Management Safeguard
-function initAudio() {
-    const music = document.getElementById('bg-music');
-    if (music) {
-        // Attempt to play music when user first clicks anywhere on the page
-        // (Handles browser autoplay restriction policies)
-        document.body.addEventListener('click', () => {
-            if (music.paused) {
-                music.play().catch(err => console.log("Audio playback delayed:", err));
-            }
-        }, { once: true });
-    }
-}
+    <!-- 2. THE BACKGROUND GAME LOGIC -->
+    <script>
+        // Game State Configuration
+        let gameState = {
+            currentLevel: 1,
+            coins: 100, 
+            pointsPerCorrectAnswer: 20,
+            pointsDeductedPerWrongAnswer: 20,
+            maxLevels: 100
+        };
 
-function restartBackgroundMusic() {
-    const music = document.getElementById('bg-music');
-    if (music) {
-        music.currentTime = 0;
-        music.play().catch(error => {
-            console.log("Audio waiting for user interaction adjustment:", error);
+        // Sample Quiz Questions (Expand this array up to 100 levels)
+        const quizQuestions = {
+            1: { question: "What is 10 + 10?", options: ["10", "20", "30"], answer: "20" },
+            2: { question: "Which HTML tag is used for JavaScript?", options: ["<script>", "<js>", "<codePreset>"], answer: "<script>" },
+            3: { question: "What is 5 x 5?", options: ["20", "25", "30"], answer: "25" }
+            // Add your remaining levels here following the same format
+        };
+
+        // Run game setup once the page loads
+        document.addEventListener("DOMContentLoaded", () => {
+            initAudioSetting();
+            loadLevel(gameState.currentLevel);
+            updateUI();
         });
-    }
-}
 
-// 5. Load Level Content
-function loadLevel(levelNumber) {
-    const questionData = quizQuestions[levelNumber];
-    const questionEl = document.getElementById('question-text');
-    const optionsContainer = document.getElementById('options-container');
+        // Handles browser audio permission locks safely
+        function initAudioSetting() {
+            const music = document.getElementById('bg-music');
+            if (music) {
+                document.body.addEventListener('click', () => {
+                    if (music.paused) {
+                        music.play().catch(err => console.log("Audio waiting for true click:", err));
+                    }
+                }, { once: true });
+            }
+        }
 
-    if (!questionData || !questionEl || !optionsContainer) return;
+        function restartBackgroundMusic() {
+            const music = document.getElementById('bg-music');
+            if (music) {
+                music.currentTime = 0;
+                music.play().catch(err => console.log("Music restart error:", err));
+            }
+        }
 
-    // Set text
-    questionEl.innerText = questionData.question;
-    optionsContainer.innerHTML = '';
+        // Renders the current level data onto the screen
+        function loadLevel(levelNumber) {
+            const questionData = quizQuestions[levelNumber];
+            const questionEl = document.getElementById('question-text');
+            const optionsContainer = document.getElementById('options-container');
 
-    // Render option buttons
-    questionData.options.forEach(option => {
-        const btn = document.createElement('button');
-        btn.innerText = option;
-        btn.className = 'quiz-option-btn'; // Use your CSS class names here
-        btn.onclick = () => checkAnswer(option, questionData.answer);
-        optionsContainer.appendChild(btn);
-    });
-}
+            if (!questionData || !questionEl || !optionsContainer) return;
 
-// 6. Core Mechanics Logic
-function checkAnswer(selectedOption, correctOption) {
-    if (selectedOption === correctOption) {
-        handleCorrectAnswer();
-    } else {
-        handleIncorrectAnswer();
-    }
-}
+            questionEl.innerText = questionData.question;
+            optionsContainer.innerHTML = '';
 
-function handleCorrectAnswer() {
-    gameState.coins += gameState.pointsPerCorrectAnswer;
-    
-    if (gameState.currentLevel < gameState.maxLevels) {
-        gameState.currentLevel++;
-        loadLevel(gameState.currentLevel);
-    } else {
-        triggerVictory();
-    }
-    
-    updateUI();
-}
+            questionData.options.forEach(option => {
+                const btn = document.createElement('button');
+                btn.innerText = option;
+                btn.className = 'quiz-option-btn';
+                btn.onclick = () => checkAnswer(option, questionData.answer);
+                optionsContainer.appendChild(btn);
+            });
+        }
 
-function handleIncorrectAnswer() {
-    gameState.coins -= gameState.pointsDeductedPerWrongAnswer;
-    
-    if (gameState.coins <= 0) {
-        triggerGameOver();
-    } else {
-        // Optional: Trigger a visual shake effect or wrong-answer sound effect here
-        updateUI();
-    }
-}
+        // Scoring rules evaluation
+        function checkAnswer(selectedOption, correctOption) {
+            if (selectedOption === correctOption) {
+                gameState.coins += gameState.pointsPerCorrectAnswer;
+                
+                if (gameState.currentLevel < gameState.maxLevels) {
+                    gameState.currentLevel++;
+                    loadLevel(gameState.currentLevel);
+                } else {
+                    alert("Victory! You finished all 100 levels!");
+                }
+            } else {
+                gameState.coins -= gameState.pointsDeductedPerWrongAnswer;
+                
+                if (gameState.coins <= 0) {
+                    alert("Game Over! Your coins hit 0. Resetting back to Level 1.");
+                    gameState.currentLevel = 1;
+                    gameState.coins = 100;
+                    restartBackgroundMusic();
+                    loadLevel(gameState.currentLevel);
+                }
+            }
+            updateUI();
+        }
 
-// 7. Game State Triggers (Reset / Victory)
-function triggerGameOver() {
-    alert("Game Over! Your coins hit 0. Starting over from Level 1!");
-    
-    // Hard reset back to initial values
-    gameState.currentLevel = 1;
-    gameState.coins = 100;
-    
-    // Explicitly fix the music drop-out issue
-    restartBackgroundMusic();
-    
-    loadLevel(gameState.currentLevel);
-    updateUI();
-}
+        // Sync changes with visual elements
+        function updateUI() {
+            const levelDisplay = document.getElementById('level-display');
+            const coinDisplay = document.getElementById('coin-display');
 
-function triggerVictory() {
-    alert("Congratulations! You completed all 100 levels!");
-    // Handle victory screen transition or leaderboard update here
-}
-
-// 8. UI Synchronization
-function updateUI() {
-    const levelDisplay = document.getElementById('level-display');
-    const coinDisplay = document.getElementById('coin-display');
-    const skipButton = document.getElementById('skip-level-btn');
-
-    if (levelDisplay) levelDisplay.innerText = `Level: ${gameState.currentLevel}`;
-    if (coinDisplay) coinDisplay.innerText = `Coins: ${gameState.coins}`;
-    
-    // The 100-point skip mechanic is gone. Ensure the button is hidden or completely removed.
-    if (skipButton) {
-        skipButton.style.display = 'none';
-    }
-}
+            if (levelDisplay) levelDisplay.innerText = `Level: ${gameState.currentLevel}`;
+            if (coinDisplay) coinDisplay.innerText = `Coins: ${gameState.coins}`;
+        }
+    </script>
+</body>
+</html>
