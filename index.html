@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,19 +67,39 @@
     <div id="bg-overlay"></div>
     <div id="bg-tint"></div>
 
+    <!-- Background Music Audio Tag (Add your audio link in src) -->
+    <audio id="bg-music" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+
     <!-- Top Dashboard Header (HUD) -->
-    <div class="fixed top-4 left-4 right-4 flex justify-between items-center z-50 max-w-md mx-auto w-full px-2">
-        <button onclick="toggleLanguage()" class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 transition-all text-white px-4 py-2 rounded-full font-bold text-xs uppercase tracking-wider shadow-lg">
-            🌐 <span id="lang-label">English</span>
-        </button>
-        <div class="bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-xl flex items-center gap-2">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Balance</span>
-            <p class="text-lg font-black text-amber-400">💰 <span id="gold-val">100</span></p>
+    <div class="fixed top-4 left-4 right-4 flex flex-col gap-2 z-50 max-w-md mx-auto w-full px-2">
+        <div class="flex justify-between items-center">
+            <div class="flex gap-2">
+                <!-- Language Toggle -->
+                <button onclick="toggleLanguage()" class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 transition-all text-white px-3 py-2 rounded-full font-bold text-xs uppercase tracking-wider shadow-lg">
+                    🌐 <span id="lang-label">English</span>
+                </button>
+                <!-- Music Toggle -->
+                <button onclick="toggleMusic()" id="music-btn" class="bg-slate-700 hover:bg-slate-800 active:scale-95 transition-all text-white px-3 py-2 rounded-full font-bold text-xs uppercase tracking-wider shadow-lg">
+                    🔈 Music: Off
+                </button>
+            </div>
+            
+            <div class="bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-xl flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Balance</span>
+                <p class="text-lg font-black text-amber-400">💰 <span id="gold-val">100</span></p>
+            </div>
+        </div>
+
+        <!-- Level Skip Action Row -->
+        <div class="flex justify-end">
+            <button onclick="skipLevel()" class="bg-amber-500 hover:bg-amber-600 active:scale-95 transition-all text-slate-950 px-4 py-1.5 rounded-full font-black text-xs uppercase tracking-wider shadow-md border border-amber-300">
+                ⏩ Skip Book (-100 💰)
+            </button>
         </div>
     </div>
 
     <!-- Centered Principal Game Dashboard -->
-    <div id="game-content" class="w-full max-w-md space-y-5 mt-16 relative z-10">
+    <div id="game-content" class="w-full max-w-md space-y-5 mt-24 relative z-10">
         
         <!-- Level Progress & Book Metadata Banner -->
         <div class="quiz-card p-6 shadow-2xl text-center border border-white/20">
@@ -100,9 +121,7 @@
         <div id="quiz-container" class="space-y-4"></div>
     </div>
 
-    <!-- ==================================================== -->
-    <!-- STRUCTURAL DATABASE EXTERNAL LINK INTERFACE          -->
-    <!-- ==================================================== -->
+    <!-- SCRIPT INJECTION LINK -->
     <script src="questions.js"></script>
 
     <!-- Engine Control Logic -->
@@ -118,6 +137,7 @@
         let currentPool = [];
         let timerInterval = null;
         let isProcessing = false;
+        let isMusicPlaying = false;
 
         function save() { 
             localStorage.setItem('bibleQuestData', JSON.stringify(gameData)); 
@@ -127,7 +147,6 @@
         function initLevel() {
             isProcessing = false;
             
-            // Safety Check: Verifies array existence or forces a clean reset fallback
             if (typeof quizDatabase === 'undefined' || quizDatabase.length === 0) {
                 console.error("Database connection missing. Check your questions.js injection script path.");
                 return;
@@ -142,12 +161,12 @@
             document.getElementById('gold-val').innerText = gameData.gold;
             document.getElementById('lang-label').innerText = gameData.lang === 'en' ? "English" : "Twi";
             
-            // Dynamic Math Progress Bar Configurations
+            // Dynamic Progress Calculations
             const percent = (gameData.progress / book.target) * 100;
             document.getElementById('xp-bar').style.width = `${percent}%`;
             document.getElementById('q-counter-txt').innerText = `Progress: ${gameData.progress} / ${book.target}`;
 
-            // Anti-Repetition Loop Optimization
+            // Anti-Repetition Logic Setup
             if (currentPool.length === 0) {
                 currentPool = [...book.questions].sort(() => Math.random() - 0.5);
             }
@@ -158,10 +177,10 @@
 
         // Question Injector Block
         function renderQuestion(book) {
+            if (currentPool.length === 0) return;
             const qObj = currentPool[0];
             const container = document.getElementById('quiz-container');
             
-            // Fallback language selector logic switch
             const qText = gameData.lang === 'en' ? qObj.q : (qObj.q_twi || qObj.q);
             
             container.innerHTML = `
@@ -198,7 +217,7 @@
                 
                 if (time <= 0) {
                     clearInterval(timerInterval);
-                    gameData.gold -= 20; // Structural Penalty
+                    gameData.gold -= 20; // Time Out Penalty
                     checkStatus();
                 }
             }, 1000);
@@ -210,16 +229,14 @@
             isProcessing = true;
             clearInterval(timerInterval);
 
-            // Correct Action
             if (choice === correct) {
                 btn.style.background = "#dcfce7";
                 btn.style.borderColor = "#22c55e";
                 btn.style.color = "#15803d";
                 gameData.gold += 10;
                 gameData.progress++;
-                currentPool.shift(); // Deletes immediately to eliminate duplication loop bugs
+                currentPool.shift(); 
 
-                // Progression Transition Threshold Check
                 if (gameData.progress >= book.target) {
                     gameData.lvl++;
                     gameData.progress = 0;
@@ -228,12 +245,50 @@
                 save();
                 setTimeout(initLevel, 600);
             } else {
-                // Incorrect Penalty Action
                 btn.style.background = "#fee2e2";
                 btn.style.borderColor = "#ef4444";
                 btn.style.color = "#b91c1c";
                 gameData.gold -= 30;
                 checkStatus();
+            }
+        }
+
+        // Skip Level Feature Mechanics
+        function skipLevel() {
+            if (gameData.gold < 100) {
+                alert("You don't have enough coins! You need at least 100 💰 to skip a book.");
+                return;
+            }
+            
+            if (confirm("Are you sure you want to spend 100 💰 to skip this entire book?")) {
+                clearInterval(timerInterval);
+                gameData.gold -= 100;
+                gameData.lvl++;
+                gameData.progress = 0;
+                currentPool = []; // Flush old questions pool
+                save();
+                initLevel();
+            }
+        }
+
+        // Music Framework System Trigger
+        function toggleMusic() {
+            const music = document.getElementById('bg-music');
+            const musicBtn = document.getElementById('music-btn');
+            
+            if (!isMusicPlaying) {
+                music.play().then(() => {
+                    isMusicPlaying = true;
+                    musicBtn.innerText = "🔊 Music: On";
+                    musicBtn.classList.replace('bg-slate-700', 'bg-emerald-600');
+                }).catch(err => {
+                    alert("Click anywhere on the screen first to allow audio playbacks.");
+                });
+            } else {
+                music.pause();
+                isMusicPlaying = false;
+                musicBtn.innerText = "🔈 Music: Off";
+                musicBtn.classList.replace('bg-emerald-600', 'bg-slate-700');
             }
         }
 
@@ -243,7 +298,7 @@
                 clearInterval(timerInterval);
                 alert("OUT OF COINS! Game over. Resetting progress completely back to Genesis Level 1.");
                 localStorage.removeItem('bibleQuestData');
-                location.reload(); // Hard runtime refresh
+                location.reload(); 
             } else {
                 save();
                 setTimeout(initLevel, 800);
@@ -257,7 +312,6 @@
             initLevel();
         }
 
-        // Dom Thread Mounting Hook
         window.onload = initLevel;
     </script>
 </body>
