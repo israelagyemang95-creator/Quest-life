@@ -115,8 +115,6 @@
             gameData.lang = gameData.lang === 'en' ? 'tw' : 'en';
             document.getElementById('lang-label').innerText = gameData.lang === 'en' ? 'English' : 'Twi';
             save();
-            
-            // Re-render UI text elements instantly without resetting the ongoing timer engine
             renderCurrentQuestionText();
         }
 
@@ -147,22 +145,20 @@
             isProcessing = true;
             playSfx(soundWrong);
             
-            // Lose 20 coins
+            // Apply the 20-coin penalty
             gameData.gold = Math.max(0, gameData.gold - 20);
-            gameData.currentQuestionIndex++;
-
-            // Check if level needs to switch ONLY when current question index crosses total count
-            if (gameData.currentQuestionIndex >= activeQuestions.length) {
-                gameData.lvl++;
-                gameData.currentQuestionIndex = 0;
-                activeQuestions = [];
-                save();
-                showLevelUp();
-            } else {
-                save();
-                timeLeft = 10; // Reset time back to 10 for the new question
-                setTimeout(renderUI, 500);
-            }
+            save();
+            
+            // Flash layout red quickly to indicate time penalty, then restart the same question
+            const container = document.getElementById('quiz-container');
+            container.classList.add('brightness-50', 'bg-red-900/20');
+            
+            setTimeout(() => {
+                container.classList.remove('brightness-50', 'bg-red-900/20');
+                isProcessing = false;
+                timeLeft = 10; // Reset countdown back to 10
+                renderUI();    // Re-renders the same question frame
+            }, 800);
         }
 
         function renderUI() {
@@ -182,6 +178,7 @@
                 return;
             }
 
+            // Shuffle array structure only once per new tier initialization
             if (activeQuestions.length === 0) {
                 activeQuestions = [...level.questions].sort(() => Math.random() - 0.5);
             }
@@ -231,7 +228,7 @@
                 btn.style.background = "#dcfce7";
                 btn.style.borderColor = "#22c55e";
                 gameData.gold += 20;
-                gameData.currentQuestionIndex++;
+                gameData.currentQuestionIndex++; // Move index forward ONLY on a correct answer
                 
                 if (gameData.currentQuestionIndex >= activeQuestions.length) {
                     gameData.lvl++;
@@ -249,19 +246,14 @@
                 btn.style.background = "#fee2e2";
                 btn.style.borderColor = "#ef4444";
                 gameData.gold = Math.max(0, gameData.gold - 10);
-                gameData.currentQuestionIndex++; // Move forward into next question even if wrong
-
-                if (gameData.currentQuestionIndex >= activeQuestions.length) {
-                    gameData.lvl++;
-                    gameData.currentQuestionIndex = 0;
-                    activeQuestions = [];
-                    save();
-                    setTimeout(showLevelUp, 600);
-                } else {
-                    save();
+                save();
+                
+                // Do not increment the index! Let them stay on this question and restart the countdown
+                setTimeout(() => {
+                    isProcessing = false;
                     timeLeft = 10;
-                    setTimeout(renderUI, 800);
-                }
+                    renderUI();
+                }, 800);
             }
         }
 
