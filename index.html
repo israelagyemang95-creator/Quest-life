@@ -48,10 +48,10 @@
     <div id="level-up-splash">
         <div class="scale-up bg-gradient-to-b from-amber-400 via-orange-500 to-yellow-600 p-8 rounded-3xl text-center shadow-2xl max-w-sm w-11/12 border-4 border-white">
             <div class="text-7xl mb-2 drop-shadow-lg">👑 ✨ 👑</div>
-            <h1 class="text-5xl font-black text-white uppercase tracking-wider drop-shadow-md">Level Up!</h1>
-            <p class="text-white font-bold mt-2 text-lg">Glory Unlocked!</p>
+            <h1 class="text-4xl font-black text-white uppercase tracking-wider drop-shadow-md">Book Cleared!</h1>
+            <p class="text-white font-bold mt-2 text-lg">Scripture Mastery Growing!</p>
             <div class="mt-4 bg-white/20 py-2 px-4 rounded-full text-white inline-block font-black text-sm uppercase tracking-widest" id="next-world-txt">
-                Advancing Quest...
+                Advancing to Next Book...
             </div>
         </div>
     </div>
@@ -69,7 +69,7 @@
         <div class="quiz-card p-6 shadow-2xl">
             <h1 id="world-title" class="text-xs font-black uppercase tracking-widest mb-3 text-indigo-600 text-center">LOADING BLITZ...</h1>
             <div class="flex justify-between items-center mb-4">
-                <div id="lvl-badge" class="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-black shadow-md">1</div>
+                <div id="lvl-badge" class="px-3 py-1 rounded-full bg-indigo-600 text-white flex items-center justify-center font-black text-xs shadow-md uppercase tracking-wider">Book 1</div>
                 <div class="flex flex-col items-center">
                     <span id="timer-clock" class="text-3xl font-black text-slate-700">10</span>
                 </div>
@@ -80,6 +80,7 @@
             <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
                 <div id="xp-bar" class="h-full bg-green-500 transition-all duration-500" style="width: 0%"></div>
             </div>
+            <div class="text-center text-[10px] text-slate-400 mt-2 font-bold tracking-wider" id="q-counter-txt">Progress: 0 / 20</div>
         </div>
 
         <!-- CONTAINER WHERE QUESTIONS REDIRECT -->
@@ -87,46 +88,72 @@
         
         <!-- SKIP BUTTON -->
         <button id="skip-btn" onclick="skipLevel()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl shadow-lg transition-all active:scale-95 border-b-4 border-amber-700 flex justify-center items-center gap-2">
-            Skip Level (Cost: 💰100) ⏭️
+            Skip Current Book (Cost: 💰100) ⏭️
         </button>
 
         <button onclick="triggerReset()" class="w-full text-center text-xs text-white/30 mt-10 uppercase tracking-widest block bg-slate-900/40 py-2 rounded-xl border border-white/5 tracking-wider">Tap Here to Hard Reset Data</button>
     </div>
 
     <script>
-        // MASTER BIBLE QUIZ DATABASE (15 Levels Template Placeholder Layout)
-        const quizDatabase = [];
-        const baseThemes = [
-            { name: "Genesis: The Early Earth", img: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1000" },
-            { name: "The Patriarchs", img: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000" },
-            { name: "Exodus & Deliverance", img: "https://images.unsplash.com/photo-1518495973542-4542c06a5843?q=80&w=1000" },
-            { name: "The Wilderness", img: "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=80&w=1000" },
-            { name: "Judges & Ruth", img: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1000" },
-            { name: "Kingdom of David", img: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=1000" },
-            { name: "Proverbs & Wisdom", img: "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?q=80&w=1000" },
-            { name: "The Major Prophets", img: "https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=1000" },
-            { name: "The Gospels: Life of Jesus", img: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=1000" },
-            { name: "Miracles of Christ", img: "https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?q=80&w=1000" },
-            { name: "Parables of Grace", img: "https://images.unsplash.com/photo-1433832597046-4f10e10ac764?q=80&w=1000" },
-            { name: "Acts of the Apostles", img: "https://images.unsplash.com/photo-1500627869374-13cd993b1115?q=80&w=1000" },
-            { name: "Epistles & Letters", img: "https://images.unsplash.com/photo-1425913397330-cf8af2ff40a1?q=80&w=1000" },
-            { name: "Armor of God", img: "https://images.unsplash.com/photo-1418065460487-3e41a6c84dc5?q=80&w=1000" },
-            { name: "Revelation: The Ultimate Victory", img: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000" }
-        ];
-
-        // Seed 15 Levels dynamically
-        for(let i=1; i<=15; i++) {
-            let theme = baseThemes[i-1];
-            quizDatabase.push({
-                level: i,
-                name: theme.name,
-                bgImage: theme.img,
+        // BIBLE BOOKS DATA SYSTEM (20 Moderate/Difficult questions structured per book)
+        const quizDatabase = [
+            {
+                level: 1,
+                name: "Genesis (Moderate)",
+                bgImage: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1000",
+                timerDuration: 10,
                 questions: [
-                    { q: `Level ${i}: Is the Bible divided into Old and New Testaments?`, q_twi: `Level ${i}: Wɔakyɛ Bible mu Ayɛ no Apam Dedaw ne Apam Foforo?`, a: ["Yes", "No", "Maybe", "Never"], a_twi: ["Aane", "Dabi", "Ebia", "Da"], correct: 0 },
-                    { q: `Level ${i}: Did God declare everything He created "Good"?`, q_twi: `Level ${i}: Onyankopɔn kaa sɛ ade biara a ɔbɔɔ yɛ "Pa"?`, a: ["No", "Yes", "Some", "None"], a_twi: ["Dabi", "Aane", "Ebi", "Hwee"], correct: 1 }
+                    { q: "Who was the first man?", q_twi: "Hwan ne onipa a odi kan?", a: ["Noah", "Adam", "Seth", "Abel"], a_twi: ["Noa", "Adam", "Set", "Abel"], correct: 1 },
+                    { q: "What was the first thing God created?", q_twi: "Dɛn ne adeɛ a Onyankopɔn bɔɔ no mfiaseɛ?", a: ["Animals", "Light", "Humans", "Trees"], a_twi: ["Mmoa", "Hann", "Nnipa", "Nnua"], correct: 1 },
+                    { q: "Who built the Ark?", q_twi: "Hwan na ɔyɛɛ Adaka no?", a: ["Moses", "Abraham", "Noah", "David"], a_twi: ["Mose", "Abraham", "Noa", "Dawid"], correct: 2 },
+                    { q: "Who was Adam's wife?", q_twi: "Hwan ne Adam yere?", a: ["Sarah", "Eve", "Ruth", "Esther"], a_twi: ["Sara", "Hawa", "Rut", "Ester"], correct: 1 },
+                    { q: "Which brother killed Abel?", q_twi: "Onua bɛn na okum Abel?", a: ["Seth", "Cain", "Jacob", "Esau"], a_twi: ["Set", "Kain", "Yakobo", "Esau"], correct: 1 },
+                    { q: "How many days did God take to create the world?", q_twi: "Nna dodoɔ sɛn na Onyankopɔn de bɔɔ wiase?", a: ["6", "7", "10", "40"], a_twi: ["6", "7", "10", "40"], correct: 0 },
+                    { q: "What did God do on the 7th day?", q_twi: "Dɛn na Onyankopɔn yɛɛ no da a ɛtɔ so nson?", a: ["Created Sun", "He rested", "Created Rain", "He sang"], a_twi: ["Ɔbɔɔ awia", "Ɔhomee", "Ɔtɔɔ nsuo", "Ɔtoo dwom"], correct: 1 },
+                    { q: "What fruit did Eve eat?", q_twi: "Aba bɛn na Hawa die?", a: ["Banana", "Forbidden Fruit", "Grape", "Orange"], a_twi: ["Kwadu", "Aba a wɔabra", "Bobe", "Akutu"], correct: 1 },
+                    { q: "Who was the oldest man in the Bible?", q_twi: "Hwan ne onipa a ɔkyɛɛ paa wɔ Bible mu?", a: ["Enoch", "Methuselah", "Noah", "Adam"], a_twi: ["Enok", "Metusela", "Noa", "Adam"], correct: 1 },
+                    { q: "What was the sign of God's promise to Noah?", q_twi: "Dɛn ne Onyankopɔn bɔhyɛ sɛnkyerɛnne kyerɛɛ Noa?", a: ["Fire", "A Rainbow", "A Star", "A Dove"], a_twi: ["Ogya", "Nyankontɔn", "Nsoroma", "Aburuburo"], correct: 1 },
+                    { q: "Who is known as the Father of many nations?", q_twi: "Hwan na wɔfrɛ no aman dodoɔ agya?", a: ["Isaac", "Jacob", "Abraham", "Lot"], a_twi: ["Isak", "Yakobo", "Abraham", "Lot"], correct: 2 },
+                    { q: "Who was Abraham's wife?", q_twi: "Hwan ne Abraham yere?", a: ["Hagar", "Sarah", "Rebekah", "Leah"], a_twi: ["Hagar", "Sara", "Rebeka", "Lea"], correct: 1 },
+                    { q: "Who was Abraham's son of promise?", q_twi: "Hwan ne Abraham bɔhyɛ ba no?", a: ["Ishmael", "Isaac", "Esau", "Joseph"], a_twi: ["Ismael", "Isak", "Esau", "Yosef"], correct: 1 },
+                    { q: "What did Jacob dream about reaching to heaven?", q_twi: "Dɛn na Yakobo soo daeɛ sɛ ɛkɔ soro?", a: ["A Bridge", "A Ladder", "A Mountain", "A Tree"], a_twi: ["Kodoɔ", "Atwerɛ", "Bepo", "Dua"], correct: 1 },
+                    { q: "Who was Jacob's twin brother?", q_twi: "Hwan ne Yakobo nta nua?", a: ["Joseph", "Esau", "Levi", "Benjamin"], a_twi: ["Yosef", "Esau", "Levi", "Benyamin"], correct: 1 },
+                    { q: "How many sons did Jacob have?", q_twi: "Mma mmarima dodoɔ sɛn na Yakobo woo wɔn?", a: ["10", "12", "7", "3"], a_twi: ["10", "12", "7", "3"], correct: 1 },
+                    { q: "Which son of Jacob was sold into slavery?", q_twi: "Yakobo ba bɛn na wɔtɔnn no nkoasuo mu?", a: ["Reuben", "Judah", "Joseph", "Dan"], a_twi: ["Ruben", "Yuda", "Yosef", "Dan"], correct: 2 },
+                    { q: "What special gift did Jacob give Joseph?", q_twi: "Akyɛdeɛ titiri bɛn na Yakobo de maa Yosef?", a: ["A Sword", "A Coat of many colors", "Gold", "A Horse"], a_twi: ["Afena", "Atadeɛ amamuo", "Sika", "Ponko"], correct: 1 },
+                    { q: "Who interpreted Pharaoh's dreams?", q_twi: "Hwan na ɔkyerɛɛ Farao daeɛ ase?", a: ["Moses", "Joseph", "Daniel", "Aaron"], a_twi: ["Mose", "Yosef", "Daniel", "Aaron"], correct: 1 },
+                    { q: "Where did the Israelites live in Egypt?", q_twi: "Ɛhe na Israelfoɔ no tɛnee wɔ Misraim?", a: ["Cairo", "Goshen", "Sinai", "Alexandria"], a_twi: ["Cairo", "Gosen", "Sinai", "Alexandria"], correct: 1 }
                 ]
-            });
-        }
+            },
+            {
+                level: 2,
+                name: "Revelation (Very Difficult)",
+                bgImage: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000",
+                timerDuration: 5, // Dropped to 5 seconds for high levels
+                questions: [
+                    { q: "To how many churches did John write his apocalyptic letters?", q_twi: "Nkyerɛwee a ɛfa awieiɛ ho no, Yohane kyerɛw kɔmaa asafo dodoɔ sɛn?", a: ["3", "7", "12", "24"], a_twi: ["3", "7", "12", "24"], correct: 1 },
+                    { q: "What island was John on when he received the Revelation?", q_twi: "Supɔ bɛn na na Yohane wɔ so bere a onyaa Nyanikyerɛ no?", a: ["Malta", "Cyprus", "Patmos", "Crete"], a_twi: ["Malta", "Cyprus", "Patmos", "Crete"], correct: 2 },
+                    { q: "What color horse represents Death in the Four Horsemen?", q_twi: "Apɔnkɔ baanan no mu no, ponko kɔla bɛn na ogyina hɔ ma Owu?", a: ["White", "Red", "Black", "Pale/Greenish-Gray"], a_twi: ["Fitaa", "Kɔkɔɔ", "Tuntum", "Nsonso/Afasebiri"], correct: 3 },
+                    { q: "How many elders sit around the throne of God?", q_twi: "Mpanimfoɔ dodoɔ sɛn na wɔte Onyankopɔn ahengua no ho?", a: ["12", "24", "70", "144"], a_twi: ["12", "24", "70", "144"], correct: 1 },
+                    { q: "Who is worthy to open the scroll sealed with seven seals?", q_twi: "Hwan na ɔfata sɛ obue nhoma a wɔde nkyerɛwee nson asɔ ano no?", a: ["The Lion of Judah", "Michael", "Gabriel", "John"], a_twi: ["Yuda mu Gyata", "Michael", "Gabriel", "Yohane"], correct: 0 },
+                    { q: "What falls from heaven when the third angel blows his trumpet?", q_twi: "Dɛn na ɛfi soro tɔ bere a ɔbɔfoɔ a ɔtɔ so mmeansa hyɛn ne totorobento no?", a: ["Hail", "Fire", "Wormwood Star", "Locusts"], a_twi: ["Asukɔtwea", "Ogya", "Nsoroma Nnwerɛba", "Mfondum"], correct: 2 },
+                    { q: "What is the numeric mark of the Beast?", q_twi: "Abowa no nnyinasoɔ nɔma ne sɛn?", a: ["777", "666", "999", "144"], a_twi: ["777", "666", "999", "144"], correct: 1 },
+                    { q: "How many thousands from each tribe of Israel are sealed?", q_twi: "Israel mmusuakuo biara mu no, nnipa mpem dodoɔ sɛn na wɔsɔɔ wɔn ano?", a: ["10", "12", "144", "7"], a_twi: ["10", "12", "144", "7"], correct: 1 },
+                    { q: "What structure does not exist in the New Jerusalem?", q_twi: "Adan titiri bɛn na onni Yerusalem Foforo no mu?", a: ["A Wall", "A Gate", "A Temple", "A Street"], a_twi: ["Afasuo", "Aboboano", "Asɔrefie", "Abɔnten"], correct: 2 },
+                    { q: "Who bound the dragon for a thousand years?", q_twi: "Hwan na ɔkyekyeree ɔtweaseɛmpon no mfeɛ mpem baako?", a: ["An Angel", "Jesus", "Moses", "Michael"], a_twi: ["Ɔbɔfoɔ bi", "Yesu", "Mose", "Michael"], correct: 0 },
+                    { q: "What is the final place of punishment for the devil called?", q_twi: "Asotweɔ baabi a ɛdi akyiri ma ɔbɔonsam no deɛn na wɔfrɛ hɔ?", a: ["Hades", "The Lake of Fire", "The Pit", "Tartarus"], a_twi: ["Asaman", "Ogya Tanoɔ", "Amena Tuntum", "Tartarus"], correct: 1 },
+                    { q: "Which archangel fought against the dragon in heaven?", q_twi: "Ɔbɔfoɔ panin bɛn na ɔne ɔtweaseɛmpon no koom wɔ soro?", a: ["Gabriel", "Uriel", "Michael", "Raphael"], a_twi: ["Gabriel", "Uriel", "Michael", "Raphael"], correct: 2 },
+                    { q: "How many foundations does the wall of New Jerusalem have?", q_twi: "Yerusalem Foforo afasuo no wɔ nnyinasoɔ dodoɔ sɛn?", a: ["7", "12", "24", "4"], a_twi: ["7", "12", "24", "4"], correct: 1 },
+                    { q: "Out of whose mouth comes a sharp sword to smite nations?", q_twi: "Hwan anofafa mu na afena a ano yɛ nnam fi ba sɛ ɔde bɛbɔ amanaman?", a: ["The Word of God", "The Beast", "The False Prophet", "John"], a_twi: ["Onyankopɔn Asɛm", "Abowa no", "Atoro Profeto", "Yohane"], correct: 0 },
+                    { q: "What are the foundations of the New Jerusalem wall adorned with?", q_twi: "Dɛn na wɔde asiesie Yerusalem Foforo afasuo nnyinasoɔ no?", a: ["Gold", "Precious Stones", "Pearls", "Silver"], a_twi: ["Sika Kɔkɔɔ", "Aboɔ a ɛsom bo", "Nwoba Aba", "Dwɛtɛ"], correct: 1 },
+                    { q: "What are the twelve gates of New Jerusalem made of?", q_twi: "Yerusalem Foforo pon panyin dumien no, dɛn na wɔde yɛɛ?", a: ["Diamond", "Gold", "Single Pearls", "Jasper"], a_twi: ["Diamant", "Sika", "Nwoba Aba koro", "Yispi"], correct: 2 },
+                    { q: "What river flows from the throne of God?", q_twi: "Asuogya bɛn na ɛfi Onyankopɔn ahengua no mu ba?", a: ["Jordan", "Euphrates", "River of Life", "Gihon"], a_twi: ["Yordan", "Eufrate", "Nkwa Nsuo", "Gihon"], correct: 2 },
+                    { q: "How many fruits does the Tree of Life yield each year?", q_twi: "Nkwa Dua no sow aba ahorow dodoɔ sɛn afe biara?", a: ["1", "4", "7", "12"], a_twi: ["1", "4", "7", "12"], correct: 3 },
+                    { q: "What is the city or bride of the Lamb explicitly named?", q_twi: "Oguammaa no yere anaa kuropɔn no, dɛn yɛ ne din pa ara?", a: ["Zion", "Babylon", "The New Jerusalem", "Eden"], a_twi: ["Sion", "Babilon", "Yerusalem Foforo", "Eden"], correct: 2 },
+                    { q: "What book is anyone cursed for adding or removing words from?", q_twi: "Nhoma bɛn na sɛ obi de nsɛm bɛka ho anaa eyi mu a, nnome ba ne so?", a: ["Genesis", "Psalms", "This Book of Prophecy", "Daniel"], a_twi: ["Genesis", "Dwom", "Nkɔmhyɛ Nhoma yi", "Daniel"], correct: 2 }
+                ]
+            }
+        ];
 
         let gameData = JSON.parse(localStorage.getItem('bibleQuizRPGData')) || {
             lvl: 1, gold: 100, currentQuestionIndex: 0, lang: 'en', music: false
@@ -173,7 +200,6 @@
                 particle.style.left = startX + 'px';
                 particle.style.top = startY + 'px';
                 particle.style.setProperty('--x', `${x}px`);
-                particle.style.setProperty('----y', `${y}px`); // Fallback
                 particle.style.setProperty('--y', `${y}px`);
                 particle.style.setProperty('--r', `${Math.random() * 360}deg`);
                 
@@ -184,24 +210,27 @@
 
         function renderUI() {
             isProcessing = false;
-            let levelData = quizDatabase.find(l => l.level === gameData.lvl) || quizDatabase[quizDatabase.length - 1];
+            let currentBookData = quizDatabase.find(l => l.level === gameData.lvl) || quizDatabase[quizDatabase.length - 1];
             
             if (activePool.length === 0) {
-                activePool = [...levelData.questions].sort(() => Math.random() - 0.5);
+                // Shuffle current book's set of 20 questions
+                activePool = [...currentBookData.questions].sort(() => Math.random() - 0.5);
                 gameData.currentQuestionIndex = 0;
             }
 
-            document.getElementById('bg-overlay').style.backgroundImage = `url('${levelData.bgImage}')`;
-            document.getElementById('world-title').innerText = levelData.name;
-            document.getElementById('lvl-badge').innerText = gameData.lvl;
+            document.getElementById('bg-overlay').style.backgroundImage = `url('${currentBookData.bgImage}')`;
+            document.getElementById('world-title').innerText = currentBookData.name;
+            document.getElementById('lvl-badge').innerText = `Book ${gameData.lvl}`;
             document.getElementById('gold-val').innerText = gameData.gold;
             document.getElementById('lang-label').innerText = (gameData.lang === 'en') ? "English" : "Twi";
             
-            const progress = (gameData.currentQuestionIndex / activePool.length) * 100;
+            // Progress Calculation for 20 questions
+            const progress = (gameData.currentQuestionIndex / 20) * 100;
             document.getElementById('xp-bar').style.width = progress + "%";
+            document.getElementById('q-counter-txt').innerText = `Progress: ${gameData.currentQuestionIndex} / 20`;
 
             renderQuestion();
-            startTimer();
+            startTimer(currentBookData.timerDuration);
         }
 
         function renderQuestion() {
@@ -227,9 +256,9 @@
             });
         }
 
-        function startTimer() {
+        function startTimer(duration) {
             clearInterval(timerInterval);
-            timeLeft = 10;
+            timeLeft = duration;
             const clock = document.getElementById('timer-clock');
             clock.classList.remove('timer-danger');
             clock.innerText = timeLeft;
@@ -237,7 +266,7 @@
             timerInterval = setInterval(() => {
                 timeLeft--;
                 clock.innerText = timeLeft;
-                if (timeLeft <= 3) clock.classList.add('timer-danger');
+                if (timeLeft <= 2) clock.classList.add('timer-danger');
                 if (timeLeft <= 0) handleTimeout();
             }, 1000);
         }
@@ -263,11 +292,11 @@
                 gameData.gold += 20;
                 gameData.currentQuestionIndex++;
 
-                if (gameData.currentQuestionIndex >= activePool.length) {
+                if (gameData.currentQuestionIndex >= 20) {
                     if (gameData.lvl < quizDatabase.length) {
                         gameData.lvl++;
                     } else {
-                        alert("Incredible! You have finished all 15 stages!");
+                        alert("Incredible! You have mastered all available Books of the Bible!");
                     }
                     gameData.currentQuestionIndex = 0;
                     activePool = [];
@@ -296,7 +325,7 @@
                 if (gameData.lvl < quizDatabase.length) {
                     gameData.lvl++;
                 } else {
-                    alert("You are at maximum level!");
+                    alert("You are reading the final book!");
                     return;
                 }
                 gameData.currentQuestionIndex = 0;
@@ -304,7 +333,7 @@
                 save();
                 showLevelUp();
             } else {
-                alert("You need 100 coins to bypass this level!");
+                alert("You need 100 coins to bypass this Book!");
             }
         }
 
@@ -312,7 +341,7 @@
             const splash = document.getElementById('level-up-splash');
             let nextLevelData = quizDatabase.find(l => l.level === gameData.lvl);
             
-            document.getElementById('next-world-txt').innerText = nextLevelData ? `Entering: ${nextLevelData.name}` : "Quest Complete!";
+            document.getElementById('next-world-txt').innerText = nextLevelData ? `Entering: ${nextLevelData.name}` : "Mastery Attained!";
             splash.classList.add('active');
             
             setTimeout(() => {
@@ -329,7 +358,7 @@
             const btn = document.getElementById('music-btn');
             gameData.music = !gameData.music;
             if (gameData.music) {
-                music.play().catch(e => console.log("Audio waiting for input"));
+                music.play().catch(e => console.log("Audio awaiting input"));
                 btn.innerText = "🔊";
             } else {
                 music.pause();
