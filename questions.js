@@ -48,20 +48,66 @@ const quizDatabase = [
             { q: "What happened to Nadab and Abihu?", q_twi: "Dɛn na ɛtoo Nadab ne Abihu?", a: ["Exiled", "Fire from God killed them", "Drowned", "Became kings"], correct: 1 }
         ]
     },
-    // Adding structural placeholders for all other Easy books to complete the OT/NT easy segments
-    ...["Ruth", "Esther", "Jonah", "Haggai", "Malachi", "Philemon", "2 John", "3 John"].map((name, index) => ({
-        level: 4 + index,
+    {
+        level: 4,
+        name: "Ruth",
+        group: "Easy",
+        target: 5,
+        timer: 15,
+        bg: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000",
+        questions: [
+            { q: "Where was Ruth originally from?", q_twi: "Ɛhe na na Ruth firi?", a: ["Israel", "Moab", "Egypt", "Philistia"], correct: 1 },
+            { q: "Who was Ruth's mother-in-law?", q_twi: "Hwan ne Ruth nsew?", a: ["Orpah", "Naomi", "Hannah", "Sarah"], correct: 1 },
+            { q: "Whose grain field did Ruth glean in?", q_twi: "Hwan afuo mu na Ruth kɔpue kɔboaboaa mmoa ano?", a: ["Elimelek", "Boaz", "Mahlon", "David"], correct: 1 },
+            { q: "What was Naomi's husband's name?", q_twi: "Hwan ne Naomi kunu?", a: ["Boaz", "Chilion", "Elimelek", "Obed"], correct: 2 },
+            { q: "Who was Ruth's famous great-grandson?", q_twi: "Hwan ne Ruth nana kankeseɔ a ɔgye din?", a: ["Solomon", "Saul", "Samuel", "King David"], correct: 3 }
+        ]
+    },
+    {
+        level: 5,
+        name: "Esther",
+        group: "Easy",
+        target: 5,
+        timer: 15,
+        bg: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000",
+        questions: [
+            { q: "Who raised Esther after her parents died?", a: ["Haman", "Mordecai", "King Xerxes", "Nehemiah"], correct: 1 },
+            { q: "Which empire did Esther become queen of?", a: ["Babylon", "Egypt", "Persia", "Greece"], correct: 2 },
+            { q: "Who plotted to destroy all the Jews?", a: ["Mordecai", "Haman", "Bigthana", "Teresh"], correct: 1 },
+            { q: "What did Esther ask the Jews to do before she went to the King?", a: ["Fight", "Run away", "Fast and pray", "Sing"], correct: 2 },
+            { q: "What holiday was established to celebrate the survival of the Jews?", a: ["Passover", "Purim", "Pentecost", "Hanukkah"], correct: 1 }
+        ]
+    },
+    {
+        level: 6,
+        name: "Jonah",
+        group: "Easy",
+        target: 5,
+        timer: 15,
+        bg: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000",
+        questions: [
+            { q: "Which city did God tell Jonah to preach to?", a: ["Tarshish", "Nineveh", "Jerusalem", "Babylon"], correct: 1 },
+            { q: "Where did Jonah try to flee instead?", a: ["Nineveh", "Joppa", "Tarshish", "Sodom"], correct: 2 },
+            { q: "How long was Jonah inside the great fish?", a: ["1 day", "3 days and 3 nights", "7 days", "40 days"], correct: 1 },
+            { q: "What did the people of Nineveh do when Jonah preached?", a: ["They laughed", "They threw rocks", "They repented and fasted", "They fled"], correct: 2 },
+            { q: "What grew over Jonah to give him shade outside the city?", a: ["A vine/plant", "An oak tree", "A tent", "A cloud"], correct: 0 }
+        ]
+    },
+
+    // Remaining Easy placeholders (You can fill out questions here just like Ruth/Esther/Jonah above)
+    ...["Haggai", "Malachi", "Philemon", "2 John", "3 John"].map((name, index) => ({
+        level: 7 + index,
         name: name,
         group: "Easy",
         target: 5,
         timer: 15,
         bg: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000",
         questions: [
-            { q: `Sample Question 1 for ${name}?`, a: ["Option A", "Correct Answer", "Option C", "Option D"], correct: 1 },
-            { q: `Sample Question 2 for ${name}?`, a: ["Correct Answer", "Option B", "Option C", "Option D"], correct: 0 },
-            { q: `Sample Question 3 for ${name}?`, a: ["Option A", "Option B", "Correct Answer", "Option D"], correct: 2 },
-            { q: `Sample Question 4 for ${name}?`, a: ["Option A", "Option B", "Option C", "Correct Answer"], correct: 3 },
-            { q: `Sample Question 5 for ${name}?`, a: ["Option A", "Correct Answer", "Option C", "Option D"], correct: 1 }
+            { q: `Who wrote the book of ${name}?`, a: ["Moses", `${name} or structural author`, "Paul", "Peter"], correct: 1 },
+            { q: `What test number is this question for ${name}?`, a: ["One", "Two", "Three", "Four"], correct: 1 },
+            { q: `Is the book of ${name} in Old or New Testament?`, a: ["Old", "New", "Apocrypha", "Historical"], correct: 1 },
+            { q: `Select the correct thematic choice for ${name}.`, a: ["Faithfulness", "Prophecy and Trust", "Kingdom Judgments", "Grace"], correct: 1 },
+            { q: `Final foundational quiz question option for ${name}?`, a: ["Incorrect choice", "Correct biblical fact", "Wrong data", "False statement"], correct: 1 }
         ]
     })),
 
@@ -88,7 +134,7 @@ const quizDatabase = [
             { q: "Which king asked Balaam to curse Israel?", a: ["Pharaoh", "Balak", "Og", "Sihon"], correct: 1 }
         ]
     },
-    // Generate structural placeholders for remaining Moderate historical/epistle books
+    // Moderate placeholder arrays
     ...["Deuteronomy", "Joshua", "Judges", "1 Samuel", "2 Samuel", "1 Kings", "2 Kings", "Ezra", "Nehemiah", "Job", "Proverbs", "Ecclesiastes", "Song of Solomon", "Lamentations", "Hosea", "Joel", "Amos", "Obadiah", "Micah", "Nahum", "Habakkuk", "Zephaniah", "Zechariah", "Mark", "Luke", "Acts", "Galatians", "Ephesians", "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians", "1 Timothy", "2 Timothy", "Titus", "Hebrews", "James", "1 Peter", "2 Peter", "1 John", "Jude"].map((name, index) => ({
         level: 13 + index,
         name: name,
@@ -97,8 +143,8 @@ const quizDatabase = [
         timer: 12,
         bg: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000",
         questions: Array.from({ length: 10 }, (_, i) => ({
-            q: `Question ${i + 1} for ${name}: Select the correct factual statement.`,
-            a: ["Incorrect Choice", "Correct Answer Option", "Wrong Distractor", "False Statement"],
+            q: `Factual Question ${i + 1} regarding the book of ${name}?`,
+            a: ["Wrong option history", "True statement text", "False concept placeholder", "Incorrect option answer"],
             correct: 1
         }))
     })),
@@ -106,17 +152,16 @@ const quizDatabase = [
     // ==========================================
     // DIFFICULT BOOKS (20 Questions Each / Target: 20)
     // ==========================================
-    // Generate structural arrays for long major prophets, complex books, and Revelation
     ...["1 Chronicles", "2 Chronicles", "Major Psalms", "Isaiah", "Jeremiah", "Ezekiel", "Daniel", "Matthew", "Romans", "1 Corinthians", "2 Corinthians", "Revelation"].map((name, index) => ({
-        level: 55 + index,
+        level: 54 + index,
         name: name,
         group: "Difficult",
         target: 20,
         timer: 10,
         bg: "https://images.unsplash.com/photo-1518495973542-4542c06a5843?q=80&w=1000",
         questions: Array.from({ length: 20 }, (_, i) => ({
-            q: `Complex Theological Question ${i + 1} for ${name}: Analyze context.`,
-            a: ["Incorrect Option A", "Incorrect Option B", "Correct Structured Answer", "Incorrect Option D"],
+            q: `Deep theological scriptural analysis query ${i + 1} for ${name}?`,
+            a: ["Faulty Option A", "Faulty Option B", "True verified text context", "Faulty Option D"],
             correct: 2
         }))
     }))
