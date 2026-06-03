@@ -1,86 +1,287 @@
-// 1. Define the correct structural order of the Books
-const BOOK_ORDER = [
-    "Genesis",
-    "Exodus",
-    "Leviticus",
-    "Numbers",
-    "Deuteronomy",
-    "Joshua",
-    "Judges",
-    "Ruth",
-    // ... add subsequent books here in order
-];
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bible Quest: Genesis to Revelation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        #bg-overlay { position: fixed; inset: 0; background-color: #0f172a; background-size: cover; background-position: center; transition: background-image 1s ease-in-out; z-index: 0; }
+        #bg-tint { position: fixed; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.5), rgba(0,0,0,0.8)); z-index: 1; }
+        body { min-height: 100vh; background: #0f172a; color: white; font-family: sans-serif; overflow-x: hidden; }
+        .quiz-card { background: rgba(255, 255, 255, 0.95); border-radius: 20px; color: #1e293b; position: relative; z-index: 10; }
+        .btn-opt { width: 100%; text-align: left; padding: 1rem; border-radius: 12px; border: 1px solid #e2e8f0; background: white; font-weight: bold; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .btn-opt:hover { background: #f8fafc; border-color: #cbd5e1; }
+        .timer-danger { color: #ef4444 !important; animation: vibrate 0.2s linear infinite; }
+        @keyframes vibrate { 0%, 100% { transform: translate(0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(-2px, -2px); } 60% { transform: translate(2px, 2px); } 80% { transform: translate(2px, -2px); } }
+        
+        #level-up-splash { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: all 0.5s ease-in-out; }
+        #level-up-splash.active { opacity: 1; pointer-events: auto; }
+        .scale-up { transform: scale(0.7); transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        #level-up-splash.active .scale-up { transform: scale(1); }
+    </style>
+</head>
+<body class="p-4 flex flex-col items-center">
+    <div id="bg-overlay"></div>
+    <div id="bg-tint"></div>
 
-// 2. Initialize or fetch the game state
-let gameState = {
-    currentBookIndex: 0, // Starts at Genesis (index 0)
-    currentLevel: 1,     // Starts at Level 1
-    coins: 10            // Starting coins
-};
+    <div id="level-up-splash">
+        <div class="scale-up bg-gradient-to-b from-amber-400 via-orange-500 to-yellow-600 p-8 rounded-3xl text-center shadow-2xl max-w-sm w-11/12 border-4 border-white">
+            <h1 class="text-4xl font-black text-white uppercase drop-shadow-md">Book Cleared!</h1>
+            <div class="mt-4 bg-white/20 py-2 px-4 rounded-full text-white inline-block font-black text-sm uppercase" id="next-world-txt">Next Book...</div>
+        </div>
+    </div>
 
-/**
- * Handles the logic when a player loses coins (e.g., wrong answer, level skip)
- * @param {number} amount - The number of coins to deduct
- */
-function deductCoins(amount) {
-    gameState.coins -= amount;
-    
-    // Ensure coins don't drop below 0 natively before checking the condition
-    if (gameState.coins <= 0) {
-        gameState.coins = 0;
-        handleGameOverReset();
-    } else {
-        updateUI();
-    }
-}
+    <div class="fixed top-4 left-4 right-4 flex justify-between z-50">
+        <button onclick="toggleLanguage()" class="bg-indigo-600 text-white px-4 py-2 rounded-full font-bold shadow-lg text-sm">
+            🌐 <span id="lang-label">English</span>
+        </button>
+        <div class="bg-slate-900/80 backdrop-blur px-4 py-2 rounded-full border border-white/10 shadow-lg">
+            <p class="text-xl font-black text-amber-400">💰 <span id="gold-val">100</span></p>
+        </div>
+    </div>
 
-/**
- * Resets the game completely back to Genesis when coins reach 0
- */
-function handleGameOverReset() {
-    alert("Game Over! You ran out of coins. Returning to Genesis.");
-    
-    gameState.currentBookIndex = 0; // Explicitly forces it back to Genesis
-    gameState.currentLevel = 1;     // Resets back to the first level
-    gameState.coins = 10;           // Reset to default starting coins
-    
-    loadLevel();
-}
+    <div id="game-content" class="w-full max-w-md space-y-6 mt-16 relative z-10">
+        <div class="quiz-card p-6 shadow-2xl">
+            <h1 id="world-title" class="text-xs font-black uppercase tracking-widest mb-3 text-indigo-600 text-center">LOADING...</h1>
+            <div class="flex justify-between items-center mb-4">
+                <div id="lvl-badge" class="px-3 py-1 rounded-full bg-indigo-600 text-white font-black text-xs uppercase">Book 1</div>
+                <span id="timer-clock" class="text-3xl font-black text-slate-700">10</span>
+            </div>
+            <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                <div id="xp-bar" class="h-full bg-green-500 transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <div class="text-center text-[10px] text-slate-400 mt-2 font-bold tracking-wider" id="q-counter-txt">Progress: 0 / 10</div>
+        </div>
 
-/**
- * Handles progression to the next level/book when an answer is correct
- */
-function advanceProgress() {
-    // If your app advances the Book after every single level:
-    gameState.currentBookIndex++;
-    gameState.currentLevel++;
+        <div id="quiz-container" class="space-y-4"></div>
+        
+        <button id="skip-btn" onclick="skipLevel()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl shadow-lg border-b-4 border-amber-700">
+            Skip Book (Cost: 💰50) ⏭️
+        </button>
+    </div>
 
-    // Safety check: If they surpass the last book in your array, loop or trigger win
-    if (gameState.currentBookIndex >= BOOK_ORDER.length) {
-        alert("Congratulations! You've completed the journey!");
-        gameState.currentBookIndex = 0; // Or handle a victory screen
-    }
+    <script>
+        // DATABASE STRUCTURE: Genesis -> Exodus -> Leviticus -> Numbers -> Deuteronomy -> Joshua ... Revelation
+        const quizDatabase = [
+            // --- EASY GROUP (10 Questions) ---
+            { level: 1, name: "Genesis", target: 10, timer: 12, bg: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1000", 
+              questions: [
+                { q: "Who was the first man?", q_twi: "Hwan ne onipa a odi kan?", a: ["Noah", "Adam", "Abel", "Cain"], correct: 1 },
+                { q: "Who built the Ark?", q_twi: "Hwan na ɔyɛɛ adaka no?", a: ["Moses", "Abraham", "Noah", "David"], correct: 2 },
+                { q: "Who was Adam's wife?", q_twi: "Hwan ne Adam yere?", a: ["Sarah", "Eve", "Ruth", "Esther"], correct: 1 },
+                { q: "How many days did God take to create the world?", q_twi: "Nna dodoɔ sɛn na Onyankopɔn de bɔɔ wiase?", a: ["6", "7", "10", "40"], correct: 0 },
+                { q: "Which brother killed Abel?", q_twi: "Onua bɛn na okum Abel?", a: ["Seth", "Cain", "Jacob", "Esau"], correct: 1 },
+                { q: "What did God create on the first day?", q_twi: "Dɛn na Onyankopɔn bɔɔ no da a edi kan?", a: ["Animals", "Light", "Trees", "Humans"], correct: 1 },
+                { q: "What was the name of the garden Adam and Eve lived in?", q_twi: "Turo bɛn mu na Adam ne Hawa tɛnee?", a: ["Gethsemane", "Eden", "Sinai", "Bethel"], correct: 1 },
+                { q: "Who is the Father of many nations?", q_twi: "Hwan ne aman dodoɔ agya?", a: ["Isaac", "Jacob", "Abraham", "Lot"], correct: 2 },
+                { q: "What was the sign of God's promise to Noah?", q_twi: "Nyankopɔn bɔhyɛ sɛnkyerɛnne kyerɛɛ Noa ne dɛn?", a: ["Fire", "Rainbow", "Star", "Dove"], correct: 1 },
+                { q: "Who was Abraham's son of promise?", q_twi: "Hwan ne Abraham bɔhyɛ ba no?", a: ["Ishmael", "Isaac", "Esau", "Jacob"], correct: 1 }
+              ]
+            },
+            { level: 2, name: "Exodus", target: 10, timer: 12, bg: "https://images.unsplash.com/photo-1518495973542-4542c06a5843?q=80&w=1000",
+              questions: [
+                { q: "Who led Israel out of Egypt?", q_twi: "Hwan na oyii Israel mfiri Misraim?", a: ["Aaron", "Moses", "Joshua", "Caleb"], correct: 1 },
+                { q: "What was the first plague?", q_twi: "Ɔyaredɔm a edi kan ne dɛn?", a: ["Frogs", "Lice", "Blood", "Darkness"], correct: 2 },
+                { q: "Which sea did the Israelites cross?", q_twi: "Ɛpo bɛn na Israelfoɔ twwaeɛ?", a: ["Dead Sea", "Red Sea", "Galilee", "Jordan"], correct: 1 },
+                { q: "Where did Moses receive the 10 Commandments?", q_twi: "Bepo bɛn so na Mose nsa kaa mmaransa du no?", a: ["Sinai", "Nebo", "Ararat", "Zion"], correct: 0 },
+                { q: "What guided them by night?", q_twi: "Dɛn na ɛkyerɛɛ wɔn kwan anadwo?", a: ["Cloud", "Pillar of Fire", "Moon", "Star"], correct: 1 },
+                { q: "Who was Moses' brother?", q_twi: "Hwan ne Mose nua?", a: ["Hur", "Aaron", "Joshua", "Eleazar"], correct: 1 },
+                { q: "What bread fell from heaven?", q_twi: "Paanoo bɛn na ɛtɔɔ fi soro?", a: ["Manna", "Quail", "Honey", "Wheat"], correct: 0 },
+                { q: "What was the final plague?", q_twi: "Ɔyaredɔm a etwa toɔ ne dɛn?", a: ["Locusts", "Boils", "Death of Firstborn", "Hail"], correct: 2 },
+                { q: "What did Moses hit to get water?", q_twi: "Dɛn na Mose bɔeɛ na nsuo baeɛ?", a: ["A Tree", "A Rock", "The Sand", "A Well"], correct: 1 },
+                { q: "What was the name of the king of Egypt?", q_twi: "Misraim hene no din de dɛn?", a: ["Herod", "Pharaoh", "Cyrus", "Darius"], correct: 1 }
+              ]
+            },
+            { level: 3, name: "Leviticus", target: 10, timer: 12, bg: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000",
+              questions: [
+                { q: "Which tribe was chosen for the priesthood?", q_twi: "Abusua bɛn na wɔfaa wɔn sɛ asɔfoɔ?", a: ["Judah", "Levi", "Benjamin", "Dan"], correct: 1 },
+                { q: "What kind of animals were allowed for food?", q_twi: "Mmoa bɛn na na wɔma kwan sɛ wɔdie?", a: ["Unclean", "Clean", "Wild", "Dead"], correct: 1 },
+                { q: "How many major types of offerings were there?", q_twi: "Afɔrebɔ ahorow dodoɔ sɛn na ɛwɔ hɔ?", a: ["3", "5", "7", "12"], correct: 1 },
+                { q: "What is the main theme of Leviticus?", q_twi: "Levitiko asɛm titiri ne dɛn?", a: ["War", "Holiness", "Travel", "History"], correct: 1 },
+                { q: "What day was the most holy in the year?", q_twi: "Da bɛn na na ɛyɛ kronkron paa?", a: ["Passover", "Day of Atonement", "Sabbath", "Pentecost"], correct: 1 },
+                { q: "Who were Aaron's sons that offered 'strange fire'?", q_twi: "Aaron mma bɛn na wɔbɔɔ afɔre bɔne?", a: ["Nadab & Abihu", "Cain & Abel", "Jacob & Esau", "Moses & Aaron"], correct: 0 },
+                { q: "What should people do on the Sabbath?", q_twi: "Dɛn na nkurɔfoɔ yɛ wɔ Sapad da?", a: ["Work", "Rest", "Travel", "Hunt"], correct: 1 },
+                { q: "What was used to purify the altar?", q_twi: "Dɛn na wɔde dwiraa afɔremuka no ho?", a: ["Water", "Oil", "Blood", "Wine"], correct: 2 },
+                { q: "How often was the Year of Jubilee?", q_twi: "Mfeɛ dodoɔ sɛn na Jubilee afe ba?", a: ["7", "40", "50", "100"], correct: 2 },
+                { q: "What is the golden rule found in Lev 19:18?", q_twi: "Mmara bɛn na ɛwɔ Levitiko 19:18?", a: ["Do not kill", "Love your neighbor", "Honor parents", "Do not steal"], correct: 1 }
+              ]
+            },
 
-    // Award standard completion coins if applicable
-    gameState.coins += 2; 
+            // --- MODERATE GROUP (15 Questions) ---
+            { level: 4, name: "Numbers", target: 15, timer: 10, bg: "https://images.unsplash.com/photo-1500627869374-13cd993b1115?q=80&w=1000",
+              questions: Array.from({length: 15}, (_, i) => ({
+                  q: `[Q${i+1}] How many spies were sent to Canaan?`,
+                  q_twi: `[Nsɛm ${i+1}] Akwansrafoɔ dodoɔ sɛn na wɔkɔɔ Kanaan?`,
+                  a: ["2", "10", "12", "70"], correct: 2
+              }))
+            },
+            { level: 5, name: "Joshua", target: 15, timer: 10, bg: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000",
+              questions: Array.from({length: 15}, (_, i) => ({
+                  q: `[Q${i+1}] Which city walls fell down?`,
+                  q_twi: `[Nsɛm ${i+1}] Kuro bɛn afasuo na ɛbui?`,
+                  a: ["Jericho", "Ai", "Gaza", "Hebron"], correct: 0
+              }))
+            },
 
-    loadLevel();
-}
+            // --- DIFFICULT GROUP (20 Questions) ---
+            { level: 6, name: "Revelation", target: 20, timer: 7, bg: "https://images.unsplash.com/photo-1518495973542-4542c06a5843?q=80&w=1000",
+              questions: Array.from({length: 20}, (_, i) => ({
+                  q: `[Q${i+1}] How many churches did John write to?`,
+                  q_twi: `[Nsɛm ${i+1}] Asafo dodoɔ sɛn na Yohane kyerɛw kɔmaa wɔn?`,
+                  a: ["3", "7", "12", "24"], correct: 1
+              }))
+            }
+        ];
 
-/**
- * Updates the UI elements on the screen
- */
-function updateUI() {
-    document.getElementById("current-book").innerText = BOOK_ORDER[gameState.currentBookIndex];
-    document.getElementById("current-level").innerText = `Level ${gameState.currentLevel}`;
-    document.getElementById("coin-count").innerText = gameState.coins;
-}
+        let gameData = JSON.parse(localStorage.getItem('bibleQuestSave')) || {
+            lvl: 1, gold: 100, progress: 0, lang: 'en'
+        };
 
-/**
- * Loads the current level data based on the state
- */
-function loadLevel() {
-    updateUI();
-    // Your logic to render the specific questions for the active book/level goes here
-    console.log(`Loading ${BOOK_ORDER[gameState.currentBookIndex]}, Level ${gameState.currentLevel}`);
-}
+        let activePool = [];
+        let timerInterval = null;
+        let timeLeft = 0;
+        let isProcessing = false;
+
+        function save() { localStorage.setItem('bibleQuestSave', JSON.stringify(gameData)); }
+
+        function renderUI() {
+            isProcessing = false;
+            let currentBook = quizDatabase.find(b => b.level === gameData.lvl) || quizDatabase[0];
+            
+            // Set Background and Titles
+            document.getElementById('bg-overlay').style.backgroundImage = `url('${currentBook.bg}')`;
+            document.getElementById('world-title').innerText = currentBook.name;
+            document.getElementById('lvl-badge').innerText = `Book ${gameData.lvl}`;
+            document.getElementById('gold-val').innerText = gameData.gold;
+            document.getElementById('lang-label').innerText = gameData.lang === 'en' ? "English" : "Twi";
+            
+            // Update Progress Bar
+            const percent = (gameData.progress / currentBook.target) * 100;
+            document.getElementById('xp-bar').style.width = percent + "%";
+            document.getElementById('q-counter-txt').innerText = `Progress: ${gameData.progress} / ${currentBook.target}`;
+
+            // Load New Questions if pool is empty
+            if (activePool.length === 0) {
+                activePool = [...currentBook.questions].sort(() => Math.random() - 0.5);
+            }
+
+            renderQuestion();
+            startTimer(currentBook.timer);
+        }
+
+        function renderQuestion() {
+            const qObj = activePool[0];
+            const container = document.getElementById('quiz-container');
+            const questionText = gameData.lang === 'en' ? qObj.q : qObj.q_twi;
+            
+            container.innerHTML = `
+                <div class="quiz-card p-6 shadow-xl">
+                    <h2 class="text-xl font-bold text-slate-800 mb-6">${questionText}</h2>
+                    <div class="space-y-3" id="opt-box"></div>
+                </div>
+            `;
+
+            qObj.a.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "btn-opt";
+                btn.innerHTML = `<span>${opt}</span>`;
+                btn.onclick = () => handleAnswer(idx, qObj.correct, btn);
+                document.getElementById('opt-box').appendChild(btn);
+            });
+        }
+
+        function startTimer(duration) {
+            clearInterval(timerInterval);
+            timeLeft = duration;
+            const clock = document.getElementById('timer-clock');
+            clock.classList.remove('timer-danger');
+            clock.innerText = timeLeft;
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                clock.innerText = timeLeft;
+                if (timeLeft <= 3) clock.classList.add('timer-danger');
+                if (timeLeft <= 0) handlePenalty();
+            }, 1000);
+        }
+
+        function handlePenalty() {
+            clearInterval(timerInterval);
+            gameData.gold -= 20; 
+            checkGameOver();
+        }
+
+        function handleAnswer(choice, correct, btn) {
+            if (isProcessing) return;
+            isProcessing = true;
+            clearInterval(timerInterval);
+
+            let currentBook = quizDatabase.find(b => b.level === gameData.lvl);
+
+            if (choice === correct) {
+                btn.style.background = "#dcfce7";
+                gameData.gold += 10;
+                gameData.progress++;
+                activePool.shift(); // Remove the used question
+
+                if (gameData.progress >= currentBook.target) {
+                    gameData.lvl++;
+                    gameData.progress = 0;
+                    activePool = [];
+                    save();
+                    showLevelUp();
+                } else {
+                    save();
+                    setTimeout(renderUI, 600);
+                }
+            } else {
+                btn.style.background = "#fee2e2";
+                gameData.gold -= 30; // Heavier penalty for wrong answer
+                checkGameOver();
+            }
+        }
+
+        function checkGameOver() {
+            if (gameData.gold <= 0) {
+                alert("COINS REACHED 0! Returning to Genesis...");
+                localStorage.removeItem('bibleQuestSave');
+                location.reload(); // Hard reset
+            } else {
+                save();
+                setTimeout(renderUI, 800);
+            }
+        }
+
+        function showLevelUp() {
+            const splash = document.getElementById('level-up-splash');
+            splash.classList.add('active');
+            setTimeout(() => {
+                splash.classList.remove('active');
+                renderUI();
+            }, 2000);
+        }
+
+        function skipLevel() {
+            if (gameData.gold >= 50) {
+                gameData.gold -= 50;
+                gameData.lvl++;
+                gameData.progress = 0;
+                activePool = [];
+                save();
+                showLevelUp();
+            } else {
+                alert("Not enough coins to skip!");
+            }
+        }
+
+        function toggleLanguage() {
+            gameData.lang = gameData.lang === 'en' ? 'tw' : 'en';
+            save();
+            renderUI();
+        }
+
+        window.onload = renderUI;
+    </script>
+</body>
+</html>
