@@ -145,19 +145,17 @@
             isProcessing = true;
             playSfx(soundWrong);
             
-            // Apply the 20-coin penalty
             gameData.gold = Math.max(0, gameData.gold - 20);
             save();
             
-            // Flash layout red quickly to indicate time penalty, then restart the same question
             const container = document.getElementById('quiz-container');
             container.classList.add('brightness-50', 'bg-red-900/20');
             
             setTimeout(() => {
                 container.classList.remove('brightness-50', 'bg-red-900/20');
                 isProcessing = false;
-                timeLeft = 10; // Reset countdown back to 10
-                renderUI();    // Re-renders the same question frame
+                timeLeft = 10; 
+                renderUI();    
             }, 800);
         }
 
@@ -168,23 +166,23 @@
                 return;
             }
 
-            const level = quizDatabase.find(l => l.level === gameData.lvl);
+            // Fallback Engine: If the current level doesn't exist yet in questions.js, 
+            // it grabs the last available level structure so players can play infinitely.
+            let level = quizDatabase.find(l => l.level === gameData.lvl);
             if (!level) {
-                if (gameData.lvl > quizDatabase.length) {
-                    document.getElementById('world-title').innerText = gameData.lang === 'en' ? "QUEST COMPLETED" : "NKONIMDI KƐSEƐ";
-                    document.getElementById('quiz-container').innerHTML = `<div class="quiz-card p-8 text-center font-bold text-slate-800">Mo! W’asua biribiara awie!</div>`;
-                }
-                clearInterval(timerInterval);
-                return;
+                level = quizDatabase[quizDatabase.length - 1];
+                document.getElementById('world-title').innerText = `${level.name} (Loop)`;
+            } else {
+                document.getElementById('world-title').innerText = level.name;
             }
 
-            // Shuffle array structure only once per new tier initialization
-            if (activeQuestions.length === 0) {
+            // If active pool finishes or isn't set up, clone and shuffle the current level's questions
+            if (activeQuestions.length === 0 || gameData.currentQuestionIndex >= activeQuestions.length) {
                 activeQuestions = [...level.questions].sort(() => Math.random() - 0.5);
+                gameData.currentQuestionIndex = 0; // Safe snap index back to start of shuffled array
             }
 
             document.getElementById('bg-overlay').style.backgroundImage = `url('${level.bgImage}')`;
-            document.getElementById('world-title').innerText = level.name;
             document.getElementById('lvl-badge').innerText = gameData.lvl;
             document.getElementById('gold-val').innerText = gameData.gold;
             document.getElementById('xp-bar').style.width = (gameData.currentQuestionIndex / activeQuestions.length * 100) + "%";
@@ -228,14 +226,25 @@
                 btn.style.background = "#dcfce7";
                 btn.style.borderColor = "#22c55e";
                 gameData.gold += 20;
-                gameData.currentQuestionIndex++; // Move index forward ONLY on a correct answer
+                gameData.currentQuestionIndex++; 
                 
+                // Advance level only if they finish all questions in the current pool AND another level exists
                 if (gameData.currentQuestionIndex >= activeQuestions.length) {
-                    gameData.lvl++;
-                    gameData.currentQuestionIndex = 0;
-                    activeQuestions = [];
-                    save();
-                    setTimeout(showLevelUp, 600);
+                    const nextLevelExists = quizDatabase.some(l => l.level === gameData.lvl + 1);
+                    if (nextLevelExists) {
+                        gameData.lvl++;
+                        gameData.currentQuestionIndex = 0;
+                        activeQuestions = [];
+                        save();
+                        setTimeout(showLevelUp, 600);
+                    } else {
+                        // If no next level exists, reshuffle immediately and keep loop going seamlessly
+                        activeQuestions = [];
+                        gameData.currentQuestionIndex = 0;
+                        save();
+                        timeLeft = 10;
+                        setTimeout(renderUI, 800);
+                    }
                 } else {
                     save();
                     timeLeft = 10;
@@ -248,7 +257,6 @@
                 gameData.gold = Math.max(0, gameData.gold - 10);
                 save();
                 
-                // Do not increment the index! Let them stay on this question and restart the countdown
                 setTimeout(() => {
                     isProcessing = false;
                     timeLeft = 10;
