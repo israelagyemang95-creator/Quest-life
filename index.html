@@ -3,12 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bible Quest - Production Edition</title>
+    <title>Bible Quest - Arcade Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <script src="questions.js"></script>
     <style>
-        body { background-color: #05070c; font-family: system-ui, -apple-system, sans-serif; overflow-x: hidden; }
+        body { 
+            background-color: #05070c; 
+            font-family: system-ui, -apple-system, sans-serif; 
+            overflow-x: hidden; 
+        }
         
         /* 🎭 COMPACT VIEWPORT - ACCESSIBLE CARD CLEARANCE BOUNDS */
         .diorama-container {
@@ -72,16 +76,36 @@
             background: rgba(13, 19, 33, 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; padding: 6px;
             box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.6); z-index: 100;
+            transition: all 0.3s ease-in-out;
         }
         .bubble-pod-btn { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; }
 
         .glass-panel { background: rgba(13, 18, 30, 0.8); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; }
+        
+        /* 🌄 QUESTION BACKGROUND GRAPHICS FRAMEWORKS */
+        .quiz-background-card {
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .quiz-overlay-shade {
+            background: linear-gradient(180deg, rgba(10, 15, 30, 0.75) 0%, rgba(6, 8, 16, 0.95) 100%);
+            width: 100%;
+            height: 100%;
+            padding: 1.25rem;
+        }
+
         .choice-btn { width: 100%; text-align: left; padding: 0.75rem 1.25rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.03); color: #e2e8f0; font-weight: 600; font-size: 15px; }
         .choice-btn:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15); }
     </style>
 </head>
 <body class="p-3 min-h-screen flex flex-col items-center justify-start text-white select-none pb-24">
 
+    <!-- Global App Header Navigation Strip -->
     <header class="w-full max-w-md flex justify-between items-center mb-2 z-50">
         <button onclick="backToMainMenu()" id="global-hub-btn" class="bg-slate-900 border border-white/10 text-white px-3 py-1.5 rounded-full font-bold text-xs uppercase hidden">
             🚪 Main Menu
@@ -98,9 +122,11 @@
         </div>
     </header>
 
+    <!-- Main Dynamic Canvas Frame Real Estate -->
     <main id="app-viewport" class="w-full max-w-md space-y-2 flex flex-col relative z-10"></main>
 
-    <div class="bubble-bag-container flex justify-between gap-1.5">
+    <!-- FLOATING POWER-UP PODS CONTROLS -->
+    <div id="powerups-footer-bar" class="bubble-bag-container flex justify-between gap-1.5 opacity-0 pointer-events-none transform translate-y-10">
         <button onclick="usePowerUp('freeze')" class="flex-1 bubble-pod-btn p-1 flex flex-col items-center">
             <span>❄️</span><span class="text-[9px] text-slate-400 font-bold">Freeze: <span id="qty-freeze">1</span></span>
         </button>
@@ -154,8 +180,13 @@
             document.getElementById('global-hub-btn').classList.add('hidden');
             document.getElementById('spacer-div').classList.remove('hidden');
             
+            // Hide power-up tray context from main menu UI entirely
+            const bar = document.getElementById('powerups-footer-bar');
+            bar.className = "bubble-bag-container flex justify-between gap-1.5 opacity-0 pointer-events-none transform translate-y-10";
+
             const target = document.getElementById('app-viewport');
             target.innerHTML = `
+                <!-- 🎯 DAILY ACHIEVEMENT BONUS HUB PANEL -->
                 <div class="glass-panel p-3 border-amber-500/30 bg-amber-950/20 space-y-2 mb-1 animate__animated animate__fadeInDown">
                     <div class="flex justify-between items-center text-[11px] font-black tracking-wider text-amber-300">
                         <span>🎯 DAILY ACTIVE QUESTS</span>
@@ -204,21 +235,19 @@
             currentQuestions = [];
 
             let sourcePool = window.quizDatabase || [];
-            if (Array.isArray(sourcePool)) {
-                sourcePool.forEach(category => {
-                    if (groupName === 'Mastery' || category.group === groupName) {
-                        if (Array.isArray(category.questions)) {
-                            category.questions.forEach(q => {
-                                currentQuestions.push({ ...q, bookName: category.name });
-                            });
-                        }
+            sourcePool.forEach(category => {
+                if (groupName === 'Mastery' || category.group === groupName) {
+                    if (Array.isArray(category.questions)) {
+                        category.questions.forEach(q => {
+                            currentQuestions.push({ ...q, bookName: category.name });
+                        });
                     }
-                });
-            }
+                }
+            });
 
             if (currentQuestions.length === 0) {
                 currentQuestions = [
-                    { q: "Who was the first man created?", a: ["Noah", "Adam", "Abel", "Seth"], q_twi: "Hwan ne onipa a odi kan a wɔbɔɔ no?", a_tw: ["Noa", "Adam", "Abel", "Set"], correct: 1, subGroup: "Easy" }
+                    { q: "Who was the first man created?", a: ["Noah", "Adam", "Abel", "Seth"], q_twi: "Hwan ne onipa a odi kan a wɔbɔɔ no?", a_tw: ["Noa", "Adam", "Abel", "Set"], correct: 1, subGroup: "Easy", bookName: "Genesis" }
                 ];
             }
 
@@ -227,6 +256,11 @@
             bookObjectivesCleared = 0;
             document.getElementById('global-hub-btn').classList.remove('hidden');
             document.getElementById('spacer-div').className = "hidden";
+            
+            // Bring back power ups for the question round view scene
+            const bar = document.getElementById('powerups-footer-bar');
+            bar.className = "bubble-bag-container flex justify-between gap-1.5 opacity-100 pointer-events-auto transform translate-y-0";
+
             loadQuestionNode();
         }
 
@@ -243,6 +277,14 @@
             let displayPrompt = (appState.lang === 'tw' && activeQuestion.q_twi) ? activeQuestion.q_twi : activeQuestion.q;
             let displayChoices = (appState.lang === 'tw' && activeQuestion.a_tw) ? activeQuestion.a_tw : activeQuestion.a;
 
+            // Generate an elegant, context-aware imagery theme matching the active query level node
+            let fallbackImage = "https://images.unsplash.com/photo-1507692049790-de58290a4334?q=80&w=600&auto=format&fit=crop"; 
+            if (selectedLevelGroup === 'NT') {
+                fallbackImage = "https://images.unsplash.com/photo-1438211331416-0ee898ec0130?q=80&w=600&auto=format&fit=crop";
+            } else if (selectedLevelGroup === 'OT') {
+                fallbackImage = "https://images.unsplash.com/photo-1447069387593-a5de0862481e?q=80&w=600&auto=format&fit=crop";
+            }
+
             const target = document.getElementById('app-viewport');
             target.innerHTML = `
                 <div class="w-full space-y-1">
@@ -253,6 +295,7 @@
                         <span class="text-teal-400 font-extrabold">OBJECTIVES METER: ${bookObjectivesCleared}/${totalObjectivesNeeded}</span>
                     </div>
                     
+                    <!-- 📻 COMPACT DIORAMA AREA -->
                     <div class="diorama-container">
                         <div id="lightning-sheet" class="lightning-sheet ${isWeatherRainy ? 'lightning-active' : ''}"></div>
                         <div id="rain-particle-field" class="weather-layer"></div>
@@ -274,21 +317,26 @@
                     </div>
                 </div>
 
-                <div class="glass-panel px-4 py-2 flex justify-between items-center">
-                    <div>
-                        <h2 class="text-md font-black text-slate-100 tracking-tight">${activeQuestion.bookName || 'Quest'}</h2>
-                        <span class="text-[9px] uppercase px-1.5 py-0.5 rounded font-black bg-slate-950 text-indigo-400 inline-block mt-0.5">${activeQuestion.subGroup || 'Easy'}</span>
-                    </div>
-                    <div class="text-sm font-bold text-cyan-400 bg-slate-950/60 px-2.5 py-1 rounded-lg border border-white/5 tabular-nums">
-                        ⏰ <span id="timer-label">${timeRemaining}</span>s
+                <!-- 🌄 IMMERSIVE BACKGROUND INTERFACE PANEL -->
+                <div class="quiz-background-card text-white shadow-2xl animate__animated animate__fadeIn" style="background-image: url('${fallbackImage}');">
+                    <div class="quiz-overlay-shade space-y-4">
+                        <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                            <div>
+                                <h2 class="text-md font-black text-amber-300 tracking-tight">${activeQuestion.bookName || 'Quest'}</h2>
+                                <span class="text-[9px] uppercase px-1.5 py-0.5 rounded font-black bg-black text-indigo-300 inline-block mt-0.5">${activeQuestion.subGroup || 'Easy'}</span>
+                            </div>
+                            <div class="text-sm font-bold text-cyan-400 bg-slate-950/80 px-2.5 py-1 rounded-lg border border-white/20 tabular-nums">
+                                ⏰ <span id="timer-label">${timeRemaining}</span>s
+                            </div>
+                        </div>
+
+                        <div class="min-h-[72px] flex items-center justify-center text-center">
+                            <h3 class="text-base font-extrabold text-white leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">${displayPrompt}</h3>
+                        </div>
                     </div>
                 </div>
 
-                <div class="glass-panel p-3.5 min-h-[64px] flex items-center justify-center text-center">
-                    <h3 class="text-sm font-bold text-slate-100 leading-snug">${displayPrompt}</h3>
-                </div>
-
-                <div id="answers-box" class="space-y-1.5"></div>
+                <div id="answers-box" class="space-y-1.5 pt-1"></div>
             `;
 
             updateCharacterPosition();
@@ -346,13 +394,11 @@
             if (selectedIndex === activeQuestion.correct) {
                 buttonRef.className = "choice-btn bg-emerald-600 border-emerald-400 text-white font-bold";
                 
-                // Track Daily Achievement Criteria Parameters
                 appState.achievements.answersCorrect++;
                 if (timeRemaining >= 10) {
                     appState.achievements.fastAnswers = Math.min(1, appState.achievements.fastAnswers + 1);
                 }
 
-                // Check Daily Quest Completion Payouts
                 if (appState.achievements.answersCorrect === 5) {
                     appState.gold += 50;
                     alert("🎯 Achievement Complete: Cleared 5 correct responses! Reward: +50 Coins 💰");
@@ -382,7 +428,6 @@
             appState.gold = Math.max(0, appState.gold - 20);
             saveState();
             
-            // Re-shuffle array variables safely upon error
             questionIndex = 0;
             currentQuestions.sort(() => Math.random() - 0.5);
             loadQuestionNode();
