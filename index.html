@@ -3,19 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bible Quest: Core Level Engine</title>
+    <title>Bible Quest - Production Build</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    <!-- Connect to your external data file -->
     <script src="questions.js"></script>
     <style>
         body { background-color: #05070c; font-family: system-ui, -apple-system, sans-serif; overflow-x: hidden; }
         
-        /* 🎭 COMPACT DIORAMA CONTROLLER - SHRANK TO SAVE SCREEN SPACE */
+        /* 🎭 COMPACT VIEWPORT - LEAVES PLENTY OF ROOM FOR BUTTONS */
         .diorama-container {
             position: relative;
             width: 100%;
-            height: 170px; /* Reduced from 260px to fit mobile viewports perfectly */
+            height: 160px;
             background: radial-gradient(circle at center, #1e293b 0%, #0d131a 100%);
             border-radius: 20px;
             overflow: hidden;
@@ -23,31 +22,31 @@
             box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
         }
         
-        .paper-house-main { position: absolute; bottom: 10px; left: 45%; width: 100px; height: 100px; background: #1e1b18; border: 1px solid #111; z-index: 10; }
+        .paper-house-main { position: absolute; bottom: 10px; left: 40%; width: 90px; height: 90px; background: #1e1b18; border: 1px solid #111; z-index: 10; }
         .shingle-roof {
-            position: absolute; top: -35px; left: -5px; width: 110px; height: 36px; background-color: #0b5351;
+            position: absolute; top: -30px; left: -5px; width: 100px; height: 32px; background-color: #0b5351;
             clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%); border-bottom: 3px solid #042928;
         }
-        .diorama-window-glow { position: absolute; bottom: 15px; left: 20px; width: 24px; height: 30px; background: #f59e0b; border-radius: 3px 3px 0 0; box-shadow: 0 0 15px #d97706; }
+        .diorama-window-glow { position: absolute; bottom: 15px; left: 20px; width: 20px; height: 26px; background: #f59e0b; border-radius: 3px 3px 0 0; box-shadow: 0 0 15px #d97706; }
         .fg-crafted-tower { position: absolute; bottom: 5px; right: -20px; width: 80px; height: 80px; background: #161920; z-index: 28; }
-        .diorama-ladder { position: absolute; left: 49%; bottom: 5px; width: 18px; height: 160px; z-index: 15; background: repeating-linear-gradient(0deg, transparent, transparent 12px, #422006 12px, #422006 15px); border-left: 3px solid #291405; border-right: 3px solid #291405; }
+        .diorama-ladder { position: absolute; left: 49%; bottom: 5px; width: 18px; height: 150px; z-index: 15; background: repeating-linear-gradient(0deg, transparent, transparent 12px, #422006 12px, #422006 15px); border-left: 3px solid #291405; border-right: 3px solid #291405; }
 
-        /* ⛈️ HIGH QUALITY CINEMATIC RAIN SYSTEM */
+        /* ⛈️ WEATHER OVERLAYS */
         .weather-layer { position: absolute; inset: 0; pointer-events: none; z-index: 25; }
         .rain-drop { position: absolute; background: linear-gradient(transparent, rgba(156, 163, 175, 0.6)); width: 1.5px; height: 20px; transform: rotate(12deg); animation: rainFall linear infinite; }
-        @keyframes rainFall { 0% { transform: translateY(-20px) translateX(0) rotate(12deg); } 100% { transform: translateY(180px) translateX(-30px) rotate(12deg); } }
+        @keyframes rainFall { 0% { transform: translateY(-20px) translateX(0) rotate(12deg); } 100% { transform: translateY(170px) translateX(-30px) rotate(12deg); } }
         
-        @keyframes lightningStrike { 0%, 93%, 97%, 100% { opacity: 0; } 94%, 96% { opacity: 0.4; background: #ffffff; } }
+        @keyframes lightningStrike { 0%, 93%, 97%, 100% { opacity: 0; } 94%, 96% { opacity: 0.3; background: #ffffff; } }
         .lightning-sheet { position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0; mix-blend-mode: overlay; }
         .lightning-active { animation: lightningStrike 5s infinite; }
 
-        /* 🚶 CHARACTER ARMATURE & CLIMBING TRANSITION */
+        /* 🚶 CLIMBING CHARACTER ARMATURE */
         .actor-puppet-node { 
             position: absolute; 
             left: 48%; 
             z-index: 20; 
             transform: translateX(-50%);
-            transition: bottom 0.8s cubic-bezier(0.25, 1, 0.5, 1); /* Makes character physically climb up smoothly */
+            transition: bottom 0.8s cubic-bezier(0.25, 1, 0.5, 1);
         }
         .puppet-body { position: relative; width: 24px; height: 38px; }
         .puppet-head { position: absolute; top: 0; left: 4px; width: 16px; height: 16px; background: #fbcfe8; border-radius: 50%; z-index: 5; }
@@ -59,90 +58,83 @@
         .p-leg-l { top: 30px; left: 4px; width: 4px; height: 9px; }
         .p-leg-r { top: 30px; left: 16px; width: 4px; height: 9px; }
 
-        /* Sync Animations */
         @keyframes armSwingLeft { 0% { transform: rotate(-60deg); } 100% { transform: rotate(10deg); } }
         @keyframes armSwingRight { 0% { transform: rotate(10deg); } 100% { transform: rotate(-60deg); } }
         @keyframes legPedalLeft { 0% { transform: scaleY(1); } 100% { transform: scaleY(0.5); } }
         @keyframes legPedalRight { 0% { transform: scaleY(0.5); } 100% { transform: scaleY(1); } }
 
-        .climb-active .p-arm-l { animation: armSwingLeft 0.3s infinite alternate ease-in-out; }
-        .climb-active .p-arm-r { animation: armSwingRight 0.3s infinite alternate ease-in-out; }
-        .climb-active .p-leg-l { animation: legPedalLeft 0.3s infinite alternate linear; }
-        .climb-active .p-leg-r { animation: legPedalRight 0.3s infinite alternate linear; }
+        .climb-active .p-arm-l { animation: armSwingLeft 0.25s infinite alternate ease-in-out; }
+        .climb-active .p-arm-r { animation: armSwingRight 0.25s infinite alternate ease-in-out; }
+        .climb-active .p-leg-l { animation: legPedalLeft 0.25s infinite alternate linear; }
+        .climb-active .p-leg-r { animation: legPedalRight 0.25s infinite alternate linear; }
 
-        /* 🎈 FLOATING POWER-UP BUBBLE BAG HUD DESIGN */
+        /* HUD PANEL CONTAINER */
         .bubble-bag-container {
             position: fixed;
-            bottom: 16px; left: 50%;
+            bottom: 12px; left: 50%;
             transform: translateX(-50%);
-            width: calc(100% - 32px);
+            width: calc(100% - 24px);
             max-width: 416px;
-            background: rgba(13, 19, 33, 0.85);
+            background: rgba(13, 19, 33, 0.9);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 24px;
-            padding: 8px;
-            box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
+            padding: 6px;
+            box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.6);
             z-index: 100;
         }
-        .bubble-pod-btn { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; }
+        .bubble-pod-btn { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; }
 
-        /* UI CORE COMPONENTS */
-        .glass-panel { background: rgba(13, 18, 30, 0.75); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; }
-        .choice-btn { width: 100%; text-align: left; padding: 0.85rem 1.25rem; border-radius: 14px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.03); color: #e2e8f0; font-weight: 600; font-size: 15px; }
-        .choice-btn:hover { background: rgba(255,255,255,0.06); }
+        .glass-panel { background: rgba(13, 18, 30, 0.8); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; }
+        .choice-btn { width: 100%; text-align: left; padding: 0.75rem 1.25rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.03); color: #e2e8f0; font-weight: 600; font-size: 15px; transition: all 0.2s ease; }
+        .choice-btn:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15); }
     </style>
 </head>
-<body class="p-4 min-h-screen flex flex-col items-center justify-start text-white select-none pb-28">
+<body class="p-3 min-h-screen flex flex-col items-center justify-start text-white select-none pb-24">
 
-    <!-- Audio Placeholders -->
     <audio id="bg-music" loop src="assets/music.mp3"></audio>
     <audio id="sfx-correct" src="assets/correct.mp3"></audio>
     <audio id="sfx-wrong" src="assets/wrong.mp3"></audio>
 
-    <!-- Header Frame Bar -->
-    <header class="w-full max-w-md flex justify-between items-center mb-3 z-50">
-        <button onclick="backToMainMenu()" id="global-hub-btn" class="bg-slate-900 border border-white/10 text-white px-4 py-1.5 rounded-full font-bold text-xs uppercase tracking-wider">
-            🚪 Main Menu
+    <header class="w-full max-w-md flex justify-between items-center mb-2 z-50">
+        <button onclick="backToMainMenu()" id="global-hub-btn" class="bg-slate-900 border border-white/10 text-white px-3 py-1.5 rounded-full font-bold text-xs uppercase hidden">
+            🚪 <span class="lang-text" data-en="Main Menu" data-tw="Mfitiasee">Main Menu</span>
         </button>
-        <div class="flex gap-2">
+        <div id="spacer-div" class="flex-1"></div>
+        <div class="flex gap-1.5 items-center">
             <button onclick="changeLanguage()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-full font-bold text-xs uppercase">
                 🌐 <span id="lang-indicator">English</span>
             </button>
-            <div class="bg-slate-900 border border-white/10 px-4 py-1.5 rounded-full flex items-center gap-2">
+            <div class="bg-slate-900 border border-white/10 px-3 py-1.5 rounded-full flex items-center gap-1.5">
                 <span>💰</span>
                 <span id="gold-display" class="font-black text-amber-400">500</span>
             </div>
         </div>
     </header>
 
-    <!-- Main Dynamic Application Screen Viewport -->
-    <main id="app-viewport" class="w-full max-w-md space-y-3 flex flex-col relative z-10"></main>
+    <main id="app-viewport" class="w-full max-w-md space-y-2 flex flex-col relative z-10"></main>
 
-    <!-- 🎈 FLOATING POWER-UP BUBBLE BAG HUD PANEL -->
     <div class="bubble-bag-container flex justify-between gap-1.5">
-        <button onclick="usePowerUp('freeze')" class="flex-1 bubble-pod-btn p-1.5 flex flex-col items-center">
+        <button onclick="usePowerUp('freeze')" class="flex-1 bubble-pod-btn p-1 flex flex-col items-center">
             <span>❄️</span><span class="text-[9px] text-slate-400 font-bold">Freeze: <span id="qty-freeze">1</span></span>
         </button>
-        <button onclick="usePowerUp('half')" class="flex-1 bubble-pod-btn p-1.5 flex flex-col items-center">
+        <button onclick="usePowerUp('half')" class="flex-1 bubble-pod-btn p-1 flex flex-col items-center">
             <span>⚖️</span><span class="text-[9px] text-slate-400 font-bold">50:50: <span id="qty-half">1</span></span>
         </button>
-        <button onclick="usePowerUp('skip')" class="flex-1 bubble-pod-btn p-1.5 flex flex-col items-center">
+        <button onclick="usePowerUp('skip')" class="flex-1 bubble-pod-btn p-1 flex flex-col items-center">
             <span>🔮</span><span class="text-[9px] text-slate-400 font-bold">Skip: <span id="qty-skip">1</span></span>
         </button>
-        <button onclick="usePowerUp('shield')" class="flex-1 bubble-pod-btn p-1.5 flex flex-col items-center">
+        <button onclick="usePowerUp('shield')" class="flex-1 bubble-pod-btn p-1 flex flex-col items-center">
             <span>🛡️</span><span class="text-[9px] text-slate-400 font-bold">Shield: <span id="qty-shield">1</span></span>
         </button>
-        <button onclick="usePowerUp('elixir')" class="flex-1 bubble-pod-btn p-1.5 flex flex-col items-center">
+        <button onclick="usePowerUp('elixir')" class="flex-1 bubble-pod-btn p-1 flex flex-col items-center">
             <span>🧪</span><span class="text-[9px] text-slate-400 font-bold">Elixir: <span id="qty-elixir">1</span></span>
         </button>
     </div>
 
     <script>
-        // System fallback variables if questions.js fails to initialize properly
-        let gamePool = window.quizDatabase || [];
-        
+        // Global Local Storage Persistence System
         let appState = JSON.parse(localStorage.getItem('bibleQuestSave')) || {
             gold: 500,
             lang: 'en',
@@ -155,8 +147,7 @@
         let questionIndex = 0;
         let activeQuestion = null;
         let countdownTimer = null;
-        let timeRemaining = 10;
-        let isMoving = false;
+        let timeRemaining = 15;
         let isWeatherRainy = false;
 
         function saveState() {
@@ -167,54 +158,74 @@
             document.getElementById('qty-skip').innerText = appState.inventory.skip;
             document.getElementById('qty-shield').innerText = appState.inventory.shield;
             document.getElementById('qty-elixir').innerText = appState.inventory.elixir;
+            document.getElementById('lang-indicator').innerText = appState.lang === 'en' ? "English" : "Twi";
         }
 
-        // 🏆 RESTORED ORIGINAL UNIQUE LEVEL CATEGORIES
+        // 🏆 DRAW CAMPAIGN ROUTE SELECTOR
         function drawMainMenu() {
             document.getElementById('global-hub-btn').classList.add('hidden');
-            // Safely refresh database link
-            gamePool = window.quizDatabase || [];
-
+            document.getElementById('spacer-div').classList.remove('hidden');
+            
             const target = document.getElementById('app-viewport');
             target.innerHTML = `
-                <div class="text-center space-y-1 py-2 animate__animated animate__fadeInDown">
-                    <h1 class="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-amber-400">BIBLE QUEST</h1>
-                    <p class="text-[10px] text-slate-500 font-bold tracking-widest uppercase">Select Study Pathway</p>
+                <div class="text-center space-y-1 py-1 animate__animated animate__fadeInDown">
+                    <h1 class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-amber-400 tracking-tight">BIBLE QUEST</h1>
+                    <p class="text-[10px] text-slate-500 font-bold tracking-widest uppercase" data-en="SELECT STUDY PATHWAY" data-tw="PAW WO AKWANTUO">SELECT STUDY PATHWAY</p>
                 </div>
-                <div class="space-y-2.5 pt-2 animate__animated animate__fadeInUp">
-                    <button onclick="startLevelSegment('Mastery')" class="w-full p-4 glass-panel text-left flex justify-between items-center hover:border-amber-500/40 transition-all">
-                        <div><h3 class="text-md font-black text-amber-400">🎓 Old & New Testament Mastery</h3><p class="text-xs text-slate-400">Complete canonical coverage</p></div>
+                <div class="space-y-2 pt-1 animate__animated animate__fadeInUp">
+                    <button onclick="startLevelSegment('Mastery')" class="w-full p-3.5 glass-panel text-left flex justify-between items-center hover:border-amber-500/40 transition-all">
+                        <div>
+                            <h3 class="text-sm font-black text-amber-400" data-en="🎓 Old & New Testament Mastery" data-tw="🎓 Kane & Nhyiam Foforo Nimdee">🎓 Old & New Testament Mastery</h3>
+                            <p class="text-xs text-slate-400" data-en="Complete canonical coverage" data-tw="Twerɛkron mu nsɛm nyinaa">Complete canonical coverage</p>
+                        </div>
                         <span class="text-lg">📜</span>
                     </button>
-                    <button onclick="startLevelSegment('Ellen G. White')" class="w-full p-4 glass-panel text-left flex justify-between items-center hover:border-purple-500/40 transition-all">
-                        <div><h3 class="text-md font-black text-purple-400">✍️ Ellen G. White Prophecy</h3><p class="text-xs text-slate-400">Spirit of Prophecy & Church History</p></div>
+                    <button onclick="startLevelSegment('Ellen G. White')" class="w-full p-3.5 glass-panel text-left flex justify-between items-center hover:border-purple-500/40 transition-all">
+                        <div>
+                            <h3 class="text-sm font-black text-purple-400" data-en="✍️ Ellen G. White Prophecy" data-tw="✍️ Ellen G. White Nkomhyɛ">✍️ Ellen G. White Prophecy</h3>
+                            <p class="text-xs text-slate-400" data-en="Spirit of Prophecy & Church History" data-tw="Asɔre Abakɔsɛm Nsɛm">Spirit of Prophecy & Church History</p>
+                        </div>
                         <span class="text-lg">✨</span>
                     </button>
                 </div>
             `;
+            updateLanguageUINabels();
             try { document.getElementById('bg-music').play(); } catch(e){}
         }
 
+        // 🔗 CONNECTION ENGINE TO QUESTIONS.JS GLOBAL DATABASE
         function startLevelSegment(groupName) {
             selectedLevelGroup = groupName;
-            // Flatten questions found from external structures matching the designated cluster
             currentQuestions = [];
-            gamePool.forEach(book => {
-                if(book.group === groupName || groupName === "Mastery") {
-                    book.questions.forEach(q => {
-                        currentQuestions.push({ ...q, bookName: book.name });
-                    });
-                }
-            });
 
-            if(currentQuestions.length === 0) {
-                // Fallback protection line if names don't align perfectly with external file tags
-                currentQuestions = gamePool.length > 0 ? gamePool[0].questions.map(q=>({...q, bookName: gamePool[0].name})) : [];
+            // Read directly from external window.quizDatabase array variables
+            let sourcePool = window.quizDatabase || [];
+
+            if (Array.isArray(sourcePool)) {
+                sourcePool.forEach(category => {
+                    // Match category groups cleanly or group all values under canonical Mastery
+                    if (groupName === 'Mastery' || category.group === groupName) {
+                        if (Array.isArray(category.questions)) {
+                            category.questions.forEach(q => {
+                                currentQuestions.push({ ...q, bookName: category.name });
+                            });
+                        }
+                    }
+                });
+            }
+
+            // Fallback emergency configuration parameters if data object array is empty
+            if (currentQuestions.length === 0) {
+                currentQuestions = [
+                    { q: "Who was the first man created?", a: ["Noah", "Adam", "Abel", "Seth"], q_twi: "Hwan ne onipa a odi kan a wɔbɔɔ no?", a_tw: ["Noa", "Adam", "Abel", "Set"], correct: 1 },
+                    { q: "What did the archangel say to the devil when disputing?", a: ["I destroy you", "The Lord rebuke you", "Leave this place"], q_twi: "Asɛm bɛn na ɔbɔfo panyin no ka kyerɛɛ ɔbɔonsam?", a_tw: ["Mesee wo", "Awurade nka wo anim", "Firi ha kɔ"], correct: 1 }
+                ];
             }
 
             questionIndex = 0;
             appState.altitudeStep = 1;
             document.getElementById('global-hub-btn').classList.remove('hidden');
+            document.getElementById('spacer-div').classList.add('hidden');
             loadQuestionNode();
         }
 
@@ -225,22 +236,22 @@
             }
 
             activeQuestion = currentQuestions[questionIndex];
-            timeRemaining = 10;
-            isMoving = false;
-            isWeatherRainy = Math.random() > 0.4; // Toggle variant state
+            timeRemaining = 15;
+            isWeatherRainy = Math.random() > 0.5; // True structural weather variance logic
 
-            let promptStr = (appState.lang === 'tw' && activeQuestion.q_twi) ? activeQuestion.q_twi : activeQuestion.q;
-            let optionsArray = (appState.lang === 'tw' && activeQuestion.a_tw) ? activeQuestion.a_tw : activeQuestion.a;
+            let displayPrompt = (appState.lang === 'tw' && activeQuestion.q_twi) ? activeQuestion.q_twi : activeQuestion.q;
+            let displayChoices = (appState.lang === 'tw' && activeQuestion.a_tw) ? activeQuestion.a_tw : activeQuestion.a;
 
             const target = document.getElementById('app-viewport');
             target.innerHTML = `
-                <div class="w-full space-y-1">
-                    <div class="flex justify-between items-center text-[11px] font-bold text-slate-400 px-1">
-                        <span class="${isWeatherRainy ? 'text-blue-400' : 'text-amber-400'}">☁️ Weather: ${isWeatherRainy ? 'Rainy' : 'Sunny'}</span>
+                <div class="w-full space-y-1.5">
+                    <div class="flex justify-between items-center text-[10px] font-bold text-slate-400 px-1 uppercase tracking-wide">
+                        <span id="weather-indicator" class="${isWeatherRainy ? 'text-blue-400' : 'text-amber-400'}">
+                            ${isWeatherRainy ? '⛈️ Weather: Rainy' : '☀️ Weather: Sunny'}
+                        </span>
                         <span class="text-teal-400">LADDER HEIGHT: ${appState.altitudeStep}/10</span>
                     </div>
                     
-                    <!-- COMPACTED VIEWPORT ANIMATION CANVAS -->
                     <div class="diorama-container">
                         <div id="lightning-sheet" class="lightning-sheet ${isWeatherRainy ? 'lightning-active' : ''}"></div>
                         <div id="rain-particle-field" class="weather-layer"></div>
@@ -248,7 +259,6 @@
                         <div class="paper-house-main"><div class="shingle-roof"></div><div class="diorama-window-glow"></div></div>
                         <div class="diorama-ladder"></div>
 
-                        <!-- CHARACTER WITH SEPARATE ARMS & LEGS -->
                         <div id="puppet-actor" class="actor-puppet-node">
                             <div class="puppet-body">
                                 <div class="puppet-head"></div>
@@ -263,31 +273,28 @@
                     </div>
                 </div>
 
-                <!-- Active Card Tracking Info Layer -->
-                <div class="glass-panel px-4 py-3 flex justify-between items-center">
+                <div class="glass-panel px-4 py-2.5 flex justify-between items-center">
                     <div>
-                        <h2 class="text-lg font-black text-slate-100">${activeQuestion.bookName || 'Quest'}</h2>
+                        <h2 class="text-md font-black text-slate-100 tracking-tight">${activeQuestion.bookName || 'Quest'}</h2>
                         <span class="text-[10px] text-slate-400">Question ${questionIndex + 1}/${currentQuestions.length}</span>
                     </div>
-                    <div class="text-xl font-bold text-cyan-400 bg-slate-950/60 px-3 py-1 rounded-xl border border-white/5 tabular-nums">
+                    <div class="text-sm font-bold text-cyan-400 bg-slate-950/60 px-2.5 py-1 rounded-lg border border-white/5 tabular-nums">
                         ⏰ <span id="timer-label">${timeRemaining}</span>s
                     </div>
                 </div>
 
-                <!-- Display Box Prompt -->
-                <div class="glass-panel p-4 min-h-[70px] flex items-center justify-center text-center">
-                    <h3 class="text-sm font-bold text-slate-100">${promptStr}</h3>
+                <div class="glass-panel p-3.5 min-h-[64px] flex items-center justify-center text-center">
+                    <h3 id="question-text-field" class="text-sm font-bold text-slate-100 leading-snug">${displayPrompt}</h3>
                 </div>
 
-                <!-- Answer Matrix Grid Box -->
-                <div id="answers-box" class="space-y-2"></div>
+                <div id="answers-box" class="space-y-1.5"></div>
             `;
 
             updateCharacterPosition();
-            renderRainDrops();
+            renderRainEffect();
 
             const matrixBox = document.getElementById('answers-box');
-            optionsArray.forEach((choice, index) => {
+            displayChoices.forEach((choice, index) => {
                 const btn = document.createElement('button');
                 btn.className = "choice-btn animate__animated animate__fadeInUp";
                 btn.innerText = choice;
@@ -298,16 +305,18 @@
             startClock();
         }
 
-        function renderRainDrops() {
+        function renderRainEffect() {
             const field = document.getElementById('rain-particle-field');
-            if (!field || !isWeatherRainy) return;
+            if (!field) return;
             field.innerHTML = "";
-            for (let i = 0; i < 25; i++) {
+            if (!isWeatherRainy) return;
+            
+            for (let i = 0; i < 30; i++) {
                 const drop = document.createElement('div');
                 drop.className = "rain-drop";
                 drop.style.left = `${Math.random() * 110}%`;
                 drop.style.top = `${Math.random() * -20}px`;
-                drop.style.animationDelay = `${Math.random() * 1.2}s`;
+                drop.style.animationDelay = `${Math.random() * 1s}`;
                 drop.style.animationDuration = `${Math.random() * 0.3 + 0.4}s`;
                 field.appendChild(drop);
             }
@@ -317,7 +326,7 @@
             const puppet = document.getElementById('puppet-actor');
             if (!puppet) return;
             let ratio = (appState.altitudeStep - 1) / 9;
-            let bottomPixels = 10 + (ratio * 110); // Dynamically scaled to fit new shorter window frame
+            let bottomPixels = 10 + (ratio * 105); // Scales smoothly to fit perfectly inside the custom shorter frame container boundaries
             puppet.style.bottom = `${bottomPixels}px`;
         }
 
@@ -341,22 +350,19 @@
                 try { document.getElementById('sfx-correct').play(); } catch(e){}
                 buttonRef.className = "choice-btn bg-emerald-600 border-emerald-400 text-white font-bold";
                 
-                // Add class to start limb moving climbing cycles
                 const puppet = document.getElementById('puppet-actor');
                 if (puppet) puppet.classList.add('climb-active');
                 
                 appState.altitudeStep = Math.min(10, appState.altitudeStep + 1);
-                appState.gold += 10;
+                appState.gold += 15;
                 saveState();
-                
-                // Triggers smooth CSS height change over 800ms path interval
                 updateCharacterPosition();
 
                 setTimeout(() => {
                     if (puppet) puppet.classList.remove('climb-active');
                     questionIndex++;
                     loadQuestionNode();
-                }, 1000);
+                }, 900);
             } else {
                 try { document.getElementById('sfx-wrong').play(); } catch(e){}
                 buttonRef.className = "choice-btn bg-rose-600 border-rose-400 text-white animate__animated animate__shakeX";
@@ -367,7 +373,7 @@
         function handleFailure() {
             appState.altitudeStep = Math.max(1, appState.altitudeStep - 1);
             saveState();
-            questionIndex = 0; // Standard original rule restart pathing loop
+            questionIndex = 0; // Loops back to start structural ladder checkpoint segment
             loadQuestionNode();
         }
 
@@ -381,12 +387,12 @@
                 loadQuestionNode();
             } else if (type === 'half') {
                 const btns = document.getElementById('answers-box').getElementsByTagName('button');
-                let count = 0;
+                let targeted = 0;
                 for (let i = 0; i < btns.length; i++) {
-                    if (i !== activeQuestion.correct && count < 2) {
-                        btns[i].style.opacity = "0.2";
+                    if (i !== activeQuestion.correct && targeted < 2) {
+                        btns[i].style.opacity = "0.15";
                         btns[i].style.pointerEvents = "none";
-                        count++;
+                        targeted++;
                     }
                 }
             } else if (type === 'elixir') {
@@ -399,22 +405,19 @@
         function changeLanguage() {
             appState.lang = appState.lang === 'en' ? 'tw' : 'en';
             saveState();
-            document.getElementById('lang-indicator').innerText = appState.lang === 'en' ? "English" : "Twi";
             
-            // Instantly re-render the current view to apply language string arrays
-            if (currentQuestions.length > 0 && questionIndex < currentQuestions.length) {
-                clearInterval(countdownTimer);
+            // Check if user is currently inside a quiz segment or on the main dashboard menu view
+            if (currentQuestions.length > 0 && activeQuestion) {
+                let displayPrompt = (appState.lang === 'tw' && activeQuestion.q_twi) ? activeQuestion.q_twi : activeQuestion.q;
+                let displayChoices = (appState.lang === 'tw' && activeQuestion.a_tw) ? activeQuestion.a_tw : activeQuestion.a;
                 
-                let promptStr = (appState.lang === 'tw' && activeQuestion.q_twi) ? activeQuestion.q_twi : activeQuestion.q;
-                let optionsArray = (appState.lang === 'tw' && activeQuestion.a_tw) ? activeQuestion.a_tw : activeQuestion.a;
-                
-                const promptHeader = document.querySelector('#app-viewport h3');
-                if (promptHeader) promptHeader.innerText = promptStr;
+                const questionHeader = document.getElementById('question-text-field');
+                if (questionHeader) questionHeader.innerText = displayPrompt;
                 
                 const matrixBox = document.getElementById('answers-box');
                 if (matrixBox) {
                     matrixBox.innerHTML = "";
-                    optionsArray.forEach((choice, index) => {
+                    displayChoices.forEach((choice, index) => {
                         const btn = document.createElement('button');
                         btn.className = "choice-btn";
                         btn.innerText = choice;
@@ -422,25 +425,49 @@
                         matrixBox.appendChild(btn);
                     });
                 }
-                startClock();
+                
+                const weatherIndicator = document.getElementById('weather-indicator');
+                if (weatherIndicator) {
+                    weatherIndicator.innerText = isWeatherRainy 
+                        ? (appState.lang === 'en' ? '⛈️ Weather: Rainy' : '⛈️ Ewiem: Nsuo tɔ')
+                        : (appState.lang === 'en' ? '☀️ Weather: Sunny' : '☀️ Ewiem: Ewia bɔ');
+                }
             } else {
                 drawMainMenu();
             }
+            updateLanguageUINabels();
+        }
+
+        function updateLanguageUINabels() {
+            document.querySelectorAll('.lang-text').forEach(el => {
+                let val = appState.lang === 'tw' ? el.getAttribute('data-tw') : el.getAttribute('data-en');
+                if (val) el.innerText = val;
+            });
+            document.querySelectorAll('[data-en]').forEach(el => {
+                if(el.tagName === 'H3' || el.tagName === 'P' || el.tagName === 'H1') {
+                    let val = appState.lang === 'tw' ? el.getAttribute('data-tw') : el.getAttribute('data-en');
+                    if (val) el.innerText = val;
+                }
+            });
         }
 
         function renderVictoryScreen() {
             document.getElementById('app-viewport').innerHTML = `
-                <div class="glass-panel p-6 text-center space-y-4">
-                    <h2 class="text-xl font-black text-amber-400">🎉 PATHWAY CLEARED!</h2>
-                    <p class="text-xs text-slate-300">Excellent work climbing to safety.</p>
-                    <button onclick="backToMainMenu()" class="w-full bg-blue-600 p-3 rounded-xl font-bold text-xs uppercase">Return to Main Menu</button>
+                <div class="glass-panel p-6 text-center space-y-4 animate__animated animate__zoomIn">
+                    <h2 class="text-xl font-black text-amber-400" data-en="🎉 PATHWAY CLEARED!" data-tw="🎉 WƆAWIE AKWANTUO NO!">🎉 PATHWAY CLEARED!</h2>
+                    <p class="text-xs text-slate-300" data-en="Excellent work climbing to safety." data-tw="Kɔ so kura gyidi no mu yie.">Excellent work climbing to safety.</p>
+                    <button onclick="backToMainMenu()" class="w-full bg-blue-600 hover:bg-blue-500 p-3 rounded-xl font-bold text-xs uppercase tracking-wider">
+                        Return to Main Menu
+                    </button>
                 </div>
             `;
+            updateLanguageUINabels();
         }
 
         function backToMainMenu() {
             clearInterval(countdownTimer);
             currentQuestions = [];
+            activeQuestion = null;
             drawMainMenu();
         }
 
