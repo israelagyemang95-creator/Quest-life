@@ -3,63 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bible Quest: Ultimate Edition</title>
+    <title>Bible Quest: Cosmic Arcade Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
-        #bg-overlay { position: fixed; inset: 0; background-color: #090d16; background-size: cover; background-position: center; transition: all 1.2s ease; z-index: 0; }
-        #bg-tint { position: fixed; inset: 0; background: linear-gradient(180deg, rgba(15, 23, 42, 0.8), rgba(2, 6, 23, 0.98)); z-index: 1; }
-        .glass-card { background: rgba(255, 255, 255, 0.06); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; color: white; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
-        .btn-choice { width: 100%; text-align: left; padding: 1.1rem 1.4rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); font-weight: 600; color: #f1f5f9; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; position: relative; overflow: hidden; }
-        .btn-choice:hover { background: rgba(255, 255, 255, 0.12); border-color: #6366f1; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(99, 102, 241, 0.15); }
+        #bg-overlay { position: fixed; inset: 0; background-color: #05070c; z-index: 0; }
+        #bg-tint { position: fixed; inset: 0; background: radial-gradient(circle at center, rgba(16, 24, 48, 0.4) 0%, rgba(2, 4, 10, 0.95) 100%); z-index: 1; }
+        .glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 28px; color: white; box-shadow: 0 24px 50px rgba(0,0,0,0.4); }
         
-        @keyframes clockAlarm {
-            0% { transform: scale(1) rotate(0deg); color: #f59e0b; }
-            25% { transform: scale(1.08) rotate(-6deg); color: #ef4444; }
-            50% { transform: scale(1.08) rotate(6deg); color: #ef4444; }
-            75% { transform: scale(1.08) rotate(-6deg); color: #ef4444; }
-            100% { transform: scale(1) rotate(0deg); color: #ef4444; }
+        /* The Dynamic Choice Buttons */
+        .btn-choice { width: 100%; text-align: left; padding: 1.1rem 1.4rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.03); font-weight: 600; color: #f1f5f9; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; position: relative; }
+        .btn-choice:hover { background: rgba(255, 255, 255, 0.09); transform: translateY(-2px); border-color: rgba(255,255,255,0.2); }
+        
+        /* 🌈 RAINBOW SUCCESS GRADIENT ANIMATION */
+        @keyframes rainbowBorder {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
-        .alarm-active { animation: clockAlarm 0.4s infinite; border-color: #ef4444 !important; background: rgba(239, 68, 68, 0.1) !important; }
-        .progress-bar-fill { transition: width 1s linear, background-color 0.5s ease; }
+        .rainbow-correct { 
+            background: linear-gradient(270deg, #ff0055, #00ff66, #00ffff, #ffcc00, #ff00ff) !important;
+            background-size: 400% 400% !important;
+            animation: rainbowBorder 3s ease infinite, pulse 0.5s infinite !important;
+            border-color: transparent !important;
+            color: #ffffff !important;
+            font-black: 900 !important;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* ❄️ FULL-SCREEN FREEZE ICE OVERLAY */
+        #frost-overlay { position: fixed; inset: 0; background: rgba(135, 206, 250, 0.15); backdrop-filter: blur(3px) contrast(1.2); border: 8px solid rgba(173, 216, 230, 0.4); z-index: 40; pointer-events: none; opacity: 0; transition: opacity 0.4s ease; box-shadow: inset 0 0 100px rgba(0,220,255,0.3); }
+        .ice-active { opacity: 1 !important; }
+
+        /* 🛡️ SHIELD BARRIER OVERLAY */
+        #shield-overlay { position: fixed; inset: 0; border: 10px solid rgba(245, 158, 11, 0.3); z-index: 40; pointer-events: none; opacity: 0; transition: opacity 0.4s ease; box-shadow: inset 0 0 80px rgba(245,158,11,0.15); }
+        .shield-active { opacity: 1 !important; }
+
+        @keyframes alarmClash {
+            0%, 100% { transform: scale(1); border-color: rgba(255,255,255,0.1); }
+            50% { transform: scale(1.05); border-color: #ef4444; background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        }
+        .alarm-triggered { animation: alarmClash 0.5s infinite; }
     </style>
 </head>
-<body class="p-4 min-h-screen flex flex-col items-center justify-start text-white overflow-x-hidden font-sans selection:bg-indigo-500 select-none">
+<body class="p-4 min-h-screen flex flex-col items-center justify-start text-white overflow-x-hidden font-sans select-none">
     
     <div id="bg-overlay"></div>
     <div id="bg-tint"></div>
-    <audio id="bg-music" loop src="background.mp3"></audio>
 
+    <!-- Screen Effect FX Layers -->
+    <div id="frost-overlay"></div>
+    <div id="shield-overlay"></div>
+
+    <!-- Top Status Control Bar Layout -->
     <div class="fixed top-4 left-4 right-4 flex justify-between items-center z-50 max-w-md mx-auto w-full px-2">
-        <button onclick="exitToMenu()" id="back-btn" class="hidden bg-slate-900/90 backdrop-blur border border-white/10 text-white px-4 py-2 rounded-full font-bold text-xs uppercase tracking-wider shadow-xl transition-all hover:bg-slate-800">
+        <button onclick="exitToMenu()" id="back-btn" class="hidden bg-slate-900/90 backdrop-blur border border-white/10 text-white px-4 py-2 rounded-full font-bold text-xs uppercase tracking-wider shadow-xl transition-all">
             🚪 Map Hub
         </button>
         <div class="flex gap-2 ml-auto">
-            <button onclick="toggleLanguage()" class="bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white px-4 py-2 rounded-full font-bold text-xs uppercase shadow-md transition-all">
+            <button onclick="toggleLanguage()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-full font-bold text-xs uppercase shadow-md transition-all">
                 🌐 <span id="lang-label">English</span>
             </button>
             <div id="gold-container" class="bg-slate-900/90 border border-white/10 px-4 py-2 rounded-full shadow-xl flex items-center gap-2 animate__animated">
-                <span class="text-sm">💰</span>
+                <span>💰</span>
                 <span id="gold-val" class="font-black text-amber-400">500</span>
             </div>
         </div>
     </div>
 
+    <!-- MAIN APP CANVAS CONTAINER -->
     <main id="window-canvas" class="w-full max-w-md mt-16 relative z-10 space-y-5 flex flex-col"></main>
+
+    <!-- 🎒 POP-UP POWER-UP MENU INVENTORY MODAL OVERLAY -->
+    <div id="shop-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card w-full max-w-sm p-6 space-y-4 border-indigo-500/30 bg-slate-950/70 animate__animated animate__zoomIn">
+            <div class="flex justify-between items-center border-b border-white/10 pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">🎒</span>
+                    <h3 class="text-md font-black uppercase tracking-wider text-indigo-300">Power-Up Armory</h3>
+                </div>
+                <button onclick="closeShopModal()" class="text-slate-400 hover:text-white font-black text-sm bg-white/5 w-7 h-7 rounded-full flex items-center justify-center">✕</button>
+            </div>
+            
+            <!-- Power Up Grid Matrix -->
+            <div id="modal-shop-grid" class="space-y-2.5 max-h-[350px] overflow-y-auto pr-1"></div>
+            
+            <div class="text-center pt-2">
+                <p class="text-[10px] text-slate-400 font-medium">Equipped items can be deployed during active questions.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOATING ACTION BACKPACK TRIGGER HUB -->
+    <button id="floating-bag-btn" onclick="openShopModal()" class="fixed bottom-6 right-6 z-40 bg-gradient-to-tr from-indigo-600 to-purple-600 border border-white/20 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-all text-2xl animate__animated animate__pulse animate__infinite">
+        🎒
+    </button>
 
     <script src="questions.js"></script>
     <script>
-        let state = JSON.parse(localStorage.getItem('bqUltimateData')) || {
+        let state = JSON.parse(localStorage.getItem('bqUltimateDataV3')) || {
             gold: 500,
             lang: 'en',
             unlockedModes: ['nt', 'ot', 'mix', 'egw', 'master'],
-            perks: { freeze: 2, half: 2, skip: 2 },
+            perks: { freeze: 2, half: 2, skip: 2, shield: 1, elixir: 2 },
             streak: 0
         };
-
-        // Emergency Fallback Integrity Check
-        if (!state.perks) state.perks = { freeze: 2, half: 2, skip: 2 };
-        ['freeze', 'half', 'skip'].forEach(p => { if(state.perks[p] === undefined || isNaN(state.perks[p])) state.perks[p] = 2; });
 
         let currentCampaign = "";
         let levelIndex = 0;
@@ -72,131 +120,198 @@
         let maxSeconds = 20;
         let isClockFrozen = false;
         let inputBlocked = false;
+        let isShieldActive = false;
+
+        // Sound Synthesis Nodes
+        let audioCtx = null;
+        let ambientWindNode = null;
 
         function saveState() {
-            localStorage.setItem('bqUltimateData', JSON.stringify(state));
+            localStorage.setItem('bqUltimateDataV3', JSON.stringify(state));
             document.getElementById('gold-val').innerText = state.gold;
         }
 
-        // Beautiful Game Sound FX Engine (Synthesized Browser Audio Context)
-        function playSoundFX(type) {
+        // 🍃 Dynamic Smooth Ambient White-Noise Resonator
+        function initAmbientSoundTrack() {
+            if (audioCtx) return;
             try {
-                let ctx = new (window.AudioContext || window.webkitAudioContext)();
-                let osc = ctx.createOscillator();
-                let gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-
-                if (type === 'correct') {
-                    // Success Melodic Chime Arpeggio
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
-                    gain.gain.setValueAtTime(0.05, ctx.currentTime);
-                    osc.start();
-                    osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); // E5
-                    osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2); // G5
-                    osc.stop(ctx.currentTime + 0.35);
-                } else if (type === 'wrong') {
-                    // Harsh Bass Failure Buzz
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(130.81, ctx.currentTime); // C3
-                    gain.gain.setValueAtTime(0.08, ctx.currentTime);
-                    osc.start();
-                    osc.frequency.linearRampToValueAtTime(80.00, ctx.currentTime + 0.3);
-                    osc.stop(ctx.currentTime + 0.35);
-                } else if (type === 'tick') {
-                    // Subtle clock countdown tick
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(880, ctx.currentTime);
-                    gain.gain.setValueAtTime(0.02, ctx.currentTime);
-                    osc.start();
-                    osc.stop(ctx.currentTime + 0.05);
-                } else if (type === 'shop') {
-                    // Crisp coins purchase jingle
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(987.77, ctx.currentTime); // B5
-                    gain.gain.setValueAtTime(0.04, ctx.currentTime);
-                    osc.start();
-                    osc.frequency.setValueAtTime(1318.51, ctx.currentTime + 0.08); // E6
-                    osc.stop(ctx.currentTime + 0.22);
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Create audio procedural brown white-noise buffer source channel script
+                let bufferSize = 2 * audioCtx.sampleRate,
+                    noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate),
+                    output = noiseBuffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    output[i] = Math.random() * 2 - 1;
                 }
-            } catch(e) { console.log("Audio contextual block intercept:", e); }
+
+                let whiteNoise = audioCtx.createBufferSource();
+                whiteNoise.buffer = noiseBuffer;
+                whiteNoise.loop = true;
+
+                // Create a smooth lowpass sound filter path
+                let filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(320, audioCtx.currentTime); // Deep soothing wind humming frequency
+
+                let ambientGain = audioCtx.createGain();
+                ambientGain.gain.setValueAtTime(0.06, audioCtx.currentTime); // Subtle sound presence
+
+                whiteNoise.connect(filter);
+                filter.connect(ambientGain);
+                ambientGain.connect(audioCtx.destination);
+                whiteNoise.start();
+            } catch(e) { console.log(e); }
+        }
+
+        function playSoundFX(type) {
+            if (!audioCtx) return;
+            try {
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.08);
+                } else if (type === 'wrong') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+                }
+            } catch(e){}
+        }
+
+        function openShopModal() {
+            playSoundFX('click');
+            const items = [
+                { id: 'freeze', name: 'Chrono Freeze', desc: 'Pauses active stage timers.', cost: 50, icon: '❄️' },
+                { id: 'half', name: 'Divine 50:50', desc: 'Removes two random wrong choices.', cost: 75, icon: '⚖️' },
+                { id: 'skip', name: 'Prophetic Skip', desc: 'Skips question safely.', cost: 100, icon: '🔮' },
+                { id: 'shield', name: 'Aegis Shield', desc: 'Blocks next coin penalty.', cost: 60, icon: '🛡️' },
+                { id: 'elixir', name: 'Time Elixir', desc: 'Adds +10s to active clock.', cost: 40, icon: '🧪' }
+            ];
+
+            const grid = document.getElementById('modal-shop-grid');
+            grid.innerHTML = "";
+            
+            items.forEach(item => {
+                const isPlaying = (currentCampaign !== "");
+                let actionBtnHTML = "";
+                
+                if (isPlaying) {
+                    // Show "USE" option if they own it, otherwise show cost to purchase on-the-fly
+                    if (state.perks[item.id] > 0) {
+                        actionBtnHTML = `<button onclick="deployPerkDirectly('${item.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-3 py-2 rounded-xl">USE NOW</button>`;
+                    } else {
+                        actionBtnHTML = `<button onclick="buyPerk('${item.id}', ${item.cost})" class="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs px-3 py-1.5 rounded-xl flex flex-col items-center"><span>BUY</span><span class="text-[9px]">${item.cost}💰</span></button>`;
+                    }
+                } else {
+                    // Regular lobby shop view
+                    actionBtnHTML = `<button onclick="buyPerk('${item.id}', ${item.cost})" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-1">${item.cost} 💰</button>`;
+                }
+
+                const card = document.createElement('div');
+                card.className = "flex items-center justify-between p-3 bg-slate-900/60 rounded-2xl border border-white/5";
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl bg-slate-950 p-2 rounded-xl">${item.icon}</span>
+                        <div>
+                            <h4 class="text-xs font-black text-slate-200">${item.name}</h4>
+                            <p class="text-[10px] text-slate-400">${item.desc}</p>
+                            <p class="text-[9px] text-indigo-400 font-bold mt-0.5">Owned: ${state.perks[item.id] || 0}</p>
+                        </div>
+                    </div>
+                    <div>${actionBtnHTML}</div>
+                `;
+                grid.appendChild(card);
+            });
+
+            document.getElementById('shop-modal').classList.remove('hidden');
+        }
+
+        function closeShopModal() {
+            document.getElementById('shop-modal').classList.add('hidden');
+        }
+
+        function buyPerk(id, cost) {
+            if (state.gold >= cost) {
+                state.gold -= cost;
+                state.perks[id] = (state.perks[id] || 0) + 1;
+                saveState();
+                openShopModal();
+            } else {
+                alert("Insufficient gold coin balances!");
+            }
+        }
+
+        function deployPerkDirectly(id) {
+            if (state.perks[id] <= 0 || inputBlocked) return;
+            state.perks[id]--;
+            saveState();
+            closeShopModal();
+
+            if (id === 'freeze') {
+                isClockFrozen = true;
+                document.getElementById('frost-overlay').classList.add('ice-active');
+                const clk = document.getElementById('clock-wrapper');
+                if (clk) clk.className = "text-2xl font-black bg-sky-950 text-sky-400 px-3 py-1.5 rounded-2xl border border-sky-400 animate__animated animate__pulse animate__infinite";
+            } 
+            else if (id === 'half') {
+                const buttons = document.getElementById('choice-matrix').getElementsByTagName('button');
+                let wrongs = [];
+                for(let i=0; i<buttons.length; i++) { if (i !== activeQuestion.correct) wrongs.push(i); }
+                wrongs.sort(() => Math.random() - 0.5).slice(0, 2).forEach(idx => {
+                    buttons[idx].classList.add('animate__animated', 'animate__zoomOut');
+                    setTimeout(() => { buttons[idx].style.opacity = "0"; buttons[idx].style.pointerEvents = "none"; }, 300);
+                });
+            } 
+            else if (id === 'skip') {
+                questionIndex++;
+                loadQuestionNode();
+            } 
+            else if (id === 'shield') {
+                isShieldActive = true;
+                document.getElementById('shield-overlay').classList.add('shield-active');
+            } 
+            else if (id === 'elixir') {
+                secondsLeft = Math.min(maxSeconds, secondsLeft + 10);
+                const clkDigit = document.getElementById('clock-digit');
+                if (clkDigit) clkDigit.innerText = secondsLeft;
+                if (currentCampaign !== "") loadQuestionNode(); // Refresh View
+            }
         }
 
         function renderMenuMap() {
             currentCampaign = "";
             document.getElementById('back-btn').classList.add('hidden');
-            document.getElementById('bg-overlay').style.backgroundImage = "none";
             
             const canvas = document.getElementById('window-canvas');
             canvas.innerHTML = `
                 <div class="text-center space-y-1 animate__animated animate__fadeInDown">
-                    <h1 class="text-4xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 drop-shadow">BIBLE QUEST</h1>
-                    <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Select Your Campaign Route</p>
+                    <h1 class="text-4xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">BIBLE QUEST</h1>
+                    <p class="text-xs text-slate-500 font-bold uppercase tracking-widest">Select Campaign Mode</p>
                 </div>
 
-                <div class="glass-card p-4 space-y-3 border-indigo-500/20 bg-slate-900/40 animate__animated animate__fadeIn">
-                    <div class="flex justify-between items-center border-b border-white/10 pb-2">
-                        <span class="text-xs font-black text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">🛒 Power-Up Armory Shop</span>
-                        <span class="text-[10px] text-slate-400 font-medium">Tap to buy items</span>
-                    </div>
-                    <div class="grid grid-cols-3 gap-2 text-center">
-                        <button onclick="buyPerk('freeze', 50)" class="bg-slate-950/40 p-2.5 rounded-2xl border border-white/5 hover:border-sky-400 transition-all flex flex-col items-center">
-                            <span class="text-xl">❄️</span>
-                            <span class="text-[11px] font-bold mt-1">Freeze</span>
-                            <span class="text-[10px] text-amber-400 font-bold">50 💰</span>
-                            <span class="text-[9px] text-slate-400 mt-1 px-2 py-0.5 bg-slate-950 rounded-full w-full">Stock: ${state.perks.freeze}</span>
-                        </button>
-                        <button onclick="buyPerk('half', 75)" class="bg-slate-950/40 p-2.5 rounded-2xl border border-white/5 hover:border-rose-400 transition-all flex flex-col items-center">
-                            <span class="text-xl">⚖️</span>
-                            <span class="text-[11px] font-bold mt-1">50:50</span>
-                            <span class="text-[10px] text-amber-400 font-bold">75 💰</span>
-                            <span class="text-[9px] text-slate-400 mt-1 px-2 py-0.5 bg-slate-950 rounded-full w-full">Stock: ${state.perks.half}</span>
-                        </button>
-                        <button onclick="buyPerk('skip', 100)" class="bg-slate-950/40 p-2.5 rounded-2xl border border-white/5 hover:border-purple-400 transition-all flex flex-col items-center">
-                            <span class="text-xl">🔮</span>
-                            <span class="text-[11px] font-bold mt-1">Skip</span>
-                            <span class="text-[10px] text-amber-400 font-bold">100 💰</span>
-                            <span class="text-[9px] text-slate-400 mt-1 px-2 py-0.5 bg-slate-950 rounded-full w-full">Stock: ${state.perks.skip}</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="space-y-3 max-h-[340px] overflow-y-auto pr-1 animate__animated animate__fadeInUp">
-                    <button onclick="launchCampaign('nt')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-indigo-500 transition-all">
+                <div class="space-y-3 max-h-[420px] overflow-y-auto pr-1 animate__animated animate__fadeInUp">
+                    <button onclick="launchCampaign('nt')" class="w-full p-5 glass-card text-left flex justify-between items-center hover:border-indigo-500 transition-all">
                         <div><h3 class="text-md font-black text-indigo-300">Phase 1: New Testament</h3><p class="text-[11px] text-slate-400">Gospels & Letters</p></div>
                         <span class="text-xl">⚡</span>
                     </button>
-                    <button onclick="launchCampaign('ot')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-emerald-500 transition-all">
+                    <button onclick="launchCampaign('ot')" class="w-full p-5 glass-card text-left flex justify-between items-center hover:border-emerald-500 transition-all">
                         <div><h3 class="text-md font-black text-emerald-300">Phase 2: Old Testament</h3><p class="text-[11px] text-slate-400">Law & Hebrew History</p></div>
                         <span class="text-xl">📜</span>
                     </button>
-                    <button onclick="launchCampaign('mix')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-purple-500 transition-all">
+                    <button onclick="launchCampaign('mix')" class="w-full p-5 glass-card text-left flex justify-between items-center hover:border-purple-500 transition-all">
                         <div><h3 class="text-md font-black text-purple-300">Phase 3: Grand Mixture</h3><p class="text-[11px] text-slate-400">Full Randomized Journey</p></div>
                         <span class="text-xl">🌀</span>
                     </button>
-                    <button onclick="launchCampaign('egw')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-amber-400 transition-all">
-                        <div><h3 class="text-md font-black text-amber-300">Phase 4: E.G. White Writings <span class="text-[10px] text-emerald-400 bg-emerald-950 px-1.5 py-0.5 rounded font-bold ml-1">DEV</span></h3><p class="text-[11px] text-slate-400">Prophetic History Insights</p></div>
-                        <span class="text-xl">✒️</span>
-                    </button>
-                    <button onclick="launchCampaign('master')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-red-500 transition-all">
-                        <div><h3 class="text-md font-black text-red-400">Phase 5: Mastery Mode <span class="text-[10px] text-emerald-400 bg-emerald-950 px-1.5 py-0.5 rounded font-bold ml-1">DEV</span></h3><p class="text-[11px] text-slate-400">Hyper Speed: 5-Second Blitz Clock!</p></div>
-                        <span class="text-xl">🔥</span>
-                    </button>
                 </div>
             `;
-        }
-
-        function buyPerk(perkName, cost) {
-            if (state.gold >= cost) {
-                state.gold -= cost;
-                state.perks[perkName]++;
-                saveState();
-                playSoundFX('shop');
-                renderMenuMap();
-            } else {
-                alert("Not enough coins! Play campaigns to earn rewards.");
-            }
         }
 
         function launchCampaign(mode) {
@@ -207,17 +322,13 @@
             
             if (mode === 'nt') activePool = quizDatabase.filter(b => b.group === 'NT');
             else if (mode === 'ot') activePool = quizDatabase.filter(b => b.group === 'OT');
-            else if (mode === 'egw') activePool = quizDatabase.filter(b => b.group === 'EGW');
             else activePool = [...quizDatabase].sort(() => Math.random() - 0.5);
 
             initNewBookTrack();
         }
 
         function initNewBookTrack() {
-            if (levelIndex >= activePool.length) {
-                renderVictoryScreen();
-                return;
-            }
+            if (levelIndex >= activePool.length) { renderVictoryScreen(); return; }
             const targetBook = activePool[levelIndex];
             bookQuestions = [...targetBook.questions].sort(() => Math.random() - 0.5);
             questionIndex = 0;
@@ -225,83 +336,55 @@
         }
 
         function loadQuestionNode() {
-            if (questionIndex >= bookQuestions.length) {
-                levelIndex++;
-                initNewBookTrack();
-                return;
-            }
+            if (questionIndex >= bookQuestions.length) { levelIndex++; initNewBookTrack(); return; }
 
             inputBlocked = false;
             isClockFrozen = false;
-            const targetBook = activePool[levelIndex];
-            document.getElementById('bg-overlay').style.backgroundImage = `url('${targetBook.bg}')`;
+            isShieldActive = false;
+            document.getElementById('frost-overlay').className = "";
+            document.getElementById('shield-overlay').className = "";
 
+            const targetBook = activePool[levelIndex];
             activeQuestion = bookQuestions[questionIndex];
             let tier = activeQuestion.subGroup || "Easy"; 
 
-            // Calculate Dynamic Speed Configuration Values
-            if (currentCampaign === 'master') {
-                maxSeconds = 5;
-            } else {
-                maxSeconds = tier === "Difficult" ? 10 : tier === "Moderate" ? 15 : 20;
-            }
+            maxSeconds = tier === "Difficult" ? 10 : tier === "Moderate" ? 15 : 20;
             secondsLeft = maxSeconds;
 
-            // Determine Difficulty Color Coding Theme
             let tierColorClass = "bg-emerald-500";
-            let tierTextClass = "text-emerald-300 bg-emerald-950/60 border border-emerald-500/20";
-            if (tier === "Moderate") {
-                tierColorClass = "bg-amber-500";
-                tierTextClass = "text-amber-300 bg-amber-950/60 border border-amber-500/20";
-            } else if (tier === "Difficult" || currentCampaign === 'master') {
-                tierColorClass = "bg-rose-500";
-                tierTextClass = "text-rose-400 bg-rose-950/60 border border-rose-500/20";
-            }
+            if (tier === "Moderate") tierColorClass = "bg-amber-500";
+            else if (tier === "Difficult") tierColorClass = "bg-rose-500";
+
+            // LANGUAGE RESOLUTION ENGINE (Fixed Twi Key Reference)
+            let parsedQuestionText = (state.lang === 'tw' && activeQuestion.q_twi) ? activeQuestion.q_twi : activeQuestion.q;
+            let parsedChoicesArray = (state.lang === 'tw' && activeQuestion.a_tw) ? activeQuestion.a_tw : activeQuestion.a;
 
             const canvas = document.getElementById('window-canvas');
             canvas.innerHTML = `
-                <div class="glass-card p-4 space-y-3 animate__animated animate__fadeIn flex flex-col">
+                <div class="glass-card p-4 space-y-3 flex flex-col animate__animated animate__fadeIn">
                     <div class="flex justify-between items-center">
                         <div>
                             <h2 class="text-xl font-black text-slate-100 tracking-wide">${targetBook.name}</h2>
-                            <div class="flex gap-1.5 mt-1">
-                                <span class="text-[9px] uppercase px-2 py-0.5 rounded bg-slate-950 font-bold text-slate-400">Book ${levelIndex + 1}/${activePool.length}</span>
-                                <span class="text-[9px] uppercase px-2 py-0.5 rounded font-black ${tierTextClass}">${currentCampaign==='master'?'Mastery':tier}</span>
-                            </div>
+                            <span class="text-[9px] uppercase px-2 py-0.5 rounded font-black bg-slate-950 text-slate-400 mt-1 inline-block">${tier}</span>
                         </div>
-                        <div id="clock-wrapper" class="text-2xl font-black tracking-tighter tabular-nums text-amber-400 bg-slate-950/50 px-3 py-1.5 rounded-2xl border border-white/10 transition-all">
+                        <div id="clock-wrapper" class="text-2xl font-black tracking-tighter tabular-nums text-amber-400 bg-slate-950/50 px-3 py-1.5 rounded-2xl border border-white/10">
                             ⏰ <span id="clock-digit">${secondsLeft}</span>s
                         </div>
                     </div>
-                    
                     <div class="w-full bg-slate-950/60 h-2 rounded-full overflow-hidden p-0.5 border border-white/5">
-                        <div id="bar-fill" class="h-full rounded-full ${tierColorClass} progress-bar-fill" style="width: 100%"></div>
+                        <div id="bar-fill" class="h-full rounded-full ${tierColorClass}" style="width: 100%; transition: width 1s linear;"></div>
                     </div>
                 </div>
 
-                <div class="glass-card p-6 min-h-[120px] flex items-center justify-center text-center animate__animated animate__zoomIn shadow-2xl relative border-t border-white/10">
-                    <h3 class="text-lg font-bold leading-snug tracking-wide text-slate-100">
-                        ${state.lang === 'en' ? activeQuestion.q : (activeQuestion.q_twi || activeQuestion.q)}
-                    </h3>
+                <div class="glass-card p-6 min-h-[110px] flex items-center justify-center text-center animate__animated animate__zoomIn">
+                    <h3 class="text-lg font-bold leading-snug tracking-wide text-slate-100">${parsedQuestionText}</h3>
                 </div>
 
                 <div id="choice-matrix" class="space-y-2.5"></div>
-
-                <div class="grid grid-cols-3 gap-2 mt-1 text-xs font-bold">
-                    <button onclick="triggerFreezePerk()" class="bg-slate-900/60 border border-sky-500/20 p-2.5 rounded-2xl flex flex-col items-center justify-center gap-0.5 hover:bg-sky-950/40 transition-all text-sky-300">
-                        <span>❄️ Freeze</span><span class="text-[10px] text-slate-400 font-medium">Own: ${state.perks.freeze}</span>
-                    </button>
-                    <button onclick="triggerHalfPerk()" class="bg-slate-900/60 border border-rose-500/20 p-2.5 rounded-2xl flex flex-col items-center justify-center gap-0.5 hover:bg-rose-950/40 transition-all text-rose-300">
-                        <span>⚖️ 50:50</span><span class="text-[10px] text-slate-400 font-medium">Own: ${state.perks.half}</span>
-                    </button>
-                    <button onclick="triggerSkipPerk()" class="bg-slate-900/60 border border-purple-500/20 p-2.5 rounded-2xl flex flex-col items-center justify-center gap-0.5 hover:bg-purple-950/40 transition-all text-purple-300">
-                        <span>🔮 Skip Question</span><span class="text-[10px] text-slate-400 font-medium">Own: ${state.perks.skip}</span>
-                    </button>
-                </div>
             `;
 
             const matrix = document.getElementById('choice-matrix');
-            activeQuestion.a.forEach((opt, idx) => {
+            parsedChoicesArray.forEach((opt, idx) => {
                 const btn = document.createElement('button');
                 btn.className = "btn-choice animate__animated animate__fadeInUp";
                 btn.style.animationDelay = `${idx * 0.04}s`;
@@ -315,22 +398,19 @@
 
         function runCountdownLoop() {
             clearInterval(timerClockInterval);
-            const digit = document.getElementById('clock-digit');
-            const wrapper = document.getElementById('clock-wrapper');
-            const fill = document.getElementById('bar-fill');
-
             timerClockInterval = setInterval(() => {
                 if (isClockFrozen || inputBlocked) return;
                 secondsLeft--;
-                digit.innerText = secondsLeft;
+                
+                const digit = document.getElementById('clock-digit');
+                if (digit) digit.innerText = secondsLeft;
 
-                // Animate progress bar fill smoothly shrinking
-                let pct = (secondsLeft / maxSeconds) * 100;
-                if (fill) fill.style.width = `${pct}%`;
+                const fill = document.getElementById('bar-fill');
+                if (fill) fill.style.width = `${(secondsLeft / maxSeconds) * 100}%`;
 
                 if (secondsLeft <= 4) {
-                    if(wrapper) wrapper.className = "text-2xl font-black tracking-tighter tabular-nums px-3 py-1.5 rounded-2xl border alarm-active";
-                    playSoundFX('tick'); 
+                    const wrap = document.getElementById('clock-wrapper');
+                    if (wrap) wrap.classList.add('alarm-triggered');
                 }
 
                 if (secondsLeft <= 0) {
@@ -346,115 +426,42 @@
             clearInterval(timerClockInterval);
 
             if (selectedIdx === activeQuestion.correct) {
-                clickedElement.className = "btn-choice bg-gradient-to-r from-emerald-600 to-teal-600 border-emerald-400 text-white animate__animated animate__pulse font-black shadow-lg shadow-emerald-900/30";
-                playSoundFX('correct');
+                // Trigger Rainbow Border Class
+                clickedElement.className = "btn-choice rainbow-correct shadow-2xl";
                 
-                let addedGold = currentCampaign === 'master' ? 40 : 15;
-                state.gold += addedGold;
+                state.gold += 15;
                 state.streak++;
-
-                let note = "";
-                if (state.streak % 5 === 0) { state.perks.freeze++; note = " ❄️ Bonus Freeze Added!"; }
-                if (state.streak % 8 === 0) { state.perks.half++; note = " ⚖️ Bonus 50:50 Added!"; }
-
-                const floatNotify = document.createElement('div');
-                floatNotify.className = "text-center text-sm font-black text-emerald-400 animate__animated animate__bounceIn mt-2 drop-shadow";
-                floatNotify.innerText = `Correct! +${addedGold} Coins${note}`;
-                document.getElementById('window-canvas').appendChild(floatNotify);
-
-                questionIndex++;
                 saveState();
-                setTimeout(loadQuestionNode, 1300);
+                setTimeout(loadQuestionNode, 1500);
             } else {
-                clickedElement.className = "btn-choice bg-gradient-to-r from-rose-600 to-red-700 border-rose-400 text-white animate__animated animate__shakeX font-black shadow-lg shadow-rose-900/40";
+                clickedElement.className = "btn-choice bg-rose-600 border-rose-400 text-white animate__animated animate__shakeX font-bold shadow-lg";
                 playSoundFX('wrong');
-                setTimeout(handleFailurePenalty, 1100);
+                setTimeout(handleFailurePenalty, 1200);
             }
         }
 
         function handleFailurePenalty() {
             clearInterval(timerClockInterval);
             state.streak = 0;
-            state.gold = Math.max(0, state.gold - 20); 
-            saveState();
 
-            // 🚨 JUICY FEEDBACK: Shake the Gold Counter HUD box in Red
-            const goldHUD = document.getElementById('gold-container');
-            if (goldHUD) {
-                goldHUD.classList.add('animate__shakeX', 'border-red-500', 'bg-red-950/80');
-                setTimeout(() => {
-                    goldHUD.classList.remove('animate__shakeX', 'border-red-500', 'bg-red-950/80');
-                }, 1000);
+            if (isShieldActive) {
+                alert("🛡️ Aegis Shield Blocked Your Coin Penalty! Shuffling book now.");
+            } else {
+                state.gold = Math.max(0, state.gold - 20);
+                saveState();
+                
+                const goldHUD = document.getElementById('gold-container');
+                if (goldHUD) {
+                    goldHUD.classList.add('animate__shakeX', 'bg-red-950/80');
+                    setTimeout(() => goldHUD.classList.remove('animate__shakeX', 'bg-red-950/80'), 800);
+                }
+                alert("❌ Incorrect! 20 Coins deducted. Book shuffled!");
             }
 
-            alert("❌ Incorrect! 20 Coins deducted. Book shuffled!");
-            
             const targetBook = activePool[levelIndex];
             bookQuestions = [...targetBook.questions].sort(() => Math.random() - 0.5);
             questionIndex = 0; 
             loadQuestionNode();
-        }
-
-        function triggerFreezePerk() {
-            if (isClockFrozen || state.perks.freeze <= 0 || inputBlocked) return;
-            state.perks.freeze--;
-            isClockFrozen = true;
-            saveState();
-            playSoundFX('shop');
-            
-            const clk = document.getElementById('clock-wrapper');
-            if (clk) {
-                clk.style.borderColor = "#0ea5e9";
-                clk.style.color = "#38bdf8";
-                clk.innerHTML = "❄️ FROZEN";
-            }
-        }
-
-        function triggerHalfPerk() {
-            if (state.perks.half <= 0 || inputBlocked) return;
-            state.perks.half--;
-            saveState();
-            playSoundFX('shop');
-            
-            const matrix = document.getElementById('choice-matrix');
-            const buttons = matrix.getElementsByTagName('button');
-            let wrongIndices = [];
-            for(let i=0; i<buttons.length; i++) {
-                if (i !== activeQuestion.correct) wrongIndices.push(i);
-            }
-            wrongIndices.sort(() => Math.random() - 0.5).slice(0, 2).forEach(idx => {
-                buttons[idx].classList.add('animate__animated', 'animate__fadeOutDown');
-                setTimeout(() => {
-                    buttons[idx].style.opacity = "0";
-                    buttons[idx].style.pointerEvents = "none";
-                }, 400);
-            });
-        }
-
-        function triggerSkipPerk() {
-            if (state.perks.skip <= 0 || inputBlocked) return;
-            state.perks.skip--;
-            saveState();
-            playSoundFX('shop');
-            questionIndex++; 
-            loadQuestionNode();
-        }
-
-        function renderVictoryScreen() {
-            const canvas = document.getElementById('window-canvas');
-            canvas.innerHTML = `
-                <div class="glass-card p-8 text-center space-y-6 animate__animated animate__backInDown border border-amber-500/30">
-                    <h1 class="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-yellow-200">🏆 ROUTE CLEARED</h1>
-                    <p class="text-xs text-slate-300 tracking-wide leading-relaxed">Splendid! You successfully mastered this campaign path line route option completely.</p>
-                    <div class="bg-slate-950/60 p-4 rounded-2xl border border-white/5 shadow-inner">
-                        <p class="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Saved Coin Balance Balance</p>
-                        <p class="text-3xl font-black text-amber-400 mt-1">💰 ${state.gold}</p>
-                    </div>
-                    <button onclick="exitToMenu()" class="w-full bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-600 p-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:opacity-90 shadow-xl transition-all">
-                        Return to Map Selection
-                    </button>
-                </div>
-            `;
         }
 
         function toggleLanguage() {
@@ -474,7 +481,7 @@
             saveState();
             renderMenuMap();
             document.body.addEventListener('click', () => {
-                document.getElementById('bg-music').play().catch(()=>{});
+                initAmbientSoundTrack();
             }, { once: true });
         };
     </script>
