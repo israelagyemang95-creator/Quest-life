@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bible Quest: Arcade Horizon 3D</title>
+    <title>Bible Quest: Claymation Horizon</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
-        #bg-overlay { position: fixed; inset: 0; background-color: #030712; z-index: 0; }
-        #bg-tint { position: fixed; inset: 0; background: radial-gradient(circle at center, rgba(15, 23, 42, 0.3) 0%, rgba(2, 4, 10, 0.98) 100%); z-index: 1; }
+        #bg-overlay { position: fixed; inset: 0; background-color: #070a13; z-index: 0; }
+        #bg-tint { position: fixed; inset: 0; background: radial-gradient(circle at center, rgba(20, 25, 40, 0.4) 0%, rgba(3, 5, 12, 0.98) 100%); z-index: 1; }
         .glass-card { background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; color: white; }
         
         .btn-choice { width: 100%; text-align: left; padding: 1.1rem 1.4rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.03); font-weight: 600; color: #f1f5f9; transition: all 0.2s ease; position: relative; }
         
-        /* 🌈 LIQUID AURORA GLOW PATHWAY */
         @keyframes auroraFlow {
             0% { background-position: 0% 50%; filter: hue-rotate(0deg); }
             50% { background-position: 100% 50%; filter: hue-rotate(180deg); }
@@ -30,115 +29,160 @@
             box-shadow: 0 0 20px rgba(0, 240, 255, 0.4) !important;
         }
 
-        /* ❄️ FULL-SCREEN DISTRIBUTED FREEZER PHYSICS */
         #frost-frame { position: fixed; inset: 0; border: 14px solid rgba(56, 189, 248, 0.45); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 80px rgba(14, 165, 233, 0.35); }
         .frost-active { opacity: 1 !important; }
-        .snowflake { position: fixed; top: -5%; color: #e0f2fe; pointer-events: none; z-index: 45; animation: fall linear infinite; filter: drop-shadow(0 0 4px rgba(255,255,255,0.5)); }
+        .snowflake { position: fixed; top: -5%; color: #e0f2fe; pointer-events: none; z-index: 45; animation: fall linear infinite; }
         @keyframes fall {
             0% { top: -5%; transform: translateX(0) rotate(0deg); }
             50% { transform: translateX(30px) rotate(180deg); }
             100% { top: 105%; transform: translateX(-15px) rotate(360deg); }
         }
 
-        /* 🏔️ HIGH-FIDELITY 3D SIMULATED VIEWPORT STAGE */
-        .viewport-3d { 
+        /* 📻 DIORAMA STAGE WITH TILT-SHIFT (Inspired by 1000601646.jpg) */
+        .viewport-diorama { 
             position: relative; 
             width: 100%; 
-            height: 220px; 
-            border-radius: 24px; 
+            height: 240px; 
+            border-radius: 28px; 
             overflow: hidden; 
-            border: 1px solid rgba(255,255,255,0.12); 
-            perspective: 800px;
-            box-shadow: inset 0 0 40px rgba(0,0,0,0.9);
+            border: 2px solid rgba(255,255,255,0.1); 
+            perspective: 1000px;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.85), 0 20px 40px rgba(0,0,0,0.5);
+            background: #11141d;
         }
 
-        /* Sky Day/Night Cycle Shaders */
-        .skybox-3d {
+        /* Ambient Depth of Field Blur on Background Elements */
+        .diorama-backdrop {
             position: absolute;
             inset: 0;
-            transition: background 3s ease-in-out;
+            filter: blur(3px); /* Dynamic blur mimics the camera optics seen in the reference photo */
+            transform: scale(1.05);
             z-index: 0;
+            transition: background 3s ease-in-out;
         }
-        
-        /* Interactive Landscape Objects */
-        .cloud-3d { position: absolute; background: white; border-radius: 50%; filter: blur(4px); opacity: 0.25; animation: drift 25s linear infinite; }
-        @keyframes drift { 0% { transform: translateX(-150px); } 100% { transform: translateX(450px); } }
 
-        /* 3D Deep Depth Cliff Real Estate */
-        .cliff-face {
+        /* Soft Papercraft Style Clouds */
+        .puff-cloud {
             position: absolute;
-            right: -20px;
-            bottom: -40px;
-            width: 180px;
-            height: 300px;
-            background: linear-gradient(135deg, #2c3545 0%, #111622 100%);
-            transform: rotateY(-35deg) rotateX(15deg);
-            border-left: 6px solid #475569;
-            box-shadow: -15px 0 30px rgba(0,0,0,0.6);
-            z-index: 10;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 99px;
+            filter: blur(6px);
+            animation: craftDrift 40s linear infinite;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
         }
+        @keyframes craftDrift { 0% { transform: translateX(-150px); } 100% { transform: translateX(500px); } }
 
-        .rope-3d {
+        /* 🪜 THE LADDER / CLIMBING TRACK */
+        .ladder-track {
             position: absolute;
             right: 85px;
-            top: -20px;
-            width: 4px;
-            height: 260px;
-            background: repeating-linear-gradient(0deg, #78350f, #78350f 4px, #451a03 4px, #451a03 8px);
-            box-shadow: 2px 4px 6px rgba(0,0,0,0.4);
+            top: -10px;
+            width: 24px;
+            height: 270px;
             z-index: 15;
-            transform-origin: top center;
-            animation: ropeSway 4s ease-in-out infinite;
+            background: repeating-linear-gradient(0deg, transparent, transparent 18px, #5c4033 18px, #5c4033 22px);
+            border-left: 4px solid #4a3329;
+            border-right: 4px solid #4a3329;
+            box-shadow: -5px 10px 15px rgba(0,0,0,0.4);
         }
-        @keyframes ropeSway { 0%, 100% { transform: rotate(0.5deg); } 50% { transform: rotate(-0.5deg); } }
 
-        /* 🏃 KINEMATIC ADVANCED CHARACTER ENGINE */
-        .climber-token { position: absolute; z-index: 25; transition: bottom 0.8s cubic-bezier(0.25, 1, 0.5, 1), right 0.8s ease; }
-        .sprite-3d { position: relative; width: 32px; height: 50px; transform: scale(0.95); }
-        .body-core { position: absolute; top: 12px; left: 8px; width: 14px; height: 22px; background: #2563eb; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.4); }
-        .head-globe { position: absolute; top: 0; left: 9px; width: 12px; height: 12px; background: #fbcfe8; border-radius: 50%; }
+        /* 🏔️ ISOMETRIC CLAY PAPERCRAFT CLIFF */
+        .clay-cliff {
+            position: absolute;
+            right: -40px;
+            bottom: -50px;
+            width: 170px;
+            height: 320px;
+            background: #2d3a4f;
+            transform: rotateY(-30deg) rotateX(12deg) rotateZ(-2deg);
+            transform-style: preserve-3d;
+            box-shadow: -20px 20px 40px rgba(0,0,0,0.7);
+            z-index: 10;
+            border-left: 8px solid #3e506b;
+        }
+
+        /* Clay Texture Shingles / Layers Overlay */
+        .clay-texture {
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(rgba(255,255,255,0.07) 1px, transparent 0);
+            background-size: 8px 8px;
+            opacity: 0.8;
+        }
+
+        /* 🚶 SMOOTH CHARACTER ANIMATION SYSTEM */
+        .character-node {
+            position: absolute;
+            z-index: 25;
+            transition: bottom 0.9s cubic-bezier(0.4, 0, 0.2, 1), right 0.9s ease;
+        }
+
+        /* Cute Rounded Doll / Sprite (Like the character climbing the roof structure in your sample) */
+        .clay-doll {
+            position: relative;
+            width: 28px;
+            height: 42px;
+        }
+        .doll-head {
+            position: absolute;
+            top: 0; left: 4px;
+            width: 20px; height: 20px;
+            background: #e2aa7d;
+            border-radius: 50%;
+            box-shadow: inset -2px -2px 6px rgba(0,0,0,0.15), 0 4px 6px rgba(0,0,0,0.3);
+            z-index: 5;
+        }
+        /* Hair/Cap element mimicking the round head profile */
+        .doll-cap {
+            position: absolute;
+            top: -2px; left: 2px;
+            width: 24px; height: 14px;
+            background: #b45309;
+            border-radius: 12px 12px 0 0;
+        }
+        .doll-torso {
+            position: absolute;
+            top: 18px; left: 2px;
+            width: 24px; height: 18px;
+            background: #de1d44;
+            border-radius: 6px 6px 4px 4px;
+            box-shadow: 0 4px 5px rgba(0,0,0,0.4);
+        }
+
+        /* Interactive Limbs Moving Up Alternately */
+        .doll-limb { position: absolute; background: #a16207; border-radius: 4px; transform-origin: top center; }
+        .doll-arm-l { top: 20px; left: -2px; width: 4px; height: 12px; }
+        .doll-arm-r { top: 20px; left: 26px; width: 4px; height: 12px; }
+
+        /* Smooth Rhythmic Mechanical Climb States */
+        @keyframes continuousClimb {
+            0%, 100% { transform: translateY(0) scaleX(1); }
+            50% { transform: translateY(-5px) scaleX(0.97); }
+        }
+        .state-climbing {
+            animation: continuousClimb 0.5s infinite linear;
+            .doll-arm-l { animation: armReach 0.5s infinite alternate ease-in-out; }
+            .doll-arm-r { animation: armReach 0.5s infinite alternate-reverse ease-in-out; }
+        }
+        @keyframes armReach { 0% { transform: rotate(-110deg); } 100% { transform: rotate(10deg); } }
+
+        /* Soft Physics Fall Down Sequence */
+        @keyframes floorSlip {
+            0% { transform: translateY(0) rotate(0deg); }
+            15% { transform: translateY(-12px) rotate(-15deg); }
+            100% { transform: translateY(220px) rotate(140deg); opacity: 0; }
+        }
+        .state-falling { animation: floorSlip 1.2s forwards cubic-bezier(0.3, 0.05, 0.7, 0.1) !important; }
+
+        /* Atmospheric Environmental Overlays */
+        .rain-streak { position: absolute; background: rgba(255,255,255,0.15); width: 2px; height: 35px; animation: linearRain 0.5s linear infinite; }
+        @keyframes linearRain { 0% { top: -40px; } 100% { top: 250px; } }
         
-        .limb-bone { position: absolute; background: #475569; transform-origin: top center; border-radius: 4px; }
-        .arm-l { top: 14px; left: 4px; width: 4px; height: 16px; }
-        .arm-r { top: 14px; left: 22px; width: 4px; height: 16px; }
-        .leg-l { top: 32px; left: 8px; width: 5px; height: 18px; }
-        .leg-r { top: 32px; left: 17px; width: 5px; height: 18px; }
-
-        /* Multi-Axis Action States */
-        @keyframes climbAction {
-            0%, 100% { transform: translateY(0) rotate(-4deg); }
-            50% { transform: translateY(-6px) rotate(4deg); }
-        }
-        .animate-climbing {
-            animation: climbAction 0.6s infinite ease-in-out;
-            .arm-l { animation: armSwing 0.6s infinite alternate; }
-            .arm-r { animation: armSwing 0.6s infinite alternate-reverse; }
-            .leg-l { animation: legSwing 0.6s infinite alternate-reverse; }
-            .leg-r { animation: legSwing 0.6s infinite alternate; }
-        }
-        @keyframes armSwing { 0% { transform: rotate(-80deg); } 100% { transform: rotate(30deg); } }
-        @keyframes legSwing { 0% { transform: rotate(40deg); } 100% { transform: rotate(-20deg); } }
-
-        /* Dramatic Sudden Slip Animation */
-        @keyframes fallSlip {
-            0% { transform: translateY(0) rotate(0); }
-            20% { transform: translateY(-10px) rotate(-25deg); }
-            100% { transform: translateY(180px) rotate(90deg); opacity: 0.2; }
-        }
-        .animate-falling { animation: fallSlip 1.1s forwards cubic-bezier(0.36, 0, 0.66, -0.56) !important; }
-
-        /* 🌧️ WEATHER INTERACTIVE COMPONENT SHADERS */
-        .rain-drop { position: absolute; background: linear-gradient(transparent, #38bdf8); width: 1px; height: 20px; opacity: 0.4; animation: rainFall 0.4s linear infinite; }
-        @keyframes rainFall { 0% { top: -20%; } 100% { top: 120%; } }
-        .wind-streak { position: absolute; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent); height: 2px; width: 120px; animation: windBlow 0.6s linear infinite; }
-        @keyframes windBlow { 0% { left: -130px; } 100% { left: 110%; } }
-
-        /* 🛑 OVERLAY NOTIFICATION LAYER */
-        #telemetry-layer { position: absolute; inset: 0; z-index: 35; pointer-events: none; display: flex; items: center; justify-content: center; font-weight: 900; text-transform: uppercase; text-shadow: 0 2px 5px rgba(0,0,0,0.9); }
-        #shield-frame { position: fixed; inset: 0; border: 12px solid rgba(245, 158, 11, 0.5); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 60px rgba(245, 158, 11, 0.25); }
+        #telemetry-box { position: absolute; inset: 0; z-index: 35; pointer-events: none; display: flex; align-items: center; justify-content: center; }
+        #shield-frame { position: fixed; inset: 0; border: 12px solid rgba(245, 158, 11, 0.5); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; }
         .shield-active { opacity: 1 !important; }
-        @keyframes clockPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.1); } }
-        .alarm-on { animation: clockPulse 0.5s infinite; }
+        @keyframes pulseAlert { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); background: rgba(239, 68, 68, 0.15); } }
+        .alarm-on { animation: pulseAlert 0.5s infinite; }
     </style>
 </head>
 <body class="p-4 min-h-screen flex flex-col items-center justify-start text-white overflow-x-hidden font-sans select-none">
@@ -146,16 +190,18 @@
     <div id="bg-overlay"></div>
     <div id="bg-tint"></div>
 
+    <!-- FX Context Canvases -->
     <div id="frost-frame"></div>
     <div id="shield-frame"></div>
     <div id="snow-box"></div>
 
+    <!-- HUD Nav Bar -->
     <div class="fixed top-4 left-4 right-4 flex justify-between items-center z-50 max-w-md mx-auto w-full px-2">
         <button onclick="exitToMenu()" id="back-btn" class="hidden bg-slate-900/95 border border-white/10 text-white px-4 py-2 rounded-full font-bold text-xs uppercase tracking-wider shadow-2xl transition-all">
             🚪 Map Hub
         </button>
         <div class="flex gap-2 ml-auto">
-            <button onclick="toggleLanguage()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-full font-bold text-xs uppercase shadow-md transition-all">
+            <button onclick="toggleLanguage()" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-full font-bold text-xs uppercase shadow-md transition-all">
                 🌐 <span id="lang-label">English</span>
             </button>
             <div id="gold-container" class="bg-slate-900/95 border border-white/10 px-4 py-2 rounded-full shadow-2xl flex items-center gap-2">
@@ -165,14 +211,16 @@
         </div>
     </div>
 
+    <!-- PRIMARY SCREEN REAL ESTATE -->
     <main id="window-canvas" class="w-full max-w-md mt-16 relative z-10 space-y-4 flex flex-col mb-24"></main>
 
-    <div id="shop-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="glass-card w-full max-w-sm p-6 space-y-4 border-indigo-500/30 bg-slate-950/80">
+    <!-- INVENTORY HUB -->
+    <div id="shop-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card w-full max-w-sm p-6 space-y-4 bg-slate-950/90">
             <div class="flex justify-between items-center border-b border-white/10 pb-3">
                 <div class="flex items-center gap-2">
                     <span class="text-xl">🛒</span>
-                    <h3 class="text-sm font-black uppercase tracking-wider text-indigo-300">Purchase Supplies</h3>
+                    <h3 class="text-sm font-black uppercase tracking-wider text-amber-300">Purchase Supplies</h3>
                 </div>
                 <button onclick="closeShopModal()" class="text-slate-400 hover:text-white font-black text-sm bg-white/5 w-7 h-7 rounded-full flex items-center justify-center">✕</button>
             </div>
@@ -180,7 +228,7 @@
         </div>
     </div>
 
-    <button id="lobby-bag-btn" onclick="openShopModal()" class="fixed bottom-6 right-6 z-40 bg-gradient-to-tr from-indigo-600 to-purple-600 border border-white/20 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl text-2xl">
+    <button id="lobby-bag-btn" onclick="openShopModal()" class="fixed bottom-6 right-6 z-40 bg-gradient-to-tr from-amber-600 to-orange-600 border border-white/20 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl text-2xl">
         🎒
     </button>
 
@@ -224,8 +272,7 @@
 
         function playSoundFX(type) {
             initAudioEngine();
-            if (!audioCtx) return;
-            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+            if (!audioCtx || audioCtx.state === 'suspended') return;
             try {
                 let osc = audioCtx.createOscillator();
                 let gain = audioCtx.createGain();
@@ -233,30 +280,25 @@
 
                 if (type === 'correct') {
                     osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-                    osc.start(); osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2);
-                    osc.stop(audioCtx.currentTime + 0.35);
+                    osc.start(); osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); osc.stop(audioCtx.currentTime + 0.3);
                 } else if (type === 'wrong') {
-                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(180, audioCtx.currentTime); gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-                    osc.start(); osc.frequency.linearRampToValueAtTime(60, audioCtx.currentTime + 0.4); osc.stop(audioCtx.currentTime + 0.45);
-                } else if (type === 'perk') {
-                    osc.type = 'triangle'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-                    osc.start(); osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.15); osc.stop(audioCtx.currentTime + 0.2);
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime); gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                    osc.start(); osc.frequency.linearRampToValueAtTime(50, audioCtx.currentTime + 0.5); osc.stop(audioCtx.currentTime + 0.5);
                 } else if (type === 'tick') {
-                    osc.type = 'sine'; osc.frequency.setValueAtTime(880, audioCtx.currentTime); gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
-                    osc.start(); osc.stop(audioCtx.currentTime + 0.04);
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(700, audioCtx.currentTime); gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.03);
                 }
             } catch(e){}
         }
 
         function triggerHUDMessage(text, TailwindColorClass) {
-            const telemetry = document.getElementById('telemetry-layer');
+            const telemetry = document.getElementById('telemetry-box');
             if (!telemetry) return;
             telemetry.innerHTML = `<div class="animate__animated animate__bounceIn text-center text-xs font-black p-3 mx-4 rounded-xl bg-slate-950/95 border ${TailwindColorClass}">${text}</div>`;
             setTimeout(() => { if(telemetry) telemetry.innerHTML = ""; }, 2500);
         }
 
         function openShopModal() {
-            playSoundFX('perk');
             const inventoryItems = [
                 { id: 'freeze', name: 'Chrono Freeze', desc: 'Freezes time context.', cost: 50, icon: '❄️' },
                 { id: 'half', name: 'Divine 50:50', desc: 'Discards two bad items.', cost: 75, icon: '⚖️' },
@@ -274,10 +316,10 @@
                         <span class="text-2xl bg-slate-950 p-2 rounded-xl">${item.icon}</span>
                         <div>
                             <h4 class="text-xs font-black text-slate-200">${item.name}</h4>
-                            <p class="text-[9px] text-indigo-400 font-black">Owned: ${state.perks[item.id] || 0}</p>
+                            <p class="text-[9px] text-amber-400 font-black">Owned: ${state.perks[item.id] || 0}</p>
                         </div>
                     </div>
-                    <button onclick="buyPerk('${item.id}', ${item.cost})" class="bg-indigo-600 hover:bg-indigo-500 font-bold text-xs px-3 py-1.5 rounded-xl text-white">${item.cost} 💰</button>
+                    <button onclick="buyPerk('${item.id}', ${item.cost})" class="bg-amber-600 hover:bg-amber-500 font-bold text-xs px-3 py-1.5 rounded-xl text-white">${item.cost} 💰</button>
                 `;
                 grid.appendChild(row);
             });
@@ -302,21 +344,17 @@
             const canvas = document.getElementById('window-canvas');
             canvas.innerHTML = `
                 <div class="text-center space-y-1 animate__animated animate__fadeInDown">
-                    <h1 class="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">BIBLE QUEST</h1>
-                    <p class="text-xs text-slate-500 font-bold tracking-widest uppercase">Select Campaign Route</p>
+                    <h1 class="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400">BIBLE QUEST</h1>
+                    <p class="text-xs text-slate-500 font-bold tracking-widest uppercase">Select Diorama Horizon</p>
                 </div>
                 <div class="space-y-2.5 animate__animated animate__fadeInUp">
-                    <button onclick="launchCampaign('nt')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-indigo-500 transition-all">
-                        <div><h3 class="text-sm font-black text-indigo-300">Phase 1: New Testament</h3><p class="text-[10px] text-slate-400">Gospels & Epistles Letters</p></div>
-                        <span class="text-lg">⚡</span>
+                    <button onclick="launchCampaign('nt')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-amber-500 transition-all">
+                        <div><h3 class="text-sm font-black text-amber-300">Phase 1: New Testament</h3><p class="text-[10px] text-slate-400">Gospels & Epistles Letters</p></div>
+                        <span class="text-lg">🪜</span>
                     </button>
-                    <button onclick="launchCampaign('ot')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-emerald-500 transition-all">
-                        <div><h3 class="text-sm font-black text-emerald-300">Phase 2: Old Testament</h3><p class="text-[10px] text-slate-400">Torah & Hebrew Chronicles</p></div>
+                    <button onclick="launchCampaign('ot')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-orange-500 transition-all">
+                        <div><h3 class="text-sm font-black text-orange-300">Phase 2: Old Testament</h3><p class="text-[10px] text-slate-400">Torah & Hebrew Chronicles</p></div>
                         <span class="text-lg">📜</span>
-                    </button>
-                    <button onclick="launchCampaign('mix')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-purple-500 transition-all">
-                        <div><h3 class="text-sm font-black text-purple-300">Phase 3: Grand Mixture</h3><p class="text-[10px] text-slate-400">Randomized Biblical Journey</p></div>
-                        <span class="text-lg">🌀</span>
                     </button>
                 </div>
             `;
@@ -328,8 +366,7 @@
             document.getElementById('lobby-bag-btn').classList.add('hidden');
             
             if (mode === 'nt') activePool = quizDatabase.filter(b => b.group === 'NT');
-            else if (mode === 'ot') activePool = quizDatabase.filter(b => b.group === 'OT');
-            else activePool = [...quizDatabase].sort(() => Math.random() - 0.5);
+            else activePool = quizDatabase.filter(b => b.group === 'OT');
 
             initNewBookTrack();
         }
@@ -371,43 +408,36 @@
             canvas.innerHTML = `
                 <div class="w-full space-y-1">
                     <div class="flex justify-between items-center text-[10px] font-bold text-slate-400 px-1">
-                        <span>🌤️ Env: ${currentWeather}</span>
-                        <span class="text-amber-400 font-extrabold tracking-wider">ALTITUDE STEP: ${activityStep}/10 (Next Bonus: +100💰)</span>
+                        <span>🌦️ Environment: ${currentWeather}</span>
+                        <span class="text-amber-400 font-extrabold tracking-wider">LADDER HEIGHT: ${activityStep}/10</span>
                     </div>
                     
-                    <div id="stage-3d" class="viewport-3d">
-                        <div id="sky-environment" class="skybox-3d"></div>
+                    <!-- 📻 MINIATURE DIORAMA VIEWPORT -->
+                    <div id="stage-3d" class="viewport-diorama">
+                        <div id="sky-backdrop" class="diorama-backdrop"></div>
                         <div id="weather-layer" class="absolute inset-0 z-20 pointer-events-none"></div>
                         
-                        <div class="cliff-face">
-                            <svg class="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                                <defs>
-                                    <linearGradient id="rock-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stop-color="#3b475c" />
-                                        <stop offset="100%" stop-color="#0f131c" />
-                                    </linearGradient>
-                                </defs>
-                                <path d="M 0 40 L 40 120 L 10 210 L 80 300 L 0 300 Z" fill="url(#rock-grad)" opacity="0.4"/>
-                                <circle cx="30" cy="80" r="4" fill="#ef4444" />
-                                <circle cx="45" cy="160" r="3" fill="#eab308" />
-                                <circle cx="20" cy="240" r="5" fill="#a855f7" />
-                                <path d="M 5 90 Q 15 85 20 95" stroke="#22c55e" stroke-width="2" fill="none"/>
-                                <path d="M 25 170 Q 35 162 40 175" stroke="#22c55e" stroke-width="2" fill="none"/>
-                            </svg>
+                        <!-- Isometric Clay Structures -->
+                        <div class="clay-cliff">
+                            <div class="clay-texture"></div>
+                            <!-- Layered Decorative Steps -->
+                            <div class="absolute top-10 left-2 w-8 h-8 bg-[#495d7a] rounded" style="transform: translateZ(10px);"></div>
+                            <div class="absolute top-32 left-6 w-6 h-6 bg-[#1f2836] rounded" style="transform: translateZ(20px);"></div>
                         </div>
                         
-                        <div class="rope-3d"></div>
+                        <!-- Smooth Ladder Climbing Structure (Like the side scaffolding in Lumino City) -->
+                        <div class="ladder-track"></div>
 
-                        <div id="telemetry-layer"></div>
+                        <div id="telemetry-box"></div>
 
-                        <div id="actor-token" class="climber-token animate-climbing">
-                            <div class="sprite-3d">
-                                <div class="head-globe"></div>
-                                <div class="body-core"></div>
-                                <div class="limb-bone arm-l"></div>
-                                <div class="limb-bone arm-r"></div>
-                                <div class="limb-bone leg-l"></div>
-                                <div class="limb-bone leg-r"></div>
+                        <!-- CHARACTER DOLL ARMATURE -->
+                        <div id="actor-token" class="character-node state-climbing">
+                            <div class="clay-doll">
+                                <div class="doll-cap"></div>
+                                <div class="doll-head"></div>
+                                <div class="doll-torso"></div>
+                                <div class="doll-limb doll-arm-l"></div>
+                                <div class="doll-limb doll-arm-r"></div>
                             </div>
                         </div>
                     </div>
@@ -458,7 +488,7 @@
                 </div>
             `;
 
-            update3DEnvironment(currentWeather);
+            updateDioramaAtmosphere(currentWeather);
 
             const matrix = document.getElementById('choice-matrix');
             choicesArray.forEach((opt, idx) => {
@@ -477,50 +507,40 @@
             runCountdownLoop();
         }
 
-        // 🎨 TIME & CELESTIAL SKYBOX CONTROLLER
-        function update3DEnvironment(weather) {
-            const sky = document.getElementById('sky-environment');
+        // 🎨 CINEMATIC LIGHTING & ATMOSPHERE ENGINE
+        function updateDioramaAtmosphere(weather) {
+            const backdrop = document.getElementById('sky-backdrop');
             const actor = document.getElementById('actor-token');
             const wLayer = document.getElementById('weather-layer');
 
-            // Sunrise -> Day -> Sunset continuous translation based on tracking progression
+            // Soft lighting gradients matching sunset/sunrise transition curves
             if (activityStep <= 3) {
-                // Vibrant Golden Sunrise Color Profile
-                sky.style.background = "linear-gradient(to bottom, #f59e0b, #ea580c, #1e1b4b)";
+                backdrop.style.background = "linear-gradient(to bottom, #f59e0b, #d97706, #2e1065)"; // Warm Cozy Sunrise
             } else if (activityStep <= 7) {
-                // Clear High Altitude Blue Sky Profile
-                sky.style.background = "linear-gradient(to bottom, #0284c7, #0369a1, #0f172a)";
+                backdrop.style.background = "linear-gradient(to bottom, #38bdf8, #bae6fd, #0f172a)"; // Vibrant Clay Daylight
             } else {
-                // Deep Twilight Purple Sunset Profile
-                sky.style.background = "linear-gradient(to bottom, #701a75, #4a044e, #020617)";
+                backdrop.style.background = "linear-gradient(to bottom, #4c1d95, #701a75, #030712)"; // Soft Craft Sunset
             }
 
-            // Inject drifting background elements
-            sky.innerHTML = `
-                <div class="cloud-3d w-16 h-6 top-6" style="animation-delay: 0s;"></div>
-                <div class="cloud-3d w-24 h-8 top-14" style="animation-delay: -8s;"></div>
+            // Procedural depth cloud cards
+            backdrop.innerHTML = `
+                <div class="puff-cloud w-20 h-7 top-4" style="animation-delay: 0s;"></div>
+                <div class="puff-cloud w-28 h-9 top-16" style="animation-delay: -10s;"></div>
             `;
 
-            // Weather System Overlays
             wLayer.innerHTML = "";
-            if (weather === 'Windy') {
-                for(let i=0; i<6; i++) {
-                    const w = document.createElement('div'); w.className = "wind-streak";
-                    w.style.top = `${Math.random() * 80}%`; w.style.animationDuration = `${Math.random() * 0.4 + 0.4}s`;
-                    wLayer.appendChild(w);
-                }
-            } else if (weather === 'Raining') {
-                for(let i=0; i<15; i++) {
-                    const r = document.createElement('div'); r.className = "rain-drop";
-                    r.style.left = `${Math.random() * 100}%`; r.style.animationDuration = `${Math.random() * 0.2 + 0.4}s`;
+            if (weather === 'Raining') {
+                for(let i=0; i<12; i++) {
+                    const r = document.createElement('div'); r.className = "rain-streak";
+                    r.style.left = `${Math.random() * 100}%`; r.style.animationDuration = `${Math.random() * 0.3 + 0.3}s`;
                     wLayer.appendChild(r);
                 }
             }
 
-            // Scale climber's coordinates up the 3D rope track depending on step number
-            let stepPercent = (activityStep - 1) / (maxActivitySteps - 1);
-            actor.style.right = "72px";
-            actor.style.bottom = `${15 + (stepPercent * 135)}px`;
+            // Position dolly seamlessly up the ladder track
+            let progress = (activityStep - 1) / (maxActivitySteps - 1);
+            actor.style.right = "83px";
+            actor.style.bottom = `${10 + (progress * 150)}px`;
         }
 
         function runCountdownLoop() {
@@ -542,7 +562,7 @@
 
         function triggerInGamePerk(id) {
             if (state.perks[id] <= 0 || inputBlocked) return;
-            state.perks[id]--; saveState(); playSoundFX('perk');
+            state.perks[id]--; saveState();
 
             if (id === 'freeze') {
                 isClockFrozen = true;
@@ -564,7 +584,7 @@
 
         function startSnowingEffect() {
             const box = document.getElementById('snow-box'); box.innerHTML = "";
-            for(let i=0; i<25; i++) {
+            for(let i=0; i<20; i++) {
                 const snow = document.createElement('div'); snow.className = "snowflake"; snow.innerText = "❄️";
                 snow.style.left = `${Math.random() * 100}%`; snow.style.animationDuration = `${Math.random() * 2 + 2}s`;
                 box.appendChild(snow);
@@ -583,7 +603,7 @@
 
                 if (activityStep > maxActivitySteps) {
                     activityStep = 1; state.gold += 100; saveState();
-                    triggerHUDMessage("👑 SUMMIT CONQUERED! +100 COINS BONUS OBTAINED!", "text-amber-400 border-amber-500 bg-amber-950/90");
+                    triggerHUDMessage("👑 HIGHEST PLATFORM REACHED! +100 COINS!", "text-amber-400 border-amber-500 bg-amber-950/90");
                 }
                 questionIndex++; 
                 setTimeout(loadQuestionNode, 1200);
@@ -591,11 +611,10 @@
                 clickedElement.className = "btn-choice bg-rose-600 border-rose-400 text-white animate__animated animate__shakeX";
                 playSoundFX('wrong');
                 
-                // Active dramatic kinematic fall sequence immediately on error
+                // Triggers structural fall animation sequence immediately
                 const actor = document.getElementById('actor-token');
-                if (actor) {
-                    actor.className = "climber-token animate-falling";
-                }
+                if (actor) actor.className = "character-node state-falling";
+                
                 setTimeout(handleFailurePenalty, 1100);
             }
         }
@@ -603,19 +622,19 @@
         function handleFailurePenalty() {
             clearInterval(timerClockInterval);
             state.streak = 0; isClockFrozen = false;
-            activityStep = Math.max(1, activityStep - 2); // Hard sliding drop consequence
+            activityStep = Math.max(1, activityStep - 2);
 
             if (isShieldActive) { 
-                triggerHUDMessage("🛡️ AEGIS SHIELD ABSORB: FALL SUSPENDED!", "text-amber-500 border-amber-500 bg-slate-900/90");
+                triggerHUDMessage("🛡️ SHIELD TRIGGERED: POSITION PROTECTED!", "text-amber-500 border-amber-500 bg-slate-900/90");
             } else {
                 state.gold = Math.max(0, state.gold - 20); saveState();
-                triggerHUDMessage("❌ FALL DAMAGE! -20 COINS & LOST ALTITUDE!", "text-rose-400 border-rose-600 bg-rose-950/90");
+                triggerHUDMessage("❌ LOST GRIP! SLID BACKWARD DOWN THE TRACK!", "text-rose-400 border-rose-600 bg-rose-950/90");
             }
 
             const targetBook = activePool[levelIndex];
             bookQuestions = [...targetBook.questions].sort(() => Math.random() - 0.5);
             questionIndex = 0; 
-            setTimeout(loadQuestionNode, 1500);
+            setTimeout(loadQuestionNode, 1400);
         }
 
         function renderVictoryScreen() {
@@ -623,7 +642,7 @@
             document.getElementById('window-canvas').innerHTML = `
                 <div class="glass-card p-8 text-center space-y-4">
                     <h1 class="text-2xl font-black text-amber-400">🏆 JOURNEY COMPLETE</h1>
-                    <button onclick="exitToMenu()" class="w-full bg-indigo-600 p-3 rounded-xl font-bold text-xs uppercase">Return to Hub</button>
+                    <button onclick="exitToMenu()" class="w-full bg-amber-600 p-3 rounded-xl font-bold text-xs uppercase">Return to Hub</button>
                 </div>
             `;
         }
