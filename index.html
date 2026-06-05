@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bible Quest: Arcade & Sectors Edition</title>
+    <title>Bible Quest: Arcade & Milestones Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
@@ -63,13 +63,10 @@
     <div id="frost-frame"></div>
     <div id="shield-frame"></div>
 
-    <!-- HUD Bar Configured Verbatim -->
+    <!-- Persistent Top HUD Navigation -->
     <div class="fixed top-4 left-4 right-4 flex justify-between items-center z-50 max-w-md mx-auto w-full px-2">
         <button onclick="exitToMenu()" id="back-btn" class="hidden bg-slate-900/95 border border-white/10 text-white px-4 py-2 rounded-full font-bold text-xs uppercase tracking-wider shadow-2xl transition-all">
             🚪 Map Hub
-        </button>
-        <button onclick="viewPhaseSectors()" id="phase-sectors-btn" class="hidden bg-gradient-to-r from-purple-600 to-indigo-600 border border-white/10 text-white px-4 py-2 rounded-full font-bold text-xs uppercase tracking-wider shadow-2xl transition-all">
-            📋 Side Sector Tasks
         </button>
         <div class="flex gap-2 ml-auto">
             <button onclick="toggleLanguage()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-full font-bold text-xs uppercase shadow-md transition-all">
@@ -82,22 +79,10 @@
         </div>
     </div>
 
-    <!-- MAIN INTERACTIVE CANVAS CONTENT WINDOW -->
-    <main id="window-canvas" class="w-full max-w-md mt-16 relative z-10 space-y-4 flex flex-col mb-24"></main>
+    <!-- MAIN APP CANVAS CONTENT CONTAINER -->
+    <main id="window-canvas" class="w-full max-w-md mt-16 relative z-10 space-y-5 flex flex-col mb-28"></main>
 
-    <!-- SIDE SECTOR ACTIVITIES MODAL DRAWER WINDOW -->
-    <div id="sector-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex flex-col p-4 justify-start overflow-y-auto">
-        <div class="w-full max-w-md mx-auto mt-14 mb-6 flex justify-between items-center border-b border-white/10 pb-3">
-            <div>
-                <h2 id="sector-modal-title" class="text-lg font-black text-purple-400">SECTORS EXPLORER</h2>
-                <p class="text-[10px] text-slate-400">Review status logs, open a view matrix layer or claim active loot points</p>
-            </div>
-            <button onclick="closeSectorModal()" class="bg-white/10 px-4 py-2 rounded-full text-xs font-black text-white">✕ CLOSE VIEW</button>
-        </div>
-        <div id="sector-modal-content-area" class="w-full max-w-md mx-auto space-y-2.5"></div>
-    </div>
-
-    <!-- SHOP MODAL -->
+    <!-- ITEM SHOP WINDOW MODAL -->
     <div id="shop-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
         <div class="glass-card w-full max-w-sm p-6 space-y-4 border-indigo-500/30 bg-slate-950/80">
             <div class="flex justify-between items-center border-b border-white/10 pb-3">
@@ -111,12 +96,21 @@
         </div>
     </div>
 
-    <button id="lobby-bag-btn" onclick="openShopModal()" class="fixed bottom-6 right-6 z-40 bg-gradient-to-tr from-indigo-600 to-purple-600 border border-white/20 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl text-2xl">
+    <!-- Floating Bag Trigger Button -->
+    <button id="lobby-bag-btn" onclick="openShopModal()" class="fixed bottom-6 right-6 z-40 bg-gradient-to-tr from-indigo-600 to-purple-600 border border-white/20 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl text-2xl transition-all">
         🎒
     </button>
 
     <script>
-        // Production Grade Native Question Bank Pool Mapped with Context-Driven Book Identifiers
+        // Assigned Master Activities Registry Per Book Type Map Configuration 
+        const phaseBooksMap = {
+            nt: ["Matthew", "Mark", "Luke", "John", "Acts", "Romans", "1 Corinthians", "2 Corinthians", "Galatians", "Ephesians", "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians", "Timothy", "Titus", "Philemon", "Hebrews", "General Epistles", "Revelation"],
+            ot: ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel", "Kings Chronicles", "Ezra", "Nehemiah", "Esther", "Job", "Psalms", "Proverbs", "Ecclesiastes", "Major Prophets", "Minor Prophets"],
+            mix: ["Creation Era", "Patriarchal Faith", "Exodus Route", "Sanctuary Shadows", "Tribal Rulers", "United Kingdom", "Divided Crowns", "Exile Captivity", "Temple Return", "Wisdom Proverbs", "Prophetic Warnings", "Gospel Inception", "Apostolic Missions", "Grace Doctrines", "Faith Endurance", "Reformation Dawns", "Remnant Movement", "Sanctuary Cleansing", "Three Angels Cry", "New Earth Horizon"],
+            egw: ["Conflict Patriarchs", "Prophets and Kings", "Desire of Nations", "Acts of Apostles", "Great Controversy", "Steps to Christ", "Christ Object Lessons", "Mount of Blessing", "Ministry of Healing", "Education Principles", "Early Writings", "Spiritual Gifts", "Selected Messages", "Testimonies Vol 1", "Testimonies Vol 2", "Christian Experience", "Gospel Workers", "Counsels on Diet", "Welfare Ministry", "Final Crisis Events"]
+        };
+
+        // Fully Populated Native Question Dataset Bank
         window.quizDatabase = [
             { name: "Matthew", group: "NT", questions: [{ q: "Who was chosen to be the earthly mother of Jesus?", a: ["Elizabeth", "Mary", "Martha", "Salome"], correct: 1, subGroup: "Easy" }] },
             { name: "Mark", group: "NT", questions: [{ q: "Which prophet did Mark quote at the very beginning of his Gospel narrative?", a: ["Isaiah", "Jeremiah", "Ezekiel", "Daniel"], correct: 0, subGroup: "Easy" }] },
@@ -141,35 +135,27 @@
             { name: "The Twelve Minor Scrolls", group: "OT", questions: [{ q: "Which prophet ran from his call and was swallowed by a great fish?", a: ["Hosea", "Jonah", "Amos", "Micah"], correct: 1, subGroup: "Difficult" }] }
         ];
 
-        // Book Phase Configuration Arrays
-        const phaseBooksMap = {
-            nt: ["Matthew", "Mark", "Luke", "John", "Acts", "Romans", "1 Corinthians", "2 Corinthians", "Galatians", "Ephesians", "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians", "Timothy", "Titus", "Philemon", "Hebrews", "General Epistles", "Revelation"],
-            ot: ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel", "Kings Chronicles", "Ezra", "Nehemiah", "Esther", "Job", "Psalms", "Proverbs", "Ecclesiastes", "Major Prophets", "Minor Prophets"],
-            mix: ["Creation Era", "Patriarchal Faith", "Exodus Route", "Sanctuary Shadows", "Tribal Rulers", "United Kingdom", "Divided Crowns", "Exile Captivity", "Temple Return", "Wisdom Proverbs", "Prophetic Warnings", "Gospel Inception", "Apostolic Missions", "Grace Doctrines", "Faith Endurance", "Reformation Dawns", "Remnant Movement", "Sanctuary Cleansing", "Three Angels Cry", "New Earth Horizon"],
-            egw: ["Conflict Patriarchs", "Prophets and Kings", "Desire of Nations", "Acts of Apostles", "Great Controversy", "Steps to Christ", "Christ Object Lessons", "Mount of Blessing", "Ministry of Healing", "Education Principles", "Early Writings", "Spiritual Gifts", "Selected Messages", "Testimonies Vol 1", "Testimonies Vol 2", "Christian Experience", "Gospel Workers", "Counsels on Diet", "Welfare Ministry", "Final Crisis Events"]
-        };
-
-        let state = JSON.parse(localStorage.getItem('bqArcadeV7Data')) || {
-            gold: 515, lang: 'en',
+        let state = JSON.parse(localStorage.getItem('bqArcadeV8Data')) || {
+            gold: 515, lang: 'en', selectedTab: 'nt',
             perks: { freeze: 3, half: 2, skip: 1, shield: 2 },
             completedActivities: {}, claimedRewards: {}
         };
 
         let currentCampaignMode = "";
         let isActivityGameplayTrack = false;
+        let activeActivityPhase = "";
         let selectedActivityIndex = 1;
         
         let campaignActivePool = [];
         let currentActiveQuestion = null;
         let countdownTimerRef = null;
         let secondsRemaining = 0;
-        let blitzyClockSpeedActive = false;
         let inputInteractionsBlocked = false;
         let isShieldActive = false;
         let audioContextInstance = null;
 
         function saveState() {
-            localStorage.setItem('bqArcadeV7Data', JSON.stringify(state));
+            localStorage.setItem('bqArcadeV8Data', JSON.stringify(state));
             document.getElementById('gold-val').innerText = state.gold;
             document.getElementById('lang-label').innerText = state.lang === 'en' ? "English" : "Twi";
         }
@@ -179,32 +165,24 @@
             try { audioContextInstance = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){}
         }
 
-        // Custom Pleasant Chime Tone Melodies
         function playChimeAudio(toneProfile) {
             initAudioEngine();
             if (!audioContextInstance) return;
             try {
                 let now = audioContextInstance.currentTime;
-                
                 if (toneProfile === 'tap') {
-                    // Soft high chime
-                    createSineTone(523.25, 0.08, 0.03, now); // C5
-                    createSineTone(659.25, 0.08, 0.02, now + 0.03); // E5
+                    createSineTone(523.25, 0.08, 0.03, now); 
+                    createSineTone(659.25, 0.08, 0.02, now + 0.03); 
                 } else if (toneProfile === 'correct') {
-                    // Ascending Major Triad Cord
-                    createSineTone(523.25, 0.15, 0.04, now); // C5
-                    createSineTone(659.25, 0.15, 0.04, now + 0.06); // E5
-                    createSineTone(783.99, 0.25, 0.04, now + 0.12); // G5
-                    createSineTone(1046.50, 0.35, 0.05, now + 0.18); // C6
+                    createSineTone(523.25, 0.15, 0.04, now); 
+                    createSineTone(659.25, 0.15, 0.04, now + 0.06); 
+                    createSineTone(783.99, 0.25, 0.04, now + 0.12); 
                 } else if (toneProfile === 'wrong') {
-                    // Muted minor fall harmonic
-                    createTriangleTone(293.66, 0.20, 0.05, now); // D4
-                    createTriangleTone(277.18, 0.25, 0.05, now + 0.08); // C#4
+                    createTriangleTone(293.66, 0.20, 0.05, now); 
+                    createTriangleTone(277.18, 0.25, 0.05, now + 0.08); 
                 } else if (toneProfile === 'perk') {
-                    // Shimmering chime sweep
-                    createSineTone(880.00, 0.10, 0.03, now); // A5
-                    createSineTone(987.77, 0.10, 0.03, now + 0.04); // B5
-                    createSineTone(1174.66, 0.20, 0.03, now + 0.08); // D6
+                    createSineTone(880.00, 0.10, 0.03, now); 
+                    createSineTone(1174.66, 0.20, 0.03, now + 0.06); 
                 }
             } catch(e){}
         }
@@ -216,10 +194,8 @@
             osc.frequency.setValueAtTime(freq, timeStamp);
             gainNode.gain.setValueAtTime(volume, timeStamp);
             gainNode.gain.exponentialRampToValueAtTime(0.0001, timeStamp + duration);
-            osc.connect(gainNode);
-            gainNode.connect(audioContextInstance.destination);
-            osc.start(timeStamp);
-            osc.stop(timeStamp + duration);
+            osc.connect(gainNode); gainNode.connect(audioContextInstance.destination);
+            osc.start(timeStamp); osc.stop(timeStamp + duration);
         }
 
         function createTriangleTone(freq, duration, volume, timeStamp) {
@@ -229,10 +205,8 @@
             osc.frequency.setValueAtTime(freq, timeStamp);
             gainNode.gain.setValueAtTime(volume, timeStamp);
             gainNode.gain.exponentialRampToValueAtTime(0.0001, timeStamp + duration);
-            osc.connect(gainNode);
-            gainNode.connect(audioContextInstance.destination);
-            osc.start(timeStamp);
-            osc.stop(timeStamp + duration);
+            osc.connect(gainNode); gainNode.connect(audioContextInstance.destination);
+            osc.start(timeStamp); osc.stop(timeStamp + duration);
         }
 
         function openShopModal() {
@@ -253,7 +227,7 @@
                         <span class="text-xl bg-slate-950 p-2 rounded-lg">${item.icon}</span>
                         <div>
                             <h4 class="text-xs font-black text-slate-200">${item.name}</h4>
-                            <p class="text-[9px] text-indigo-400 font-bold">Owned Inventory: ${state.perks[item.id] || 0}</p>
+                            <p class="text-[9px] text-indigo-400 font-bold">Stock: ${state.perks[item.id] || 0}</p>
                         </div>
                     </div>
                     <button onclick="buyPerk('${item.id}', ${item.cost})" class="bg-indigo-600 hover:bg-indigo-500 font-bold text-xs px-3 py-1.5 rounded-lg text-white">${item.cost} 💰</button>
@@ -268,105 +242,195 @@
             if (state.gold >= cost) {
                 state.gold -= cost; state.perks[id] = (state.perks[id] || 0) + 1;
                 saveState(); playChimeAudio('perk'); openShopModal();
-            } else { alert("Insufficient coin balances."); }
+            } else { alert("Insufficient coins."); }
         }
 
+        // Renders Entire Interactive Dashboard Menu Layout (Arcade + Side Sectors Together)
         function renderMenuMap() {
             currentCampaignMode = ""; isActivityGameplayTrack = false;
             document.body.classList.remove('game-bg-active');
             document.getElementById('back-btn').classList.add('hidden');
-            document.getElementById('phase-sectors-btn').classList.add('hidden');
+            document.getElementById('lobby-bag-btn').classList.remove('hidden'); // Ensure bag is visible on menu
             
             const canvas = document.getElementById('window-canvas'); if(!canvas) return;
+            
             canvas.innerHTML = `
-                <div class="text-center space-y-1 py-4 animate__animated animate__fadeInDown">
-                    <h1 class="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">BIBLE QUEST</h1>
-                    <p class="text-xs text-slate-500 font-bold tracking-widest uppercase">Select Campaign Route Pipeline</p>
+                <div class="text-center space-y-1 py-2 animate__animated animate__fadeInDown">
+                    <h1 class="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">BIBLE QUEST</h1>
+                    <p class="text-[10px] text-slate-500 font-bold tracking-widest uppercase">Select Campaign Route Pipeline</p>
                 </div>
                 
-                <div class="space-y-2.5 animate__animated animate__fadeInUp">
-                    <!-- Standard instant continuous arcade pipeline buttons playing without doing activities -->
-                    <button onclick="startArcadePipeline('nt')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-blue-500 transition-all">
+                <!-- ARCADE PIPELINE ROUTE SELECTIONS -->
+                <div class="space-y-2 animate__animated animate__fadeInUp">
+                    <button onclick="startArcadePipeline('nt')" class="w-full p-3.5 glass-card text-left flex justify-between items-center hover:border-blue-500 transition-all">
                         <div>
-                            <div class="flex items-center gap-2">
-                                <h3 class="text-sm font-black text-blue-300">Phase 1: New Testament</h3>
-                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-950/80 text-blue-400 font-bold border border-blue-500/20">Arcade Play Mode</span>
-                            </div>
-                            <p class="text-[10px] text-slate-400">Gospels, Historical Acts & Epistles Archive</p>
+                            <h3 class="text-xs font-black text-blue-300">Phase 1: New Testament Arcade Mode</h3>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Continuous Gospels & Epistles Session Pool</p>
                         </div>
-                        <span class="text-lg">⚡</span>
+                        <span class="text-sm bg-blue-950 px-2 py-1 rounded text-blue-400 font-bold">⚡ PLAY NOW</span>
                     </button>
 
-                    <button onclick="startArcadePipeline('ot')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-emerald-500 transition-all">
+                    <button onclick="startArcadePipeline('ot')" class="w-full p-3.5 glass-card text-left flex justify-between items-center hover:border-emerald-500 transition-all">
                         <div>
-                            <div class="flex items-center gap-2">
-                                <h3 class="text-sm font-black text-emerald-300">Phase 2: Old Testament</h3>
-                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-950/80 text-emerald-400 font-bold border border-emerald-500/20">Arcade Play Mode</span>
-                            </div>
-                            <p class="text-[10px] text-slate-400">Torah Covenant Law, Chronicled Histories & Wisdom</p>
+                            <h3 class="text-xs font-black text-emerald-300">Phase 2: Old Testament Arcade Mode</h3>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Continuous Covenant Law & Prophets Pool</p>
                         </div>
-                        <span class="text-lg">📜</span>
+                        <span class="text-sm bg-emerald-950 px-2 py-1 rounded text-emerald-400 font-bold">📜 PLAY NOW</span>
                     </button>
 
-                    <button onclick="startArcadePipeline('mix')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-purple-500 transition-all">
+                    <button onclick="startArcadePipeline('mix')" class="w-full p-3.5 glass-card text-left flex justify-between items-center hover:border-purple-500 transition-all">
                         <div>
-                            <div class="flex items-center gap-2">
-                                <h3 class="text-sm font-black text-purple-300">Phase 3: Grand Mixture</h3>
-                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-purple-950/80 text-purple-400 font-bold border border-purple-500/20">Arcade Play Mode</span>
-                            </div>
-                            <p class="text-[10px] text-slate-400">Full Structural Randomized Omniscient Question Pool Mix</p>
+                            <h3 class="text-xs font-black text-purple-300">Phase 3: Grand Mixture Arcade Mode</h3>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Randomized Across All Scriptural Histories</p>
                         </div>
-                        <span class="text-lg">🌀</span>
+                        <span class="text-sm bg-purple-950 px-2 py-1 rounded text-purple-400 font-bold">🌀 PLAY NOW</span>
                     </button>
 
-                    <button onclick="startArcadePipeline('egw')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-amber-400 transition-all">
+                    <button onclick="startArcadePipeline('egw')" class="w-full p-3.5 glass-card text-left flex justify-between items-center hover:border-amber-400 transition-all">
                         <div>
-                            <div class="flex items-center gap-2">
-                                <h3 class="text-sm font-black text-amber-300">Phase 4: E.G. White Writings</h3>
-                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-950/80 text-amber-400 font-bold border border-amber-500/20">Arcade Play Mode</span>
-                            </div>
-                            <p class="text-[10px] text-slate-400">Prophetic Conflict Heritage Chronicles & Testimony Insights</p>
+                            <h3 class="text-xs font-black text-amber-300">Phase 4: E.G. White Writings Arcade</h3>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Prophetic Heritage & Conflict Insight Pools</p>
                         </div>
-                        <span class="text-lg">✒️</span>
+                        <span class="text-sm bg-amber-950 px-2 py-1 rounded text-amber-400 font-bold">✒️ PLAY NOW</span>
                     </button>
 
-                    <!-- Restored Phase 5 Mastery Mode Running Hyper Speedrun Clock Systems -->
-                    <button onclick="startArcadePipeline('mastery')" class="w-full p-4 glass-card text-left flex justify-between items-center border border-red-500/30 bg-red-950/20 hover:bg-red-950/40 transition-all">
+                    <button onclick="startArcadePipeline('mastery')" class="w-full p-3.5 glass-card text-left flex justify-between items-center border border-red-500/30 bg-red-950/20 hover:bg-red-950/40 transition-all">
                         <div>
-                            <div class="flex items-center gap-2">
-                                <h3 class="text-sm font-black text-red-400 uppercase tracking-wide">Phase 5: Mastery Blitz Mode</h3>
-                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-red-900 text-white font-black animate-pulse">CRITICAL</span>
-                            </div>
-                            <p class="text-[10px] text-red-300/70">Hyper Speedrun Blitz Clock Mechanics: 5-Second Maximum Limit!</p>
+                            <h3 class="text-xs font-black text-red-400 uppercase tracking-wide">Phase 5: Mastery Blitz Mode</h3>
+                            <p class="text-[9px] text-red-300/70">5-Second Extreme Rapid Fire Speed Clock Pool</p>
                         </div>
-                        <span class="text-lg text-red-500">🔥</span>
+                        <span class="text-sm bg-red-950 px-2 py-1 rounded text-red-400 font-bold animate-pulse">🔥 BLITZ</span>
                     </button>
                 </div>
+
+                <!-- MAIN MENU ACTIVITIES COMPONENT REGISTRY -->
+                <div class="pt-2 animate__animated animate__fadeIn">
+                    <div class="border-t border-white/10 pt-4 mb-3 flex flex-col gap-2">
+                        <div>
+                            <h2 class="text-sm font-black text-purple-400 uppercase tracking-wider">📋 SECTORS TASK EXPLORER</h2>
+                            <p class="text-[10px] text-slate-500">Earn milestone bonus coins by studying specific scriptural segments</p>
+                        </div>
+                        
+                        <!-- Mini Tabs to switch between activity categories directly inside main menu -->
+                        <div class="flex bg-slate-950 p-1 rounded-xl gap-1 mt-1 text-[10px] font-bold">
+                            <button onclick="switchActivityTab('nt')" id="tab-nt" class="flex-1 py-1.5 rounded-lg text-center uppercase tracking-wider">NT</button>
+                            <button onclick="switchActivityTab('ot')" id="tab-ot" class="flex-1 py-1.5 rounded-lg text-center uppercase tracking-wider">OT</button>
+                            <button onclick="switchActivityTab('mix')" id="tab-mix" class="flex-1 py-1.5 rounded-lg text-center uppercase tracking-wider">Mix</button>
+                            <button onclick="switchActivityTab('egw')" id="tab-egw" class="flex-1 py-1.5 rounded-lg text-center uppercase tracking-wider">EGW</button>
+                        </div>
+                    </div>
+
+                    <div id="main-menu-activities-list" class="space-y-2 max-h-96 overflow-y-auto pr-1"></div>
+                </div>
             `;
+            updateActivityTabDisplay();
+        }
+
+        function switchActivityTab(tabId) {
+            playChimeAudio('tap');
+            state.selectedTab = tabId;
+            saveState();
+            updateActivityTabDisplay();
+        }
+
+        function updateActivityTabDisplay() {
+            const activeTab = state.selectedTab || 'nt';
+            const categories = ['nt', 'ot', 'mix', 'egw'];
+            
+            categories.forEach(cat => {
+                const btn = document.getElementById(`tab-${cat}`);
+                if(btn) {
+                    if(cat === activeTab) {
+                        btn.className = "flex-1 py-1.5 rounded-lg text-center uppercase tracking-wider bg-purple-600 text-white shadow-md";
+                    } else {
+                        btn.className = "flex-1 py-1.5 rounded-lg text-center uppercase tracking-wider text-slate-400 hover:text-white";
+                    }
+                }
+            });
+
+            renderActivitiesGrid(activeTab);
+        }
+
+        function renderActivitiesGrid(category) {
+            const container = document.getElementById('main-menu-activities-list'); if(!container) return;
+            container.innerHTML = "";
+            
+            let sourceBooks = phaseBooksMap[category] || phaseBooksMap['nt'];
+
+            for(let i = 1; i <= 20; i++) {
+                let difficultyTier = "Easy"; let payoutVal = 15;
+                if(i >= 7 && i <= 14) { difficultyTier = "Moderate"; payoutVal = 25; }
+                else if(i >= 15) { difficultyTier = "Difficult"; payoutVal = 40; }
+
+                let keyId = `${category}_${i}`;
+                let completed = state.completedActivities[keyId];
+                let claimed = state.claimedRewards[keyId];
+
+                let cardStyle = "bg-slate-900/80 border-l-4 border-indigo-500/80";
+                let actionButton = `<button onclick="startMilestoneActivity('${category}', ${i}, '${difficultyTier}')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[10px] px-2.5 py-1 rounded-xl transition-all">START TASK</button>`;
+
+                if(completed) {
+                    if(claimed) {
+                        cardStyle = "bg-slate-950/40 opacity-40 border-l-4 border-slate-700";
+                        actionButton = `<span class="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Claimed ✓</span>`;
+                    } else {
+                        cardStyle = "completed-glow bg-emerald-950/40 border border-emerald-500/50";
+                        actionButton = `<button onclick="claimActivityReward('${category}', ${i}, ${payoutVal})" class="bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-black text-[9px] px-2.5 py-1 rounded-xl">🎁 CLAIM</button>`;
+                    }
+                }
+
+                let currentAssignedBook = sourceBooks[i - 1] || "Study Milestone Task";
+
+                const row = document.createElement('div');
+                row.className = `p-3 rounded-xl flex items-center justify-between border border-white/5 transition-all ${cardStyle}`;
+                row.innerHTML = `
+                    <div>
+                        <div class="font-bold text-slate-200 text-xs flex items-center gap-1.5">
+                            <span>Task ${i}: ${currentAssignedBook}</span>
+                            <span class="text-[7px] uppercase px-1 rounded bg-slate-950 text-purple-400 font-extrabold">${difficultyTier}</span>
+                        </div>
+                        <p class="text-[9px] text-slate-400 mt-0.5">Value Tier Payout: <span class="text-amber-400 font-bold">${payoutVal} 💰</span></p>
+                    </div>
+                    <div>${actionButton}</div>
+                `;
+                container.appendChild(row);
+            }
+        }
+
+        function claimActivityReward(cat, index, coins) {
+            let keyId = `${cat}_${index}`;
+            state.claimedRewards[keyId] = true;
+            state.gold += coins;
+            playChimeAudio('correct');
+            saveState();
+            updateActivityTabDisplay();
         }
 
         function startArcadePipeline(mode) {
             playChimeAudio('tap');
             currentCampaignMode = mode;
             isActivityGameplayTrack = false;
-            
             document.getElementById('back-btn').classList.remove('hidden');
-            // Show sector side module launcher only for standard categories
-            if(["nt","ot","mix","egw"].includes(mode)) {
-                document.getElementById('phase-sectors-btn').classList.remove('hidden');
-            } else {
-                document.getElementById('phase-sectors-btn').classList.add('hidden');
-            }
-
             compileQuestionsPoolForMode(mode);
             launchNextActiveQuestionEngine();
+        }
+
+        function startMilestoneActivity(cat, index, diffTier) {
+            playChimeAudio('tap');
+            currentCampaignMode = cat;
+            activeActivityPhase = cat;
+            isActivityGameplayTrack = true;
+            selectedActivityIndex = index;
+            document.getElementById('back-btn').classList.remove('hidden');
+            compileQuestionsPoolForMode(cat);
+            launchNextActiveQuestionEngine(diffTier);
         }
 
         function compileQuestionsPoolForMode(mode) {
             let matched = [];
             if(mode === 'nt') matched = window.quizDatabase.filter(b => b.group === 'NT');
             else if(mode === 'ot') matched = window.quizDatabase.filter(b => b.group === 'OT');
-            else matched = window.quizDatabase; // Fallback mix pool for mixed, egw & mastery profiles
+            else matched = window.quizDatabase;
 
             campaignActivePool = [];
             matched.forEach(b => {
@@ -378,80 +442,9 @@
             if(campaignActivePool.length === 0) campaignActivePool = [window.quizDatabase[0].questions[0]];
         }
 
-        // Side Sector Activities Independent Portal Area
-        function viewPhaseSectors() {
-            playChimeAudio('tap');
-            const drawer = document.getElementById('sector-modal');
-            const grid = document.getElementById('sector-modal-content-area');
-            const title = document.getElementById('sector-modal-title');
-            if(!drawer || !grid) return;
-
-            title.innerText = `SECTORS EXPLORER: ${currentCampaignMode.toUpperCase()}`;
-            grid.innerHTML = "";
-
-            let sourceBooks = phaseBooksMap[currentCampaignMode] || phaseBooksMap['nt'];
-
-            for(let i = 1; i <= 20; i++) {
-                let difficultyTier = "Easy"; let payoutVal = 15;
-                if(i >= 7 && i <= 14) { difficultyTier = "Moderate"; payoutVal = 25; }
-                else if(i >= 15) { difficultyTier = "Difficult"; payoutVal = 40; }
-
-                let keyId = `${currentCampaignMode}_${i}`;
-                let completed = state.completedActivities[keyId];
-                let claimed = state.claimedRewards[keyId];
-
-                let structuralCardStyle = "bg-slate-900 border-l-4 border-indigo-500";
-                let actionMarkupButton = `<button onclick="launchSectorSideActivity(${i}, '${difficultyTier}')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-3 py-1.5 rounded-xl">START TASK</button>`;
-
-                if(completed) {
-                    if(claimed) {
-                        structuralCardStyle = "bg-slate-950/40 opacity-50 border-l-4 border-slate-700";
-                        actionMarkupButton = `<span class="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Claimed ✓</span>`;
-                    } else {
-                        structuralCardStyle = "completed-glow bg-emerald-950/60 border border-emerald-500/80";
-                        actionMarkupButton = `<button onclick="claimSectorSideReward(${i}, ${payoutVal})" class="bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-black text-xs px-3 py-1.5 rounded-xl animate__animated animate__pulse animate__infinite">🎁 CLAIM REWARD</button>`;
-                    }
-                }
-
-                let currentAssignedBook = sourceBooks[i - 1] || "Scriptural Study Node";
-
-                const segment = document.createElement('div');
-                segment.className = `p-3.5 rounded-2xl flex items-center justify-between border border-white/5 ${structuralCardStyle}`;
-                segment.innerHTML = `
-                    <div>
-                        <div class="font-black text-slate-200 text-xs flex items-center gap-2">
-                            <span>Task ${i}: ${currentAssignedBook}</span>
-                            <span class="text-[8px] uppercase px-1.5 py-0.5 rounded bg-slate-950 text-purple-400 font-bold">${difficultyTier}</span>
-                        </div>
-                        <p class="text-[9px] text-slate-400 mt-0.5">Value Tier Payout: <span class="text-amber-400 font-bold">${payoutVal} 💰</span></p>
-                    </div>
-                    <div>${actionMarkupButton}</div>
-                `;
-                grid.appendChild(segment);
-            }
-
-            drawer.classList.remove('hidden');
-        }
-
-        function closeSectorModal() { drawer = document.getElementById('sector-modal').classList.add('hidden'); }
-
-        function claimSectorSideReward(index, valuationCoins) {
-            let keyId = `${currentCampaignMode}_${index}`;
-            state.claimedRewards[keyId] = true;
-            state.gold += valuationCoins;
-            playChimeAudio('correct');
-            saveState();
-            viewPhaseSectors();
-        }
-
-        function launchSectorSideActivity(index, diffTier) {
-            closeSectorModal();
-            isActivityGameplayTrack = true;
-            selectedActivityIndex = index;
-            launchNextActiveQuestionEngine(diffTier);
-        }
-
         function launchNextActiveQuestionEngine(forcedTier = "Easy") {
+            // HIDE FLOATING SHOP BACKPACK BUTTON ON QUESTIONS PAGE
+            document.getElementById('lobby-bag-btn').classList.add('hidden');
             document.body.classList.add('game-bg-active');
             inputInteractionsBlocked = false; isShieldActive = false;
             document.getElementById('shield-frame').className = "";
@@ -465,41 +458,39 @@
 
             currentActiveQuestion = subset[Math.floor(Math.random() * subset.length)];
             
-            // Speed setup logic calibrations
             if(currentCampaignMode === 'mastery') {
-                secondsRemaining = 5; blitzyClockSpeedActive = true;
+                secondsRemaining = 5;
             } else {
-                blitzyClockSpeedActive = false;
                 secondsRemaining = forcedTier === "Difficult" ? 10 : forcedTier === "Moderate" ? 15 : 20;
             }
 
             let displayQuestionString = currentActiveQuestion.q;
             let currentChoiceOptions = currentActiveQuestion.a;
-
             const canvas = document.getElementById('window-canvas'); if(!canvas) return;
             
-            let trackingHeadline = isActivityGameplayTrack ? `Side Sector Task Activity ${selectedActivityIndex}` : `Arcade Continuous Session`;
-            let trackedBookContext = currentActiveQuestion._sourceBookContext || "Sacred Text Module";
+            let trackingHeadline = isActivityGameplayTrack ? `Milestone Route Activity ${selectedActivityIndex}` : `Arcade Continuous Session`;
+            let trackedBookContext = currentActiveQuestion._sourceBookContext || "Scriptural Study Node";
 
             canvas.innerHTML = `
                 <div class="glass-card p-4 space-y-3 flex flex-col bg-slate-900/90 shadow-2xl animate__animated animate__fadeIn">
                     <div class="flex justify-between items-center">
                         <div>
-                            <h2 class="text-sm font-black text-indigo-400 uppercase tracking-wider">${trackedBookContext}</h2>
-                            <div class="text-xs font-bold text-slate-400 mt-0.5">${trackingHeadline}</div>
+                            <h2 class="text-xs font-black text-indigo-400 uppercase tracking-wider">${trackedBookContext}</h2>
+                            <div class="text-[10px] font-bold text-slate-400 mt-0.5">${trackingHeadline}</div>
                         </div>
-                        <div id="clock-wrapper" class="text-2xl font-black tracking-tighter tabular-nums text-amber-400 bg-slate-950/70 px-3 py-1.5 rounded-2xl border border-white/10">
+                        <div id="clock-wrapper" class="text-xl font-black tracking-tighter tabular-nums text-amber-400 bg-slate-950/70 px-2.5 py-1 rounded-2xl border border-white/10">
                             ⏰ <span id="clock-digit">${secondsRemaining}</span>s
                         </div>
                     </div>
                 </div>
 
-                <div class="glass-card p-6 min-h-[90px] flex items-center justify-center text-center animate__animated animate__zoomIn bg-slate-900/95 border border-indigo-500/20 shadow-xl">
-                    <h3 class="text-base font-bold leading-snug text-slate-100">${displayQuestionString}</h3>
+                <div class="glass-card p-6 min-h-[95px] flex items-center justify-center text-center animate__animated animate__zoomIn bg-slate-900/95 border border-indigo-500/20 shadow-xl">
+                    <h3 class="text-sm font-bold leading-snug text-slate-100">${displayQuestionString}</h3>
                 </div>
 
                 <div id="choice-matrix" class="space-y-2.5"></div>
 
+                <!-- Direct Bottom Power-up Selection Dock -->
                 <div class="fixed bottom-0 left-0 right-0 p-3 bg-slate-950/95 border-t border-white/10 z-40 flex justify-center gap-2">
                     <button onclick="applyInGameUtility('freeze')" class="flex-1 bg-slate-900 border border-sky-500/30 p-2 rounded-xl flex flex-col items-center"><span>❄️</span><span class="text-[9px] text-slate-400 font-bold">Qty: ${state.perks.freeze}</span></button>
                     <button onclick="applyInGameUtility('half')" class="flex-1 bg-slate-900 border border-rose-500/30 p-2 rounded-xl flex flex-col items-center"><span>⚖️</span><span class="text-[9px] text-slate-400 font-bold">Qty: ${state.perks.half}</span></button>
@@ -512,7 +503,7 @@
             if(matrix && currentChoiceOptions) {
                 currentChoiceOptions.forEach((opt, idx) => {
                     const btn = document.createElement('button');
-                    btn.className = "btn-choice bg-slate-900/90";
+                    btn.className = "btn-choice bg-slate-900/90 text-xs";
                     btn.innerText = opt;
                     btn.onclick = () => challengeAnswerSubmitted(idx, btn);
                     matrix.appendChild(btn);
@@ -542,27 +533,27 @@
             clearInterval(countdownTimerRef);
 
             if (index === currentActiveQuestion.correct) {
-                clickTarget.className = "btn-choice rainbow-correct text-white shadow-2xl";
+                clickTarget.className = "btn-choice rainbow-correct text-white text-xs shadow-2xl";
                 playChimeAudio('correct');
 
                 if(isActivityGameplayTrack) {
-                    let keyId = `${currentCampaignMode}_${selectedActivityIndex}`;
+                    let keyId = `${activeActivityPhase}_${selectedActivityIndex}`;
                     state.completedActivities[keyId] = true;
                 } else {
-                    state.gold += 10; // Standard instant arcade play award credits directly
+                    state.gold += 10; // Arcade plays award coins immediately
                 }
                 saveState();
 
                 setTimeout(() => {
                     if(isActivityGameplayTrack) {
-                        alert("Activity Task Sector Secured Successfully! Opening side vault logs.");
-                        viewPhaseSectors();
+                        alert("Activity verified! Milestone completion locked successfully.");
+                        exitToMenu();
                     } else {
                         launchNextActiveQuestionEngine();
                     }
                 }, 1300);
             } else {
-                clickTarget.className = "btn-choice bg-rose-600 border-rose-400 text-white animate__animated animate__shakeX font-bold shadow-lg";
+                clickTarget.className = "btn-choice bg-rose-600 border-rose-400 text-white text-xs animate__animated animate__shakeX font-bold shadow-lg";
                 playChimeAudio('wrong');
                 setTimeout(executeFailureSequence, 1200);
             }
@@ -574,8 +565,8 @@
                 state.gold = Math.max(0, state.gold - 20);
                 saveState();
             }
-            alert("Matrix disruption reset framework executed.");
-            if(isActivityGameplayTrack) viewPhaseSectors(); else renderMenuMap();
+            alert("Disruption detected. Re-routing back to tactical base hub.");
+            exitToMenu();
         }
 
         function applyInGameUtility(type) {
@@ -598,9 +589,10 @@
             } else if (type === 'skip') {
                 clearInterval(countdownTimerRef);
                 if(isActivityGameplayTrack) {
-                    state.completedActivities[`${currentCampaignMode}_${selectedActivityIndex}`] = true;
+                    state.completedActivities[`${activeActivityPhase}_${selectedActivityIndex}`] = true;
                     saveState();
-                    viewPhaseSectors();
+                    alert("Milestone skipped and auto-secured via validation key.");
+                    exitToMenu();
                 } else {
                     launchNextActiveQuestionEngine();
                 }
@@ -610,7 +602,7 @@
             }
         }
 
-        function toggleLanguage() { playChimeAudio('tap'); state.lang = state.lang === 'en' ? 'tw' : 'en'; saveState(); if(currentCampaignMode !== "") startArcadePipeline(currentCampaignMode); else renderMenuMap(); }
+        function toggleLanguage() { playChimeAudio('tap'); state.lang = state.lang === 'en' ? 'tw' : 'en'; saveState(); if(currentCampaignMode !== "") { compileQuestionsPoolForMode(currentCampaignMode); launchNextActiveQuestionEngine(); } else renderMenuMap(); }
         function exitToMenu() { playChimeAudio('tap'); clearInterval(countdownTimerRef); renderMenuMap(); }
         
         window.onload = () => { saveState(); renderMenuMap(); };
