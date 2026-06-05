@@ -43,6 +43,16 @@
             box-shadow: 0 0 25px rgba(0, 240, 255, 0.5) !important;
         }
 
+        /* Task Completion Glow Animation */
+        @keyframes glowingPulse {
+            0% { box-shadow: 0 0 5px rgba(34, 197, 94, 0.2); border-color: rgba(34, 197, 94, 0.4); }
+            50% { box-shadow: 0 0 20px rgba(234, 179, 8, 0.6); border-color: rgba(234, 179, 8, 0.8); background: rgba(20, 83, 45, 0.4); }
+            100% { box-shadow: 0 0 5px rgba(34, 197, 94, 0.2); border-color: rgba(34, 197, 94, 0.4); }
+        }
+        .completed-glow {
+            animation: glowingPulse 2s infinite ease-in-out;
+        }
+
         #frost-frame { position: fixed; inset: 0; border: 14px solid rgba(56, 189, 248, 0.45); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 80px rgba(14, 165, 233, 0.35); }
         .frost-active { opacity: 1 !important; }
         
@@ -65,12 +75,13 @@
     <div id="shield-frame"></div>
     <div id="snow-box"></div>
 
+    <!-- Clean Top Navigation HUD Bar -->
     <div class="fixed top-4 left-4 right-4 flex justify-between items-center z-50 max-w-md mx-auto w-full px-2">
         <button onclick="exitToMenu()" id="back-btn" class="hidden bg-slate-900/95 border border-white/10 text-white px-4 py-2 rounded-full font-bold text-xs uppercase tracking-wider shadow-2xl transition-all">
             🚪 Map Hub
         </button>
-        <button onclick="openActivitiesModal()" id="hud-activities-btn" class="hidden bg-gradient-to-r from-purple-600 to-indigo-600 border border-white/10 text-white px-3 py-2 rounded-full font-bold text-xs uppercase tracking-wider shadow-2xl transition-all flex items-center gap-1">
-            📋 Quest List (<span id="hud-act-count">0/20</span>)
+        <button onclick="viewPhaseSectors()" id="phase-sectors-btn" class="hidden bg-gradient-to-r from-purple-600 to-indigo-600 border border-white/10 text-white px-4 py-2 rounded-full font-bold text-xs uppercase tracking-wider shadow-2xl transition-all">
+            📋 Sector View
         </button>
         <div class="flex gap-2 ml-auto">
             <button onclick="toggleLanguage()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-full font-bold text-xs uppercase shadow-md transition-all">
@@ -78,13 +89,15 @@
             </button>
             <div id="gold-container" class="bg-slate-900/95 border border-white/10 px-4 py-2 rounded-full shadow-2xl flex items-center gap-2">
                 <span>💰</span>
-                <span id="gold-val" class="font-black text-amber-400">500</span>
+                <span id="gold-val" class="font-black text-amber-400">0</span>
             </div>
         </div>
     </div>
 
+    <!-- MAIN ACTIVE WINDOW CANVAS -->
     <main id="window-canvas" class="w-full max-w-md mt-16 relative z-10 space-y-4 flex flex-col mb-24"></main>
 
+    <!-- SHOP MODAL PANEL -->
     <div id="shop-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
         <div class="glass-card w-full max-w-sm p-6 space-y-4 border-indigo-500/30 bg-slate-950/80 animate__animated animate__zoomIn">
             <div class="flex justify-between items-center border-b border-white/10 pb-3">
@@ -98,61 +111,38 @@
         </div>
     </div>
 
-    <div id="activities-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="glass-card w-full max-w-md p-6 space-y-4 border-purple-500/30 bg-slate-950/90 animate__animated animate__fadeInUp flex flex-col max-h-[90vh]">
-            <div class="flex justify-between items-center border-b border-white/10 pb-3 flex-shrink-0">
-                <div>
-                    <h3 class="text-base font-black uppercase tracking-wider text-purple-400">Phase Progress Dashboard</h3>
-                    <p class="text-[10px] text-slate-400 font-bold">20 Specialized Canonical Milestone Activities</p>
-                </div>
-                <button onclick="closeActivitiesModal()" class="text-slate-400 hover:text-white font-black text-sm bg-white/5 w-7 h-7 rounded-full flex items-center justify-center">✕</button>
-            </div>
-
-            <div class="bg-slate-900 p-3 rounded-2xl border border-white/5 flex-shrink-0 space-y-1.5">
-                <div class="flex justify-between text-xs font-black">
-                    <span class="text-indigo-400 uppercase tracking-widest">Phase Milestone Progress</span>
-                    <span id="modal-progress-pct" class="text-amber-400">0%</span>
-                </div>
-                <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden p-0.5 border border-white/5">
-                    <div id="modal-progress-bar" class="h-full rounded-full bg-gradient-to-r from-purple-500 via-indigo-500 to-amber-400 transition-all duration-500" style="width: 0%;"></div>
-                </div>
-                <p class="text-[9px] text-slate-400 font-medium">Complete all 20 to secure +200 Bonus Coins & +2 Armory Power-Up sets!</p>
-            </div>
-
-            <div id="modal-activities-stack" class="space-y-2 overflow-y-auto flex-1 pr-1"></div>
-        </div>
-    </div>
-
-    <button id="lobby-bag-btn" onclick="openShopModal()" class="fixed bottom-6 right-6 z-40 bg-gradient-to-tr from-indigo-600 to-purple-600 border border-white/20 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl text-2xl animate__animated animate__pulse animate__infinite">
+    <!-- INVENTORY TRIGGER BAG BUTTON -->
+    <button id="lobby-bag-btn" onclick="openShopModal()" class="fixed bottom-6 right-6 z-40 bg-gradient-to-tr from-indigo-600 to-purple-600 border border-white/20 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl text-2xl">
         🎒
     </button>
 
     <script src="questions.js"></script>
     <script>
+        // Fallback Database
         if (typeof window.quizDatabase === 'undefined' || !Array.isArray(window.quizDatabase)) {
             window.quizDatabase = [
                 {
-                    name: "Genesis & Gospels Track",
+                    name: "Gospels & Acts",
                     group: "NT",
                     questions: [
                         { q: "Where was Jesus born?", a: ["Nazareth", "Bethlehem", "Jerusalem", "Capernaum"], q_twi: "Hehefa na wɔwoo Yesu?", a_tw: ["Nasaret", "Betlehem", "Yerusalem", "Kapernaum"], correct: 1, subGroup: "Easy" },
-                        { q: "Who built the ark?", a: ["Moses", "Noah", "Abraham", "David"], q_twi: "Hwan na ɔyɛɛ adaka no?", a_tw: ["Mose", "Noa", "Abraham", "David"], correct: 1, subGroup: "Easy" },
-                        { q: "What is the first book of the New Testament?", a: ["Mark", "Matthew", "Luke", "John"], q_twi: "Nhoma bɛn na edi kan wɔ Apam Foforo no mu?", a_tw: ["Marko", "Mateo", "Luka", "Yohane"], correct: 1, subGroup: "Easy" }
+                        { q: "Who built the ark?", a: ["Moses", "Noah", "Abraham", "David"], q_twi: "Hwan na ɔyɛɛ adaka no?", a_tw: ["Mose", "Noa", "Abraham", "David"], correct: 1, subGroup: "Easy" }
                     ]
                 }
             ];
         }
 
-        let state = JSON.parse(localStorage.getItem('bqArcadeV6Data')) || {
+        let state = JSON.parse(localStorage.getItem('bqArcadeV6Data_Updated')) || {
             gold: 500,
             lang: 'en',
             perks: { freeze: 2, half: 2, skip: 2, shield: 1, elixir: 2 },
-            streak: 0,
-            clearedQuestions: [] // Permanent registry tracker preventing repeats across game loops
+            clearedQuestions: [], // Tracks answered question texts permanently
+            claimedRewards: {},   // Maps campaignMode_activityIndex -> true/false
+            completedActivities: {} // Maps campaignMode_activityIndex -> true/false
         };
 
         let currentCampaign = "";
-        let currentActivityNode = 1; 
+        let currentSelectedActivityIdx = null;
         const TOTAL_ACTIVITIES_PER_PHASE = 20;
         
         let campaignQuestionsPool = [];
@@ -164,16 +154,12 @@
         let isClockFrozen = false;
         let inputBlocked = false;
         let isShieldActive = false;
-        
         let audioCtx = null;
 
         function saveState() {
-            localStorage.setItem('bqArcadeV6Data', JSON.stringify(state));
+            localStorage.setItem('bqArcadeV6Data_Updated', JSON.stringify(state));
             if(document.getElementById('gold-val')) document.getElementById('gold-val').innerText = state.gold;
             if(document.getElementById('lang-label')) document.getElementById('lang-label').innerText = state.lang === 'en' ? "English" : "Twi";
-            
-            let displayCount = Math.min(TOTAL_ACTIVITIES_PER_PHASE, currentActivityNode - 1);
-            if(document.getElementById('hud-act-count')) document.getElementById('hud-act-count').innerText = `${displayCount}/${TOTAL_ACTIVITIES_PER_PHASE}`;
         }
 
         function initAudioEngine() {
@@ -184,7 +170,6 @@
         function playSoundFX(type) {
             initAudioEngine();
             if (!audioCtx) return;
-            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
             try {
                 let osc = audioCtx.createOscillator();
                 let gain = audioCtx.createGain();
@@ -192,17 +177,13 @@
 
                 if (type === 'correct') {
                     osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-                    osc.start(); osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08); osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.16);
-                    osc.stop(audioCtx.currentTime + 0.3);
+                    osc.start(); osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08); osc.stop(audioCtx.currentTime + 0.3);
                 } else if (type === 'wrong') {
                     osc.type = 'triangle'; osc.frequency.setValueAtTime(140, audioCtx.currentTime); gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
-                    osc.start(); osc.frequency.linearRampToValueAtTime(70, audioCtx.currentTime + 0.2); osc.stop(audioCtx.currentTime + 0.25);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.25);
                 } else if (type === 'perk') {
-                    osc.type = 'sine'; osc.frequency.setValueAtTime(350, audioCtx.currentTime); gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-                    osc.start(); osc.frequency.exponentialRampToValueAtTime(1100, audioCtx.currentTime + 0.18); osc.stop(audioCtx.currentTime + 0.2);
-                } else if (type === 'tick') {
-                    osc.type = 'sine'; osc.frequency.setValueAtTime(950, audioCtx.currentTime); gain.gain.setValueAtTime(0.015, audioCtx.currentTime);
-                    osc.start(); osc.stop(audioCtx.currentTime + 0.02);
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.15);
                 }
             } catch(e){}
         }
@@ -213,7 +194,7 @@
                 { id: 'freeze', name: 'Chrono Freeze', desc: 'Stops countdown progression.', cost: 50, icon: '❄️' },
                 { id: 'half', name: 'Divine 50:50', desc: 'Discards two incorrect choices.', cost: 75, icon: '⚖️' },
                 { id: 'skip', name: 'Prophetic Skip', desc: 'Skips node without penalty risks.', cost: 100, icon: '🔮' },
-                { id: 'shield', name: 'Aegis Shield', desc: 'Blocks negative 20 coin deductions.', cost: 60, icon: '🛡️' },
+                { id: 'shield', name: 'Aegis Shield', desc: 'Blocks negative coin deductions.', cost: 60, icon: '🛡️' },
                 { id: 'elixir', name: 'Time Elixir', desc: 'Grants +10 seconds onto clock.', cost: 40, icon: '🧪' }
             ];
             const grid = document.getElementById('modal-shop-grid'); if(!grid) return;
@@ -241,59 +222,14 @@
             if (state.gold >= cost) {
                 state.gold -= cost; state.perks[id] = (state.perks[id] || 0) + 1;
                 saveState(); openShopModal();
-            } else { alert(state.lang === 'tw' ? "Sika dodo mfata!" : "Insufficient coin funds!"); }
+            } else { alert("Insufficient coin funds!"); }
         }
-
-        // Pop-up menu panel algorithm showing distinct rewards/difficulties dynamically mapped
-        function openActivitiesModal() {
-            playSoundFX('perk');
-            let displayCount = Math.min(TOTAL_ACTIVITIES_PER_PHASE, currentActivityNode - 1);
-            let progressPct = Math.round((displayCount / TOTAL_ACTIVITIES_PER_PHASE) * 100);
-            
-            if(document.getElementById('modal-progress-pct')) document.getElementById('modal-progress-pct').innerText = `${progressPct}%`;
-            if(document.getElementById('modal-progress-bar')) document.getElementById('modal-progress-bar').style.width = `${progressPct}%`;
-
-            const stack = document.getElementById('modal-activities-stack');
-            if(!stack) return;
-            stack.innerHTML = "";
-
-            for(let i = 1; i <= TOTAL_ACTIVITIES_PER_PHASE; i++) {
-                let diff = "Easy";
-                let rewardText = "15 💰";
-                if(i >= 7 && i <= 14) { diff = "Moderate"; rewardText = "25 💰"; }
-                else if(i >= 15) { diff = "Difficult"; rewardText = "40 💰 + 🛡️"; }
-
-                let isCleared = i < currentActivityNode;
-                let statusIcon = isCleared ? "✅" : "🔒 Active";
-                let cardBg = isCleared ? "bg-slate-900/40 opacity-60" : "bg-slate-900/90 border-l-4 border-purple-500";
-                
-                let activityTitle = state.lang === 'tw' ? `Dwumadie Nhyehyɛe ${i}` : `Canonical Milestone Task ${i}`;
-
-                const row = document.createElement('div');
-                row.className = `p-3 rounded-xl flex items-center justify-between text-xs border border-white/5 ${cardBg}`;
-                row.innerHTML = `
-                    <div>
-                        <div class="font-black text-slate-100 flex items-center gap-1.5">
-                            <span>${activityTitle}</span>
-                            <span class="text-[8px] uppercase font-black tracking-tight px-1.5 py-0.5 rounded bg-slate-950 text-purple-400">${diff}</span>
-                        </div>
-                        <p class="text-[9px] text-slate-400 font-medium mt-0.5">Reward Tier Valuation: <span class="text-amber-400 font-bold">${rewardText}</span></p>
-                    </div>
-                    <span class="font-black text-[10px] uppercase tracking-wider">${statusIcon}</span>
-                `;
-                stack.appendChild(row);
-            }
-
-            document.getElementById('activities-modal').classList.remove('hidden');
-        }
-        function closeActivitiesModal() { document.getElementById('activities-modal').classList.add('hidden'); }
 
         function renderMenuMap() {
             currentCampaign = "";
             document.body.classList.remove('game-bg-active');
             if(document.getElementById('back-btn')) document.getElementById('back-btn').classList.add('hidden');
-            if(document.getElementById('hud-activities-btn')) document.getElementById('hud-activities-btn').classList.add('hidden');
-            if(document.getElementById('lobby-bag-btn')) document.getElementById('lobby-bag-btn').classList.remove('hidden');
+            if(document.getElementById('phase-sectors-btn')) document.getElementById('phase-sectors-btn').classList.add('hidden');
             stopSnowingEffect();
             
             const canvas = document.getElementById('window-canvas'); if(!canvas) return;
@@ -308,38 +244,31 @@
                 <div class="space-y-2.5 animate__animated animate__fadeInUp">
                     <button onclick="launchCampaign('nt')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-indigo-500 transition-all">
                         <div>
-                            <h3 class="text-sm font-black text-indigo-300">${state.lang === 'tw' ? 'Apam Foforo Kwantenpon' : 'Phase 1: New Testament'}</h3>
-                            <p class="text-[10px] text-slate-400">${state.lang === 'tw' ? 'Asɛmpa no ne Nkrataa' : 'Gospels & Epistles Letters'}</p>
+                            <h3 class="text-sm font-black text-indigo-300">Phase 1: New Testament</h3>
+                            <p class="text-[10px] text-slate-400">Gospels & Epistles Letters</p>
                         </div>
                         <span class="text-lg">⚡</span>
                     </button>
                     <button onclick="launchCampaign('ot')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-emerald-500 transition-all">
                         <div>
-                            <h3 class="text-sm font-black text-emerald-300">${state.lang === 'tw' ? 'Apam Dedaw Abakɔsɛm' : 'Phase 2: Old Testament'}</h3>
-                            <p class="text-[10px] text-slate-400">${state.lang === 'tw' ? 'Mmara ne Hebrofo Atetesɛm' : 'Torah, Law & Hebrew History Chronicles'}</p>
+                            <h3 class="text-sm font-black text-emerald-300">Phase 2: Old Testament</h3>
+                            <p class="text-[10px] text-slate-400">Torah, Law & History Chronicles</p>
                         </div>
                         <span class="text-lg">📜</span>
                     </button>
                     <button onclick="launchCampaign('mix')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-purple-500 transition-all">
                         <div>
-                            <h3 class="text-sm font-black text-purple-300">${state.lang === 'tw' ? 'Afrafranto Akwan' : 'Phase 3: Grand Mixture'}</h3>
-                            <p class="text-[10px] text-slate-400">${state.lang === 'tw' ? 'Nsɛmmisa a Wafra mu Ne Nyinaa' : 'Full Structural Random Pool Mix'}</p>
+                            <h3 class="text-sm font-black text-purple-300">Phase 3: Grand Mixture</h3>
+                            <p class="text-[10px] text-slate-400">Full Structural Random Pool Mix</p>
                         </div>
                         <span class="text-lg">🌀</span>
                     </button>
                     <button onclick="launchCampaign('egw')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-amber-400 transition-all">
                         <div>
-                            <h3 class="text-sm font-black text-amber-300">${state.lang === 'tw' ? 'Ellen G. White Nkrataa' : 'Phase 4: E.G. White Writings'}</h3>
-                            <p class="text-[10px] text-slate-400">${state.lang === 'tw' ? 'Nkɔmhyɛ mu Nhunumu Akwan' : 'Prophetic History Insights'}</p>
+                            <h3 class="text-sm font-black text-amber-300">Phase 4: E.G. White Writings</h3>
+                            <p class="text-[10px] text-slate-400">Prophetic History Insights</p>
                         </div>
                         <span class="text-lg">✒️</span>
-                    </button>
-                    <button onclick="launchCampaign('master')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-rose-500 transition-all">
-                        <div>
-                            <h3 class="text-sm font-black text-rose-400">${state.lang === 'tw' ? 'Nkunimdie Mmerɛ Dawuru' : 'Phase 5: Mastery Blitz Mode'}</h3>
-                            <p class="text-[10px] text-slate-400">${state.lang === 'tw' ? 'Ntɛmsoɔ Harehare: Nnarekodi 5 Pɛ!' : 'Hyper Speed Speedrun: 5-Second Blitz Clock!'}</p>
-                        </div>
-                        <span class="text-lg">🔥</span>
                     </button>
                 </div>
             `;
@@ -348,12 +277,10 @@
         function launchCampaign(mode) {
             initAudioEngine();
             currentCampaign = mode;
-            currentActivityNode = 1; 
-
-            if(document.getElementById('back-btn')) document.getElementById('back-btn').classList.remove('hidden');
-            if(document.getElementById('hud-activities-btn')) document.getElementById('hud-activities-btn').classList.remove('hidden');
-            if(document.getElementById('lobby-bag-btn')) document.getElementById('lobby-bag-btn').classList.add('hidden');
             
+            if(document.getElementById('back-btn')) document.getElementById('back-btn').classList.remove('hidden');
+            if(document.getElementById('phase-sectors-btn')) document.getElementById('phase-sectors-btn').classList.add('hidden');
+
             let matchedBooks = [];
             if (mode === 'nt') matchedBooks = window.quizDatabase.filter(b => b.group === 'NT');
             else if (mode === 'ot') matchedBooks = window.quizDatabase.filter(b => b.group === 'OT');
@@ -372,84 +299,130 @@
                 }
             });
 
-            if(campaignQuestionsPool.length === 0) {
-                campaignQuestionsPool = [
-                    { q: "Who was the first man?", a: ["Moses", "Adam", "Noah", "David"], q_twi: "Hwan ne onipa a odi kan?", a_tw: ["Mose", "Adam", "Noa", "David"], correct: 1, subGroup: "Easy", _bookName: "Genesis" }
-                ];
-            }
-
-            loadQuestionNode();
+            viewPhaseSectors();
         }
 
-        function loadQuestionNode() {
-            if (currentActivityNode > TOTAL_ACTIVITIES_PER_PHASE) { renderVictoryScreen(); return; }
+        // Independent Dedicated Activity Selection Screen Layout
+        function viewPhaseSectors() {
+            clearInterval(timerClockInterval);
+            document.body.classList.remove('game-bg-active');
+            if(document.getElementById('phase-sectors-btn')) document.getElementById('phase-sectors-btn').classList.add('hidden');
+            
+            const canvas = document.getElementById('window-canvas'); if(!canvas) return;
 
-            document.body.classList.add('game-bg-active');
-            inputBlocked = false; isShieldActive = false;
-            if(document.getElementById('shield-frame')) document.getElementById('shield-frame').className = "";
-            if (!isClockFrozen) {
-                if(document.getElementById('frost-frame')) document.getElementById('frost-frame').className = "";
-                stopSnowingEffect();
+            let totalCompleted = 0;
+            for(let i = 1; i <= TOTAL_ACTIVITIES_PER_PHASE; i++) {
+                if(state.completedActivities[`${currentCampaign}_${i}`]) totalCompleted++;
+            }
+            let completionPct = Math.round((totalCompleted / TOTAL_ACTIVITIES_PER_PHASE) * 100);
+
+            let sectorTitle = `Sectors Explorer: ${currentCampaign.toUpperCase()}`;
+
+            let htmlString = `
+                <div class="glass-card p-4 space-y-2.5 bg-slate-950/90 border border-purple-500/30 animate__animated animate__fadeIn flex flex-col">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-base font-black text-purple-400 uppercase tracking-wider">${sectorTitle}</h2>
+                        <span class="text-xs text-slate-400 font-bold">${totalCompleted}/20 Completed</span>
+                    </div>
+                    <div class="w-full bg-slate-900 h-3 rounded-full overflow-hidden p-0.5 border border-white/5">
+                        <div class="h-full rounded-full bg-gradient-to-r from-purple-500 via-indigo-500 to-emerald-400 transition-all duration-500" style="width: ${completionPct}%;"></div>
+                    </div>
+                </div>
+                <div class="space-y-2.5 max-h-[60vh] overflow-y-auto pr-1 animate__animated animate__fadeInUp">
+            `;
+
+            for(let i = 1; i <= TOTAL_ACTIVITIES_PER_PHASE; i++) {
+                let diff = "Easy"; let rewardCoins = 15;
+                if(i >= 7 && i <= 14) { diff = "Moderate"; rewardCoins = 25; }
+                else if(i >= 15) { diff = "Difficult"; rewardCoins = 40; }
+
+                let key = `${currentCampaign}_${i}`;
+                let isDone = state.completedActivities[key];
+                let isClaimed = state.claimedRewards[key];
+
+                let cardStyle = "bg-slate-900/90 border-l-4 border-indigo-500";
+                let actionBtn = `<button onclick="startActivityNode(${i}, '${diff}')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-3 py-1.5 rounded-xl">START</button>`;
+
+                if (isDone) {
+                    if (isClaimed) {
+                        cardStyle = "bg-slate-950/50 opacity-60 border-l-4 border-slate-600";
+                        actionBtn = `<span class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Claimed ✓</span>`;
+                    } else {
+                        // Glowing status state indicating reward claim availability
+                        cardStyle = "completed-glow bg-emerald-950/80 border border-emerald-500";
+                        actionBtn = `<button onclick="claimActivityReward(${i}, ${rewardCoins})" class="bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black text-xs px-3 py-1.5 rounded-xl animate__animated animate__pulse animate__infinite">🎁 CLAIM</button>`;
+                    }
+                }
+
+                // Generates dynamic, meaningful descriptive metadata context instead of generic placeholders
+                let contextSubject = campaignQuestionsPool[i % campaignQuestionsPool.length]?._bookName || "Scripture Quest Study";
+
+                htmlString += `
+                    <div class="p-3.5 rounded-2xl flex items-center justify-between border border-white/5 ${cardStyle}">
+                        <div>
+                            <div class="font-black text-slate-200 text-xs flex items-center gap-2">
+                                <span>Task ${i}: ${contextSubject}</span>
+                                <span class="text-[8px] uppercase tracking-tight px-1.5 py-0.5 rounded bg-slate-950 text-purple-400 font-bold">${diff}</span>
+                            </div>
+                            <p class="text-[9px] text-slate-400 font-medium mt-0.5">Value Valuation: <span class="text-amber-400 font-bold">${rewardCoins} 💰</span></p>
+                        </div>
+                        <div>${actionBtn}</div>
+                    </div>
+                `;
             }
 
-            // EXCLUSION FILTER MATRIX: Remove historical clears to completely eradicate repeating prompts
-            let availablePool = campaignQuestionsPool.filter(q => !state.clearedQuestions.includes(q.q));
+            htmlString += `</div>`;
+            canvas.innerHTML = htmlString;
+        }
+
+        function claimActivityReward(nodeIdx, rewardValue) {
+            let key = `${currentCampaign}_${nodeIdx}`;
+            state.claimedRewards[key] = true;
+            state.gold += rewardValue;
+            playSoundFX('correct');
+            saveState();
+            viewPhaseSectors();
+        }
+
+        function startActivityNode(nodeIdx, difficultyTier) {
+            currentSelectedActivityIdx = nodeIdx;
+            if(document.getElementById('phase-sectors-btn')) document.getElementById('phase-sectors-btn').classList.remove('hidden');
+            document.body.classList.add('game-bg-active');
             
-            // Failsafe backup recycling system if player exhausts the entire canonical question file
+            inputBlocked = false; isShieldActive = false;
+            if(document.getElementById('shield-frame')) document.getElementById('shield-frame').className = "";
+            if(!isClockFrozen) if(document.getElementById('frost-frame')) document.getElementById('frost-frame').className = "";
+
+            // Filtering registry loops to ensure complete elimination of repeating matches
+            let availablePool = campaignQuestionsPool.filter(q => !state.clearedQuestions.includes(q.q));
             if (availablePool.length === 0) { 
                 state.clearedQuestions = []; 
                 saveState();
                 availablePool = campaignQuestionsPool; 
             }
 
-            // Distinct difficulty balancing logic based on node step progression
-            let targetDifficulty = "Easy";
-            if (currentActivityNode >= 7 && currentActivityNode <= 14) targetDifficulty = "Moderate";
-            else if (currentActivityNode >= 15) targetDifficulty = "Difficult";
-
-            let subFiltered = availablePool.filter(q => (q.subGroup || "Easy") === targetDifficulty);
+            let subFiltered = availablePool.filter(q => (q.subGroup || "Easy") === difficultyTier);
             if (subFiltered.length === 0) subFiltered = availablePool;
 
             activeQuestion = subFiltered[Math.floor(Math.random() * subFiltered.length)];
 
-            let currentTier = activeQuestion.subGroup || "Easy";
-            if (currentCampaign === 'master') { maxSeconds = 5; } 
-            else { maxSeconds = currentTier === "Difficult" ? 10 : currentTier === "Moderate" ? 15 : 20; }
-            
-            if (!isClockFrozen) { secondsLeft = maxSeconds; }
-
-            let tierColorClass = "bg-emerald-500";
-            if (currentTier === "Moderate") tierColorClass = "bg-amber-500";
-            else if (currentTier === "Difficult" || currentCampaign === 'master') tierColorClass = "bg-rose-500";
+            maxSeconds = difficultyTier === "Difficult" ? 10 : difficultyTier === "Moderate" ? 15 : 20;
+            if (!isClockFrozen) secondsLeft = maxSeconds;
 
             let questionText = (state.lang === 'tw' && activeQuestion.q_twi) ? activeQuestion.q_twi : activeQuestion.q;
             let choicesArray = (state.lang === 'tw' && activeQuestion.a_tw) ? activeQuestion.a_tw : activeQuestion.a;
 
             const canvas = document.getElementById('window-canvas'); if(!canvas) return;
 
-            let calculatedPct = Math.round(((currentActivityNode - 1) / TOTAL_ACTIVITIES_PER_PHASE) * 100);
-
             canvas.innerHTML = `
-                <div class="glass-card p-4 space-y-3 flex flex-col animate__animated animate__fadeIn bg-slate-900/90 shadow-2xl">
+                <div class="glass-card p-4 space-y-3 flex flex-col bg-slate-900/90 shadow-2xl animate__animated animate__fadeIn">
                     <div class="flex justify-between items-center">
                         <div>
                             <h2 class="text-sm font-black text-indigo-400 uppercase tracking-wider">${activeQuestion._bookName || "Bible Quest"}</h2>
-                            <div class="text-xs font-bold text-slate-300 mt-0.5">
-                                ${state.lang === 'tw' ? `Dwumadie ${currentActivityNode} mu ${TOTAL_ACTIVITIES_PER_PHASE}` : `Activity ${currentActivityNode} of ${TOTAL_ACTIVITIES_PER_PHASE}`}
-                            </div>
+                            <div class="text-xs font-bold text-slate-300 mt-0.5">Task Sector Activity ${nodeIdx}</div>
                         </div>
                         <div id="clock-wrapper" class="text-2xl font-black tracking-tighter tabular-nums text-amber-400 bg-slate-950/70 px-3 py-1.5 rounded-2xl border border-white/10">
                             ⏰ <span id="clock-digit">${secondsLeft}</span>s
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-[10px] font-black uppercase tracking-tight text-slate-400">
-                            <span>Phase Completion Progress</span>
-                            <span class="text-purple-400">${calculatedPct}%</span>
-                        </div>
-                        <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden p-0.5 border border-white/5">
-                            <div class="h-full rounded-full bg-gradient-to-r from-purple-500 via-indigo-400 to-amber-400 transition-all duration-500" style="width: ${calculatedPct}%;"></div>
                         </div>
                     </div>
                 </div>
@@ -460,27 +433,12 @@
 
                 <div id="choice-matrix" class="space-y-2.5"></div>
 
+                <!-- HOTBAR SYSTEM -->
                 <div class="fixed bottom-0 left-0 right-0 p-3 bg-slate-950/95 border-t border-white/10 z-40 flex justify-center gap-2">
-                    <button onclick="triggerInGamePerk('freeze')" class="flex-1 bg-slate-900 border border-sky-500/30 p-2 rounded-xl flex flex-col items-center">
-                        <span class="text-base">❄️</span>
-                        <span class="text-[9px] text-slate-400 font-bold">Qty: ${state.perks.freeze}</span>
-                    </button>
-                    <button onclick="triggerInGamePerk('half')" class="flex-1 bg-slate-900 border border-rose-500/30 p-2 rounded-xl flex flex-col items-center">
-                        <span class="text-base">⚖️</span>
-                        <span class="text-[9px] text-slate-400 font-bold">Qty: ${state.perks.half}</span>
-                    </button>
-                    <button onclick="triggerInGamePerk('skip')" class="flex-1 bg-slate-900 border border-purple-500/30 p-2 rounded-xl flex flex-col items-center">
-                        <span class="text-base">🔮</span>
-                        <span class="text-[9px] text-slate-400 font-bold">Qty: ${state.perks.skip}</span>
-                    </button>
-                    <button onclick="triggerInGamePerk('shield')" class="flex-1 bg-slate-900 border border-amber-500/30 p-2 rounded-xl flex flex-col items-center">
-                        <span class="text-base">🛡️</span>
-                        <span class="text-[9px] text-slate-400 font-bold">Qty: ${state.perks.shield}</span>
-                    </button>
-                    <button onclick="triggerInGamePerk('elixir')" class="flex-1 bg-slate-900 border border-emerald-500/30 p-2 rounded-xl flex flex-col items-center">
-                        <span class="text-base">🧪</span>
-                        <span class="text-[9px] text-slate-400 font-bold">Qty: ${state.perks.elixir}</span>
-                    </button>
+                    <button onclick="triggerInGamePerk('freeze')" class="flex-1 bg-slate-900 border border-sky-500/30 p-2 rounded-xl flex flex-col items-center"><span>❄️</span><span class="text-[9px] text-slate-400 font-bold">Qty: ${state.perks.freeze}</span></button>
+                    <button onclick="triggerInGamePerk('half')" class="flex-1 bg-slate-900 border border-rose-500/30 p-2 rounded-xl flex flex-col items-center"><span>⚖️</span><span class="text-[9px] text-slate-400 font-bold">Qty: ${state.perks.half}</span></button>
+                    <button onclick="triggerInGamePerk('skip')" class="flex-1 bg-slate-900 border border-purple-500/30 p-2 rounded-xl flex flex-col items-center"><span>🔮</span><span class="text-[9px] text-slate-400 font-bold">Qty: ${state.perks.skip}</span></button>
+                    <button onclick="triggerInGamePerk('shield')" class="flex-1 bg-slate-900 border border-amber-500/30 p-2 rounded-xl flex flex-col items-center"><span>🛡️</span><span class="text-[9px] text-slate-400 font-bold">Qty: ${state.perks.shield}</span></button>
                 </div>
             `;
 
@@ -488,21 +446,14 @@
             if(matrix && choicesArray) {
                 choicesArray.forEach((opt, idx) => {
                     const btn = document.createElement('button');
-                    btn.className = "btn-choice animate__animated animate__fadeInUp bg-slate-900/90";
-                    btn.style.animationDelay = `${idx * 0.02}s`;
+                    btn.className = "btn-choice bg-slate-900/90";
                     btn.innerText = opt;
                     btn.onclick = () => evaluateAnswer(idx, btn);
                     matrix.appendChild(btn);
                 });
             }
 
-            if (isClockFrozen) {
-                const clk = document.getElementById('clock-wrapper');
-                if (clk) clk.className = "text-2xl font-black bg-sky-950 text-sky-400 px-3 py-1.5 rounded-2xl border border-sky-400";
-            }
-
             runCountdownLoop();
-            saveState();
         }
 
         function runCountdownLoop() {
@@ -510,66 +461,10 @@
             timerClockInterval = setInterval(() => {
                 if (isClockFrozen || inputBlocked) return;
                 secondsLeft--;
-                
                 const digit = document.getElementById('clock-digit'); if (digit) digit.innerText = secondsLeft;
-                const fill = document.getElementById('bar-fill'); if (fill) fill.style.width = `${(secondsLeft / maxSeconds) * 100}%`;
-
-                if (secondsLeft <= 2) {
-                    playSoundFX('tick');
-                    const wrap = document.getElementById('clock-wrapper'); if (wrap) wrap.classList.add('alarm-on');
-                }
                 if (secondsLeft <= 0) { clearInterval(timerClockInterval); handleFailurePenalty(); }
             }, 1000);
         }
-
-        function triggerInGamePerk(id) {
-            if (state.perks[id] <= 0 || inputBlocked) return;
-            state.perks[id]--; saveState(); playSoundFX('perk');
-
-            if (id === 'freeze') {
-                isClockFrozen = true;
-                if(document.getElementById('frost-frame')) document.getElementById('frost-frame').classList.add('frost-active');
-                startSnowingEffect();
-                loadQuestionNode();
-            } 
-            else if (id === 'half') {
-                const buttons = document.getElementById('choice-matrix').getElementsByTagName('button');
-                let wrongs = []; for(let i=0; i<buttons.length; i++) { if (i !== activeQuestion.correct) wrongs.push(i); }
-                wrongs.sort(() => Math.random() - 0.5).slice(0, 2).forEach(idx => {
-                    if(buttons[idx]) {
-                        buttons[idx].classList.add('animate__animated', 'animate__zoomOut');
-                        setTimeout(() => { buttons[idx].style.opacity = "0"; buttons[idx].style.pointerEvents = "none"; }, 300);
-                    }
-                });
-            } 
-            else if (id === 'skip') { 
-                currentActivityNode++; 
-                loadQuestionNode();
-            } 
-            else if (id === 'shield') {
-                isShieldActive = true; 
-                if(document.getElementById('shield-frame')) document.getElementById('shield-frame').classList.add('shield-active');
-            } 
-            else if (id === 'elixir') { 
-                secondsLeft = Math.min(maxSeconds, secondsLeft + 10); 
-                loadQuestionNode();
-            }
-        }
-
-        function startSnowingEffect() {
-            const box = document.getElementById('snow-box'); if(!box) return;
-            box.innerHTML = "";
-            for(let i=0; i<35; i++) {
-                const snow = document.createElement('div');
-                snow.className = "snowflake"; snow.innerText = "❄️";
-                snow.style.left = `${Math.random() * 100}%`; 
-                snow.style.animationDuration = `${Math.random() * 2.5 + 2}s`;
-                snow.style.animationDelay = `${Math.random() * 1.5}s`;
-                snow.style.fontSize = `${Math.random() * 12 + 12}px`;
-                box.appendChild(snow);
-            }
-        }
-        function stopSnowingEffect() { const box = document.getElementById('snow-box'); if(box) box.innerHTML = ""; }
 
         function evaluateAnswer(selectedIdx, clickedElement) {
             if (inputBlocked) return; inputBlocked = true; clearInterval(timerClockInterval);
@@ -578,17 +473,14 @@
                 clickedElement.className = "btn-choice rainbow-correct shadow-2xl";
                 playSoundFX('correct');
                 
-                // Add variable coin rewards depending on question difficulty tier splits
-                let diffBonus = activeQuestion.subGroup === "Difficult" ? 40 : activeQuestion.subGroup === "Moderate" ? 25 : 15;
-                state.gold += diffBonus;
-                state.streak++;
-
-                // Lock prompt into database registry arrays immediately to completely prevent loops
                 state.clearedQuestions.push(activeQuestion.q);
+                state.completedActivities[`${currentCampaign}_${currentSelectedActivityIdx}`] = true;
                 saveState();
 
-                currentActivityNode++; 
-                setTimeout(loadQuestionNode, 1400);
+                setTimeout(() => {
+                    alert("Activity Complete! Return to the Sector Dashboard to claim your loot reward.");
+                    viewPhaseSectors();
+                }, 1400);
             } else {
                 clickedElement.className = "btn-choice bg-rose-600 border-rose-400 text-white animate__animated animate__shakeX font-bold shadow-lg";
                 playSoundFX('wrong');
@@ -598,68 +490,41 @@
 
         function handleFailurePenalty() {
             clearInterval(timerClockInterval);
-            state.streak = 0;
             isClockFrozen = false;
-
-            if (isShieldActive) { 
-                alert(state.lang === 'tw' ? "🛡️ Akokoa Kataa Wo Sika So Afiri Pɔn mu!" : "🛡️ Aegis Shield Blocked Your Coin Penalty! Shuffling activity node configurations."); 
-            } 
-            else {
-                state.gold = Math.max(0, state.gold - 20); saveState();
-                const goldHUD = document.getElementById('gold-container');
-                if (goldHUD) {
-                    goldHUD.classList.add('animate__shakeX', 'bg-red-950/80');
-                    setTimeout(() => goldHUD.classList.remove('animate__shakeX', 'bg-red-950/80'), 800);
-                }
-                alert(state.lang === 'tw' ? "❌ Wo bɔɔ afiri! Sika -20 Coins." : "❌ Incorrect! -20 Coins.");
+            if (!isShieldActive) {
+                state.gold = Math.max(0, state.gold - 20); 
+                saveState();
             }
-
-            loadQuestionNode();
+            alert("Incorrect setup window response framework reset.");
+            viewPhaseSectors();
         }
 
-        function renderVictoryScreen() {
-            stopSnowingEffect();
-            document.body.classList.remove('game-bg-active');
-            const canvas = document.getElementById('window-canvas'); if(!canvas) return;
+        function triggerInGamePerk(id) {
+            if (state.perks[id] <= 0 || inputBlocked) return;
+            state.perks[id]--; saveState(); playSoundFX('perk');
 
-            // Apply Grand Mega Phase Cleared Rewards Layout (+200 coins and +2 all inventory perks)
-            state.gold += 200;
-            state.perks.freeze += 2;
-            state.perks.half += 2;
-            state.perks.skip += 2;
-            state.perks.shield += 2;
-            state.perks.elixir += 2;
-            saveState();
-
-            canvas.innerHTML = `
-                <div class="glass-card p-8 text-center space-y-5 animate__animated animate__backInDown border border-amber-500/20 bg-slate-900/95 shadow-2xl">
-                    <h1 class="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500">🏆 PHASE CLEARED!</h1>
-                    <p class="text-sm text-slate-300 font-medium">${state.lang === 'tw' ? 'Mo! Wawiec saa adesua dwumadie 20 yi nyinaa pɛpɛɛpɛ!' : 'Incredible performance! You completed all 20 unique activities for this study track route successfully!'}</p>
-                    
-                    <div class="p-4 bg-slate-950/60 rounded-2xl border border-white/5 space-y-1.5 text-left">
-                        <h4 class="text-xs font-black text-amber-400 tracking-wider uppercase">✨ Grand Phase Rewards Added:</h4>
-                        <p class="text-[11px] text-slate-300">💰 Added <span class="font-black text-amber-400">+200 Coins</span> to vault</p>
-                        <p class="text-[11px] text-slate-300">🎒 Added <span class="font-black text-indigo-400">+2 of all power-ups</span> items</p>
-                    </div>
-
-                    <button onclick="exitToMenu()" class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 p-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl">
-                        ${state.lang === 'tw' ? 'Sane Kɔ Akwanmu Mfonini' : 'Return to Map Hub'}
-                    </button>
-                </div>
-            `;
+            if (id === 'freeze') {
+                isClockFrozen = true;
+                if(document.getElementById('frost-frame')) document.getElementById('frost-frame').classList.add('frost-active');
+            } else if (id === 'half') {
+                const buttons = document.getElementById('choice-matrix').getElementsByTagName('button');
+                let wrongs = []; for(let i=0; i<buttons.length; i++) { if (i !== activeQuestion.correct) wrongs.push(i); }
+                wrongs.forEach(idx => { if(buttons[idx]) buttons[idx].style.opacity = "0.2"; });
+            } else if (id === 'skip') {
+                state.completedActivities[`${currentCampaign}_${currentSelectedActivityIdx}`] = true;
+                saveState();
+                viewPhaseSectors();
+            } else if (id === 'shield') {
+                isShieldActive = true;
+                if(document.getElementById('shield-frame')) document.getElementById('shield-frame').classList.add('shield-active');
+            }
         }
 
-        function toggleLanguage() {
-            state.lang = state.lang === 'en' ? 'tw' : 'en'; saveState();
-            if (currentCampaign !== "") loadQuestionNode(); else renderMenuMap();
-        }
-
+        function stopSnowingEffect() { const box = document.getElementById('snow-box'); if(box) box.innerHTML = ""; }
+        function toggleLanguage() { state.lang = state.lang === 'en' ? 'tw' : 'en'; saveState(); if(currentCampaign !== "") viewPhaseSectors(); else renderMenuMap(); }
         function exitToMenu() { clearInterval(timerClockInterval); isClockFrozen = false; renderMenuMap(); }
         
-        window.onload = () => {
-            saveState(); 
-            renderMenuMap();
-        };
+        window.onload = () => { saveState(); renderMenuMap(); };
     </script>
 </body>
 </html>
