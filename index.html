@@ -3,352 +3,403 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bible Quest Blitz</title>
+    <title>Bible Quest: Ultimate</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
-        #bg-overlay { 
-            position: fixed; 
-            inset: 0; 
-            background-color: #0f172a; 
-            background-size: cover; 
-            background-position: center; 
-            transition: background-image 1s ease-in-out; 
-            z-index: 0; 
+        #bg-overlay { position: fixed; inset: 0; background-color: #090d16; background-size: cover; background-position: center; transition: all 1.2s ease; z-index: 0; }
+        #bg-tint { position: fixed; inset: 0; background: linear-gradient(180deg, rgba(15, 23, 42, 0.8), rgba(2, 6, 23, 0.98)); z-index: 1; }
+        .glass-card { background: rgba(255, 255, 255, 0.06); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; color: white; }
+        .btn-choice { width: 100%; text-align: left; padding: 1rem 1.2rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); font-weight: 600; color: #e2e8f0; transition: all 0.3s ease; cursor: pointer; }
+        .btn-choice:hover { background: rgba(255, 255, 255, 0.15); border-color: #818cf8; transform: scale(1.02); }
+        
+        /* Specialized Clock Face Keyframe Triggers */
+        @keyframes clockAlarm {
+            0% { transform: scale(1) rotate(0deg); color: #f59e0b; }
+            25% { transform: scale(1.1) rotate(-10deg); color: #ef4444; }
+            50% { transform: scale(1.1) rotate(10deg); color: #ef4444; }
+            75% { transform: scale(1.1) rotate(-10deg); color: #ef4444; }
+            100% { transform: scale(1) rotate(0deg); color: #ef4444; }
         }
-        #bg-tint { 
-            position: fixed; 
-            inset: 0; 
-            background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.85)); 
-            z-index: 1; 
-        }
-        .quiz-card { 
-            background: rgba(255, 255, 255, 0.96); 
-            border-radius: 24px; 
-            color: #1e293b; 
-            position: relative; 
-            z-index: 10; 
-        }
-        .btn-opt { 
-            width: 100%; 
-            text-align: left; 
-            padding: 1.2rem 1rem; 
-            border-radius: 16px; 
-            border: 1px solid #e2e8f0; 
-            background: white; 
-            font-weight: 700; 
-            color: #334155;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
-            cursor: pointer; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
-        .btn-opt:hover { 
-            background: #f8fafc; 
-            border-color: #cbd5e1;
-            transform: translateY(-1px);
-        }
-        .timer-danger {
-            color: #ef4444 !important;
-            animation: pulse 1s infinite alternate;
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.1); }
-        }
+        .alarm-active { animation: clockAlarm 0.4s infinite; }
+        .locked-mode { filter: grayscale(0.8); opacity: 0.7; }
     </style>
 </head>
-<body class="p-4 min-h-screen flex flex-col items-center justify-start overflow-x-hidden select-none">
+<body class="p-4 min-h-screen flex flex-col items-center justify-start text-white overflow-x-hidden font-sans selection:bg-indigo-500">
     
     <div id="bg-overlay"></div>
     <div id="bg-tint"></div>
+    <audio id="bg-music" loop src="background.mp3"></audio>
 
-     <audio id="bg-music" loop src="background.mp3"></audio>
-
-
-
-
-    <!-- Top Dashboard Header (HUD) -->
-    <div class="fixed top-4 left-4 right-4 flex flex-col gap-2 z-50 max-w-md mx-auto w-full px-2">
-        <div class="flex justify-between items-center">
-            <div class="flex gap-2">
-                <button onclick="toggleLanguage()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-full font-bold text-xs uppercase shadow-lg">
-                    🌐 <span id="lang-label">English</span>
-                </button>
-                <button onclick="toggleMusic()" id="music-btn" class="bg-slate-700 hover:bg-slate-800 text-white px-3 py-2 rounded-full font-bold text-xs uppercase shadow-lg">
-                    🔈 Music: Off
-                </button>
-            </div>
-            
-            <div class="bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-xl flex items-center gap-2">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Balance</span>
-                <p class="text-lg font-black text-amber-400">💰 <span id="gold-val">100</span></p>
-            </div>
-        </div>
-
-        <div class="flex justify-end">
-            <button onclick="skipLevel()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 px-4 py-1.5 rounded-full font-black text-xs uppercase tracking-wider shadow-md">
-                ⏩ Skip Book (-100 💰)
+    <!-- Top Navigation Panel Interface -->
+    <div class="fixed top-4 left-4 right-4 flex justify-between items-center z-50 max-w-md mx-auto w-full px-2">
+        <button onclick="exitToMenu()" id="back-btn" class="hidden bg-slate-800/90 backdrop-blur border border-white/10 text-white px-4 py-2 rounded-full font-bold text-xs uppercase shadow-lg">
+            🚪 Exit Map
+        </button>
+        <div class="flex gap-1.5 ml-auto">
+            <button onclick="toggleLanguage()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-full font-bold text-xs uppercase shadow-md">
+                🌐 <span id="lang-label">English</span>
             </button>
+            <div class="bg-slate-900/90 border border-white/10 px-4 py-1.5 rounded-full shadow-lg flex items-center gap-1.5">
+                <span class="text-xs font-bold text-amber-400">💰</span>
+                <span id="gold-val" class="font-black text-amber-400 animate__animated">100</span>
+            </div>
         </div>
     </div>
 
-    <!-- Centered Principal Game Dashboard -->
-    <div id="game-content" class="w-full max-w-md space-y-5 mt-24 relative z-10">
-        
-        <div class="quiz-card p-6 shadow-2xl text-center border border-white/20">
-            <h1 id="world-title" class="text-xs font-black uppercase tracking-widest mb-3 text-indigo-600">LOADING DATA...</h1>
-            
-            <div class="flex justify-between items-center mb-4 px-1">
-                <div id="lvl-badge" class="px-3 py-1 rounded-full bg-indigo-600 text-white font-black text-[10px] uppercase tracking-wider">Book --</div>
-                
-                <!-- Time Box Controls (Clock, Pause, Restart) -->
-                <div class="flex items-center gap-3">
-                    <button onclick="restartLevel()" class="text-slate-400 hover:text-indigo-600 text-xl font-bold transition-all" title="Restart Book">
-                        🔄
-                    </button>
-                    <button onclick="togglePause()" id="pause-btn" class="text-slate-400 hover:text-indigo-600 text-xl font-bold transition-all" title="Pause Game">
-                        ⏸️
-                    </button>
-                    <span id="timer-clock" class="text-3xl font-black text-slate-700 tabular-nums">--</span>
-                </div>
-            </div>
-            
-            <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden shadow-inner">
-                <div id="xp-bar" class="h-full bg-gradient-to-r from-emerald-400 to-green-500 transition-all duration-500" style="width: 0%"></div>
-            </div>
-            <p id="q-counter-txt" class="text-[10px] text-slate-400 mt-2 font-bold uppercase tracking-wider">Progress: 0 / 0</p>
-        </div>
-
-        <div id="quiz-container" class="space-y-4"></div>
-    </div>
+    <!-- MAIN COMPONENT CANVAS -->
+    <main id="window-canvas" class="w-full max-w-md mt-16 relative z-10 space-y-6 flex flex-col"></main>
 
     <script src="questions.js"></script>
-
     <script>
-        let gameData = JSON.parse(localStorage.getItem('bibleQuestData')) || {
-            lvl: 1, gold: 100, progress: 0, lang: 'en'
+        // Core Encapsulated Game Engine Storage
+        let state = JSON.parse(localStorage.getItem('bqUltimateData')) || {
+            gold: 150,
+            lang: 'en',
+            unlockedModes: ['nt', 'ot', 'mix'],
+            perks: { freeze: 1, half: 1 },
+            streak: 0
         };
 
-        let currentPool = [];
-        let timerInterval = null;
-        let isProcessing = false;
-        let isMusicPlaying = false;
-        let isPaused = false;
-        let currentTimeLeft = 0;
+        let currentCampaign = "";
+        let levelIndex = 0;
+        let activePool = [];
+        let activeQuestion = null;
+        let timerClockInterval = null;
+        let secondsLeft = 0;
+        let isClockFrozen = false;
+        let inputBlocked = false;
 
-        function save() { 
-            localStorage.setItem('bibleQuestData', JSON.stringify(gameData)); 
+        function saveState() {
+            localStorage.setItem('bqUltimateData', JSON.stringify(state));
+            document.getElementById('gold-val').innerText = state.gold;
         }
 
-        function initLevel() {
-            isProcessing = false;
-            isPaused = false;
-            document.getElementById('pause-btn').innerText = "⏸️";
+        // Render the Animated Campaign Selection Map
+        function renderMenuMap() {
+            currentCampaign = "";
+            document.getElementById('back-btn').classList.add('hidden');
+            document.getElementById('bg-overlay').style.backgroundImage = "none";
             
-            if (typeof quizDatabase === 'undefined' || quizDatabase.length === 0) {
-                alert("Critical: database not loaded. Refresh your browser window.");
+            const canvas = document.getElementById('window-canvas');
+            canvas.innerHTML = `
+                <div class="text-center space-y-2 animate__animated animate__fadeInDown">
+                    <h1 class="text-4xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">BIBLE QUEST</h1>
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Select Your Campaign Route</p>
+                </div>
+
+                <div class="space-y-3 animate__animated animate__fadeInUp">
+                    <!-- NT CAMPAIGN -->
+                    <button onclick="launchCampaign('nt')" class="w-full p-5 glass-card text-left flex justify-between items-center hover:border-indigo-500 transition-all">
+                        <div>
+                            <h3 class="text-lg font-black text-indigo-300">Phase 1: New Testament</h3>
+                            <p class="text-xs text-slate-400">Explore the Gospels, Letters, and Vision</p>
+                        </div>
+                        <span class="text-2xl">⚡</span>
+                    </button>
+
+                    <!-- OT CAMPAIGN -->
+                    <button onclick="launchCampaign('ot')" class="w-full p-5 glass-card text-left flex justify-between items-center hover:border-emerald-500 transition-all">
+                        <div>
+                            <h3 class="text-lg font-black text-emerald-300">Phase 2: Old Testament</h3>
+                            <p class="text-xs text-slate-400">The Books of the Law and Israel's History</p>
+                        </div>
+                        <span class="text-2xl">📜</span>
+                    </button>
+
+                    <!-- MIXED INTERACTIVE JOURNEY -->
+                    <button onclick="launchCampaign('mix')" class="w-full p-5 glass-card text-left flex justify-between items-center hover:border-purple-500 transition-all">
+                        <div>
+                            <h3 class="text-lg font-black text-purple-300">Phase 3: Grand Mixture</h3>
+                            <p class="text-xs text-slate-400">Randomized books across the entire Bible</p>
+                        </div>
+                        <span class="text-2xl">🌀</span>
+                    </button>
+
+                    <!-- ELLEN G. WHITE WRITINGS -->
+                    <button onclick="launchCampaign('egw')" id="mode-egw" class="w-full p-5 glass-card text-left flex justify-between items-center transition-all ${state.unlockedModes.includes('egw') ? 'hover:border-amber-400' : 'locked-mode'}">
+                        <div>
+                            <h3 class="text-lg font-black text-amber-300 flex items-center gap-2">
+                                Phase 4: E.G. White Writings ${state.unlockedModes.includes('egw') ? '' : '🔒'}
+                            </h3>
+                            <p class="text-xs text-slate-400">${state.unlockedModes.includes('egw') ? 'Prophetic history and insight analysis' : 'Unlocks for 2,000 Coins'}</p>
+                        </div>
+                        <span class="text-2xl">✒️</span>
+                    </button>
+
+                    <!-- THE 5-SECOND MASTERY MODE -->
+                    <button onclick="launchCampaign('master')" id="mode-master" class="w-full p-5 glass-card text-left flex justify-between items-center transition-all ${state.unlockedModes.includes('master') ? 'hover:border-red-500' : 'locked-mode'}">
+                        <div>
+                            <h3 class="text-lg font-black text-red-400 flex items-center gap-2">
+                                Phase 5: Mastery Mode ${state.unlockedModes.includes('master') ? '' : '🔒'}
+                            </h3>
+                            <p class="text-xs text-slate-400">${state.unlockedModes.includes('master') ? 'Ultra hyper gameplay: 5 seconds only!' : 'Unlocks for 2,000 Coins'}</p>
+                        </div>
+                        <span class="text-2xl">🔥</span>
+                    </button>
+                </div>
+            `;
+        }
+
+        // Handle Campaign Progression and Unlock Intercept Gateways
+        function launchCampaign(mode) {
+            if (!state.unlockedModes.includes(mode)) {
+                if (state.gold >= 2000) {
+                    if (confirm(`Unlock this Campaign Phase permanently for 2,000 Coins?`)) {
+                        state.gold -= 2000;
+                        state.unlockedModes.push(mode);
+                        saveState();
+                        renderMenuMap();
+                    }
+                } else {
+                    alert(`Locked Level! You need 2,000 Coins to unlock this module path. Keep playing existing routes to farm balance!`);
+                }
                 return;
             }
 
-            // Fallback safety filter
-            let book = quizDatabase.find(b => b.level === gameData.lvl);
-            if (!book) {
-                gameData.lvl = 1;
-                gameData.progress = 0;
-                save();
-                book = quizDatabase[0];
-            }
+            currentCampaign = mode;
+            levelIndex = 0;
+            state.streak = 0;
+            document.getElementById('back-btn').classList.remove('hidden');
             
-            document.getElementById('bg-overlay').style.backgroundImage = `url('${book.bg}')`;
-            document.getElementById('world-title').innerText = `${book.name} (${book.group})`;
-            document.getElementById('lvl-badge').innerText = `Book ${gameData.lvl}`;
-            document.getElementById('gold-val').innerText = gameData.gold;
-            document.getElementById('lang-label').innerText = gameData.lang === 'en' ? "English" : "Twi";
-            
-            const percent = (gameData.progress / book.target) * 100;
-            document.getElementById('xp-bar').style.width = `${percent}%`;
-            document.getElementById('q-counter-txt').innerText = `Progress: ${gameData.progress} / ${book.target}`;
+            // Filter raw data structures based on route selection properties
+            if (mode === 'nt') activePool = quizDatabase.filter(b => b.group === 'NT');
+            else if (mode === 'ot') activePool = quizDatabase.filter(b => b.group === 'OT');
+            else if (mode === 'egw') activePool = quizDatabase.filter(b => b.group === 'EGW');
+            else activePool = [...quizDatabase].sort(() => Math.random() - 0.5);
 
-            if (currentPool.length === 0) {
-                currentPool = [...book.questions].sort(() => Math.random() - 0.5);
-            }
-
-            renderQuestion(book);
-            currentTimeLeft = book.timer;
-            startTimer(currentTimeLeft);
+            loadLevelNode();
         }
 
-        function renderQuestion(book) {
-            if (currentPool.length === 0) return;
-            const qObj = currentPool[0];
-            const container = document.getElementById('quiz-container');
-            const qText = gameData.lang === 'en' ? qObj.q : (qObj.q_twi || qObj.q);
-            
-            container.innerHTML = `
-                <div class="quiz-card p-6 shadow-xl space-y-4">
-                    <h2 class="text-xl font-extrabold text-slate-800 leading-snug">${qText}</h2>
-                    <div class="space-y-3" id="opt-box"></div>
+        // Initialize Level Node Interface
+        function loadLevelNode() {
+            if (levelIndex >= activePool.length) {
+                renderVictoryScreen();
+                return;
+            }
+
+            inputBlocked = false;
+            isClockFrozen = false;
+            const targetBook = activePool[levelIndex];
+            document.getElementById('bg-overlay').style.backgroundImage = `url('${targetBook.bg}')`;
+
+            activeQuestion = targetBook.questions[Math.floor(Math.random() * targetBook.questions.length)];
+            secondsLeft = currentCampaign === 'master' ? 5 : targetBook.timer;
+
+            const canvas = document.getElementById('window-canvas');
+            canvas.innerHTML = `
+                <!-- Animated Progress Stats Top Bar -->
+                <div class="glass-card p-4 flex justify-between items-center animate__animated animate__fadeIn">
+                    <div>
+                        <h2 class="text-xl font-black text-indigo-300 tracking-wide">${targetBook.name}</h2>
+                        <p class="text-[10px] uppercase text-slate-400 font-bold tracking-widest">Phase: ${currentCampaign.toUpperCase()} | Link ${levelIndex + 1}/${activePool.length}</p>
+                    </div>
+                    
+                    <!-- Animated Ringer Clock HUD Target Box -->
+                    <div class="flex flex-col items-center">
+                        <div id="clock-wrapper" class="text-3xl font-black tracking-tighter tabular-nums text-amber-400 bg-slate-950/40 px-3 py-1 rounded-xl border border-white/10">
+                            ⏰ <span id="clock-digit">${secondsLeft}</span>s
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Central Question Card Frame Box -->
+                <div class="glass-card p-6 min-h-[140px] flex items-center justify-center text-center animate__animated animate__zoomIn">
+                    <h3 class="text-xl font-bold leading-snug">
+                        ${state.lang === 'en' ? activeQuestion.q : (activeQuestion.q_twi || activeQuestion.q)}
+                    </h3>
+                </div>
+
+                <!-- Choice Option Selection Blocks -->
+                <div id="choice-matrix" class="space-y-2.5"></div>
+
+                <!-- Interactive Skill Inventory Bar Layout Layout -->
+                <div class="grid grid-cols-2 gap-3 mt-2">
+                    <button onclick="triggerFreezePerk()" class="bg-sky-950/80 border border-sky-500/30 p-3 rounded-2xl flex items-center justify-center gap-2 hover:bg-sky-900/50 transition-all">
+                        ❄️ Freeze (<span id="count-freeze">${state.perks.freeze}</span>)
+                    </button>
+                    <button onclick="triggerHalfPerk()" class="bg-rose-950/80 border border-rose-500/30 p-3 rounded-2xl flex items-center justify-center gap-2 hover:bg-rose-900/50 transition-all">
+                        ⚖️ 50:50 (<span id="count-half">${state.perks.half}</span>)
+                    </button>
                 </div>
             `;
 
-            qObj.a.forEach((opt, idx) => {
+            // Dynamically Inject Choice Cards Loop
+            const matrix = document.getElementById('choice-matrix');
+            activeQuestion.a.forEach((opt, idx) => {
                 const btn = document.createElement('button');
-                btn.className = "btn-opt";
+                btn.className = "btn-choice animate__animated animate__fadeInUp";
+                btn.style.animationDelay = `${idx * 0.08}s`;
                 btn.innerText = opt;
-                btn.onclick = () => handleAnswer(idx, qObj.correct, btn, book);
-                document.getElementById('opt-box').appendChild(btn);
+                btn.onclick = () => evaluateAnswer(idx, btn);
+                matrix.appendChild(btn);
             });
+
+            // Fire Timer Execution Sequence
+            runCountdownLoop();
         }
 
-        function startTimer(duration) {
-            clearInterval(timerInterval);
-            const timerClock = document.getElementById('timer-clock');
-            timerClock.classList.remove('timer-danger');
-            timerClock.innerText = duration;
+        // Live Countdown Clock with Visual and Audio Alarm Reminders
+        function runCountdownLoop() {
+            clearInterval(timerClockInterval);
+            const digit = document.getElementById('clock-digit');
+            const wrapper = document.getElementById('clock-wrapper');
 
-            timerInterval = setInterval(() => {
-                if (isPaused) return; // Freeze countdown loop execution if paused
-                
-                currentTimeLeft--;
-                timerClock.innerText = currentTimeLeft;
-                
-                if (currentTimeLeft <= 3) {
-                    timerClock.classList.add('timer-danger');
+            timerClockInterval = setInterval(() => {
+                if (isClockFrozen || inputBlocked) return;
+                secondsLeft--;
+                digit.innerText = secondsLeft;
+
+                if (secondsLeft <= 4) {
+                    wrapper.classList.add('alarm-active');
+                    // Play a quick subtle internal web audio bip tone to simulate a ringing notification bell
+                    triggerBeepTone(880, 0.08); 
                 }
-                
-                if (currentTimeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    gameData.gold -= 20; 
-                    checkStatus();
+
+                if (secondsLeft <= 0) {
+                    clearInterval(timerClockInterval);
+                    wrapper.classList.remove('alarm-active');
+                    handleFailureReset();
                 }
             }, 1000);
         }
 
-        function togglePause() {
-            const pauseBtn = document.getElementById('pause-btn');
-            if (!isPaused) {
-                isPaused = true;
-                pauseBtn.innerText = "▶️";
-                // Disable choice options visually during active pause sequence
-                document.getElementById('quiz-container').style.opacity = "0.3";
-                document.getElementById('quiz-container').style.pointerEvents = "none";
-            } else {
-                isPaused = false;
-                pauseBtn.innerText = "⏸️";
-                document.getElementById('quiz-container').style.opacity = "1";
-                document.getElementById('quiz-container').style.pointerEvents = "auto";
-            }
+        function triggerBeepTone(freq, dur) {
+            try {
+                let ctx = new (window.AudioContext || window.webkitAudioContext)();
+                let osc = ctx.createOscillator();
+                let gain = ctx.createGain();
+                osc.type = 'sine'; osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.04, ctx.currentTime);
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.start(); osc.stop(ctx.currentTime + dur);
+            } catch(e){}
         }
 
-        function restartLevel() {
-            if (confirm("Restart this entire book level? Your current progress in this book will be cleared.")) {
-                clearInterval(timerInterval);
-                gameData.progress = 0;
-                currentPool = [];
-                save();
-                initLevel();
-            }
-        }
+        // Evaluation State Logic Engine
+        function evaluateAnswer(selectedIdx, clickedElement) {
+            if (inputBlocked) return;
+            inputBlocked = true;
+            clearInterval(timerClockInterval);
+            document.getElementById('clock-wrapper').classList.remove('alarm-active');
 
-        function handleAnswer(choice, correct, btn, book) {
-            if (isProcessing || isPaused) return;
-            isProcessing = true;
-            clearInterval(timerInterval);
-
-            if (choice === correct) {
-                btn.style.background = "#dcfce7";
-                btn.style.borderColor = "#22c55e";
-                btn.style.color = "#15803d";
-                gameData.gold += 10;
-                gameData.progress++;
-                currentPool.shift(); 
-
-                if (gameData.progress >= book.target) {
-                    gameData.lvl++;
-                    gameData.progress = 0;
-                    currentPool = [];
-                }
-                save();
-                setTimeout(initLevel, 600);
-            } else {
-                btn.style.background = "#fee2e2";
-                btn.style.borderColor = "#ef4444";
-                btn.style.color = "#b91c1c";
-                gameData.gold -= 30;
-                checkStatus();
-            }
-        }
-
-        function skipLevel() {
-            if (gameData.gold < 100) {
-                alert("You don't have enough coins!");
-                return;
-            }
-            if (confirm("Spend 100 💰 to skip this entire book?")) {
-                clearInterval(timerInterval);
-                gameData.gold -= 100;
-                gameData.lvl++;
-                gameData.progress = 0;
-                currentPool = [];
-                save();
-                initLevel();
-            }
-        }
-
-      
-let audioCtx = null;
-let musicInterval = null;
-
-function toggleMusic() {
-    const music = document.getElementById('bg-music');
-    const musicBtn = document.getElementById('music-btn');
-    
-    if (!isMusicPlaying) {
-        music.play()
-            .then(() => {
-                isMusicPlaying = true;
-                musicBtn.innerText = "🔊 Music: On";
-                musicBtn.classList.replace('bg-slate-700', 'bg-emerald-600');
-            })
-            .catch((error) => {
-                console.log("Waiting for user interaction...");
-                isMusicPlaying = true;
-                musicBtn.innerText = "🔊 Music: On";
-                musicBtn.classList.replace('bg-slate-700', 'bg-emerald-600');
+            if (selectedIdx === activeQuestion.correct) {
+                clickedElement.className = "btn-choice bg-emerald-600/80 border-emerald-400 text-white animate__animated animate__pulse font-black";
                 
-                document.body.addEventListener('click', function startOnInteraction() {
-                    music.play().catch(e => console.log(e));
-                    document.body.removeEventListener('click', startOnInteraction);
-                }, { once: true });
-            });
-    } else {
-        music.pause();
-        isMusicPlaying = false;
-        musicBtn.innerText = "🔈 Music: Off";
-        musicBtn.classList.replace('bg-emerald-600', 'bg-slate-700');
-    }
-}
+                // Add base reward coin points
+                let addedGold = currentCampaign === 'master' ? 40 : 15;
+                state.gold += addedGold;
+                state.streak++;
 
+                // Check and trigger Streak Milestones Rewards Mathematics
+                let notificationText = "";
+                if (state.streak % 5 === 0) {
+                    state.perks.freeze++;
+                    notificationText = " | ❄️ Streak Bonus: +1 Time Freeze!";
+                }
+                if (state.streak % 8 === 0) {
+                    state.perks.half++;
+                    notificationText = " | ⚖️ Streak Bonus: +1 50:50 Card!";
+                }
 
+                // Show an arcade score notification popup float animation markup 
+                const notify = document.createElement('div');
+                notify.className = "text-center text-sm font-bold text-emerald-400 animate__animated animate__bounceIn mt-2";
+                notify.innerText = `Correct! +${addedGold} Coins${notificationText}`;
+                document.getElementById('window-canvas').appendChild(notify);
 
-        function checkStatus() {
-            if (gameData.gold <= 0) {
-                clearInterval(timerInterval);
-                alert("OUT OF COINS! Resetting progress entirely back to Genesis Level 1.");
-                localStorage.removeItem('bibleQuestData');
-                location.reload(); 
+                levelIndex++;
+                saveState();
+                setTimeout(loadLevelNode, 1400);
             } else {
-                save();
-                setTimeout(initLevel, 800);
+                clickedElement.className = "btn-choice bg-rose-600/80 border-rose-400 text-white animate__animated animate__shakeX font-black";
+                state.streak = 0;
+                saveState();
+                setTimeout(handleFailureReset, 1000);
             }
+        }
+
+        // Trigger Time Freeze Active Channel Skill
+        function triggerFreezePerk() {
+            if (isClockFrozen || state.perks.freeze <= 0 || inputBlocked) return;
+            state.perks.freeze--;
+            isClockFrozen = true;
+            saveState();
+            document.getElementById('count-freeze').innerText = state.perks.freeze;
+            document.getElementById('clock-wrapper').style.borderColor = "#0ea5e9";
+            document.getElementById('clock-wrapper').style.color = "#38bdf8";
+        }
+
+        // Trigger 50:50 Mathematical Target Reduction Lifeline
+        function triggerHalfPerk() {
+            if (state.perks.half <= 0 || inputBlocked) return;
+            state.perks.half--;
+            saveState();
+            document.getElementById('count-half').innerText = state.perks.half;
+
+            const matrix = document.getElementById('choice-matrix');
+            const buttons = matrix.getElementsByTagName('button');
+            let wrongIndices = [];
+            
+            // Gather incorrect answer paths
+            for(let i=0; i<buttons.length; i++) {
+                if (i !== activeQuestion.correct) wrongIndices.push(i);
+            }
+            // Scramble and isolate exactly two indices to completely wipe out
+            wrongIndices.sort(() => Math.random() - 0.5);
+            wrongIndices.slice(0, 2).forEach(idx => {
+                buttons[idx].style.opacity = "0";
+                buttons[idx].style.pointerEvents = "none";
+                buttons[idx].className = "btn-choice border-dashed border-red-900/20 bg-transparent";
+            });
+        }
+
+        function handleFailureReset() {
+            alert(`GAME OVER! You broke your streak line. Reverting back to the Campaign Hub menu to adjust layout targets.`);
+            renderMenuMap();
+        }
+
+        function renderVictoryScreen() {
+            const canvas = document.getElementById('window-canvas');
+            canvas.innerHTML = `
+                <div class="glass-card p-8 text-center space-y-6 animate__animated animate__backInDown">
+                    <h1 class="text-4xl font-black text-amber-400">🏆 ROUTE CLEARED!</h1>
+                    <p class="text-sm text-slate-300">Incredible! You have successfully mastered the current Bible Quest Campaign Map Route.</p>
+                    
+                    <div class="bg-slate-950/50 p-4 rounded-2xl border border-white/5 space-y-2">
+                        <p class="text-xs text-slate-400 uppercase tracking-widest font-black">Final Wallet Saved</p>
+                        <p class="text-3xl font-black text-amber-400">💰 ${state.gold}</p>
+                    </div>
+
+                    <button onclick="exitToMenu()" class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 p-4 rounded-xl font-black text-sm uppercase tracking-wider shadow-lg hover:from-indigo-600 transition-all">
+                        Return To Main Hub Map
+                    </button>
+                </div>
+            `;
         }
 
         function toggleLanguage() {
-            gameData.lang = gameData.lang === 'en' ? 'tw' : 'en';
-            save();
-            initLevel();
+            state.lang = state.lang === 'en' ? 'tw' : 'en';
+            saveState();
+            document.getElementById('lang-label').innerText = state.lang === 'en' ? "English" : "Twi";
+            if (currentCampaign !== "") loadLevelNode();
+            else renderMenuMap();
         }
 
-        window.onload = initLevel;
+        function exitToMenu() {
+            clearInterval(timerClockInterval);
+            renderMenuMap();
+        }
+
+        window.onload = () => {
+            saveState();
+            renderMenuMap();
+            
+            // Silent audio initialization trigger sequence background hook channel
+            document.body.addEventListener('click', () => {
+                document.getElementById('bg-music').play().catch(()=>{});
+            }, { once: true });
+        };
     </script>
 </body>
 </html>
