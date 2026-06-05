@@ -1,299 +1,96 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bible Quest: Arcade Edition</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    <style>
-        body { background-color: #050811; font-family: system-ui, -apple-system, sans-serif; overflow-x: hidden; }
-        #bg-tint { position: fixed; inset: 0; background: radial-gradient(circle at center, rgba(17, 24, 47, 0.5) 0%, rgba(2, 4, 10, 0.99) 100%); z-index: 1; pointer-events: none; }
-        .glass-card { background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; color: white; }
-        
-        .btn-choice { width: 100%; text-align: left; padding: 1.1rem 1.4rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.03); font-weight: 600; color: #f1f5f9; transition: all 0.2s ease; position: relative; }
-        .btn-choice:hover { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.15); }
-        
-        /* 🌈 FLOATING LIQUID RAINBOW AURORA MIXTURE ANIMATION */
-        @keyframes auroraFlow {
-            0% { background-position: 0% 50%; filter: hue-rotate(0deg); }
-            50% { background-position: 100% 50%; filter: hue-rotate(180deg); }
-            100% { background-position: 0% 50%; filter: hue-rotate(360deg); }
-        }
-        .rainbow-correct { 
-            background: linear-gradient(45deg, #ff007f, #7f00ff, #00f0ff, #00ff7f, #ffeb00) !important;
-            background-size: 300% 300% !important;
-            animation: auroraFlow 4s ease infinite, pulse 0.4s infinite !important;
-            border-color: transparent !important;
-            color: #ffffff !important;
-            font-weight: 900 !important;
-            text-shadow: 0 2px 6px rgba(0,0,0,0.7);
-            box-shadow: 0 0 25px rgba(0, 240, 255, 0.5) !important;
-        }
-
-        /* ❄️ FULL-SCREEN DISTRIBUTED BLIZZARD SNOW SYSTEM */
-        #frost-frame { position: fixed; inset: 0; border: 14px solid rgba(56, 189, 248, 0.45); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 80px rgba(14, 165, 233, 0.35); }
-        .frost-active { opacity: 1 !important; }
-        
-        .snowflake { position: fixed; top: -5%; color: #e0f2fe; pointer-events: none; z-index: 45; animation: fall linear infinite; filter: drop-shadow(0 0 4px rgba(255,255,255,0.6)); }
-        @keyframes fall {
-            0% { top: -5%; transform: translateX(0) rotate(0deg); }
-            50% { transform: translateX(35px) rotate(180deg); }
-            100% { top: 105%; transform: translateX(-20px) rotate(360deg); }
-        }
-
-        #shield-frame { position: fixed; inset: 0; border: 12px solid rgba(245, 158, 11, 0.5); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 60px rgba(245, 158, 11, 0.25); }
-        .shield-active { opacity: 1 !important; }
-        @keyframes clockPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.1); } }
-        .alarm-on { animation: clockPulse 0.5s infinite; }
-    </style>
-</head>
-<body class="p-4 min-h-screen flex flex-col items-center justify-start text-white select-none">
+/**
+ * Renders the primary Campaign Selection Menu.
+ * Handles language switching between English and Twi natively.
+ */
+function renderMenuMap() {
+    // Reset any active campaign flags when returning to the root menu
+    currentCampaign = "";
     
-    <div id="bg-tint"></div>
+    // UI Housekeeping: Hide back button on the main screen, ensure lobby inventory/backpack is visible
+    if (document.getElementById('back-btn')) {
+        document.getElementById('back-btn').classList.add('hidden');
+    }
+    if (document.getElementById('lobby-bag-btn')) {
+        document.getElementById('lobby-bag-btn').classList.remove('hidden');
+    }
+    
+    // Clean up persistent stage animations (like weather/snowing effects) from previous nodes
+    stopSnowingEffect();
+    
+    const canvas = document.getElementById('window-canvas');
+    if (!canvas) return;
 
-    <div id="frost-frame"></div>
-    <div id="shield-frame"></div>
-    <div id="snow-box"></div>
+    // Define localized headings based on current state language configuration
+    let heading = state.lang === 'tw' ? "TWERƐKRON KANEA" : "BIBLE QUEST";
+    let subheading = state.lang === 'tw' ? "Yiyi Ɔfasa a Wopɛ sɛ Wosua" : "Select Campaign Mode";
 
-    <div class="fixed top-4 left-4 right-4 flex justify-between items-center z-50 max-w-md mx-auto w-full px-2">
-        <button onclick="exitToMenu()" id="back-btn" class="hidden bg-slate-900/95 border border-white/10 text-white px-4 py-2 rounded-full font-bold text-xs uppercase tracking-wider shadow-2xl transition-all">
-            🚪 Map Hub
-        </button>
-        <div class="flex gap-2 ml-auto">
-            <button onclick="toggleLanguage()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-full font-bold text-xs uppercase shadow-md transition-all">
-                🌐 <span id="lang-label">English</span>
+    // Injecting multi-line template literal wrapped inside BACKTICKS (`) to execute expressions
+    canvas.innerHTML = `
+        <div class="text-center space-y-1 py-4 animate__animated animate__fadeInDown">
+            <h1 class="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">${heading}</h1>
+            <p class="text-xs text-slate-500 font-bold tracking-widest uppercase">${subheading}</p>
+        </div>
+
+        <div class="space-y-2.5 animate__animated animate__fadeInUp">
+            <button onclick="launchCampaign('nt')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-indigo-500 transition-all">
+                <div>
+                    <h3 class="text-sm font-black text-indigo-300">
+                        \${state.lang === 'tw' ? 'Apam Foforo Kwantenpon' : 'Phase 1: New Testament'}
+                    </h3>
+                    <p class="text-[10px] text-slate-400">
+                        \${state.lang === 'tw' ? 'Asɛmpa no ne Nkrataa' : 'Gospels & Letters'}
+                    </p>
+                </div>
+                <span class="text-lg">⚡</span>
             </button>
-            <div id="gold-container" class="bg-slate-900/95 border border-white/10 px-4 py-2 rounded-full shadow-2xl flex items-center gap-2">
-                <span>💰</span>
-                <span id="gold-val" class="font-black text-amber-400">500</span>
-            </div>
+            
+            <button onclick="launchCampaign('ot')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-emerald-500 transition-all">
+                <div>
+                    <h3 class="text-sm font-black text-emerald-300">
+                        \${state.lang === 'tw' ? 'Apam Dedaw Abakɔsɛm' : 'Phase 2: Old Testament'}
+                    </h3>
+                    <p class="text-[10px] text-slate-400">
+                        \${state.lang === 'tw' ? 'Mmara ne Hebrofo Atetesɛm' : 'Law & Hebrew History'}
+                    </p>
+                </div>
+                <span class="text-lg">📜</span>
+            </button>
+            
+            <button onclick="launchCampaign('mix')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-purple-500 transition-all">
+                <div>
+                    <h3 class="text-sm font-black text-purple-300">
+                        \${state.lang === 'tw' ? 'Afrafranto Akwan' : 'Phase 3: Grand Mixture'}
+                    </h3>
+                    <p class="text-[10px] text-slate-400">
+                        \${state.lang === 'tw' ? 'Nsɛmmisa a Wafra mu Ne Nyinaa' : 'Full Randomized Journey'}
+                    </p>
+                </div>
+                <span class="text-lg">🌀</span>
+            </button>
+            
+            <button onclick="launchCampaign('egw')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-amber-400 transition-all">
+                <div>
+                    <h3 class="text-sm font-black text-amber-300">
+                        \${state.lang === 'tw' ? 'Ellen G. White Nkrataa' : 'Phase 4: Ellen G. White Prophecy'}
+                    </h3>
+                    <p class="text-[10px] text-slate-400">
+                        \${state.lang === 'tw' ? 'Nkɔmhyɛ mu Nhunumu ne Asafo Abakɔsɛm' : 'Spirit of Prophecy & Church History'}
+                    </p>
+                </div>
+                <span class="text-lg">✨</span>
+            </button>
+            
+            <button onclick="launchCampaign('master')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-rose-500 transition-all">
+                <div>
+                    <h3 class="text-sm font-black text-rose-400">
+                        \${state.lang === 'tw' ? 'Nkunimdie Mmerɛ Dawuru' : 'Phase 5: Old & New Testament Mastery'}
+                    </h3>
+                    <p class="text-[10px] text-slate-400">
+                        \${state.lang === 'tw' ? 'Complete Canonical Coverage' : 'Complete Canonical Coverage'}
+                    </p>
+                </div>
+                <span class="text-lg">🎓</span>
+            </button>
         </div>
-    </div>
-
-    <main id="window-canvas" class="w-full max-w-md mt-16 relative z-10 space-y-4 flex flex-col mb-24"></main>
-
-    <div id="shop-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="glass-card w-full max-w-sm p-6 space-y-4 border-indigo-500/30 bg-slate-950/80 animate__animated animate__zoomIn">
-            <div class="flex justify-between items-center border-b border-white/10 pb-3">
-                <div class="flex items-center gap-2">
-                    <span class="text-xl">🛒</span>
-                    <h3 class="text-sm font-black uppercase tracking-wider text-indigo-300">Purchase Armory Supplies</h3>
-                </div>
-                <button onclick="closeShopModal()" class="text-slate-400 hover:text-white font-black text-sm bg-white/5 w-7 h-7 rounded-full flex items-center justify-center">✕</button>
-            </div>
-            <div id="modal-shop-grid" class="space-y-2 max-h-[360px] overflow-y-auto"></div>
-        </div>
-    </div>
-
-    <button id="lobby-bag-btn" onclick="openShopModal()" class="fixed bottom-6 right-6 z-40 bg-gradient-to-tr from-indigo-600 to-purple-600 border border-white/20 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl text-2xl animate__animated animate__pulse animate__infinite">
-        🎒
-    </button>
-
-    <script src="questions.js"></script>
-    <script>
-        // Global Fallback Array Configuration to completely eliminate startup black screens
-        if (typeof window.quizDatabase === 'undefined') {
-            window.quizDatabase = [];
-        }
-
-        let state = JSON.parse(localStorage.getItem('bqArcadeV5Data')) || {
-            gold: 500,
-            lang: 'en',
-            perks: { freeze: 2, half: 2, skip: 2, shield: 1, elixir: 2 },
-            streak: 0
-        };
-
-        let currentCampaign = "";
-        let levelIndex = 0;
-        let activePool = [];
-        let bookQuestions = [];
-        let questionIndex = 0;
-        let activeQuestion = null;
-        let timerClockInterval = null;
-        let secondsLeft = 0;
-        let maxSeconds = 20;
-        let isClockFrozen = false;
-        let inputBlocked = false;
-        let isShieldActive = false;
-        
-        let audioCtx = null;
-
-        function saveState() {
-            localStorage.setItem('bqArcadeV5Data', JSON.stringify(state));
-            if(document.getElementById('gold-val')) document.getElementById('gold-val').innerText = state.gold;
-            if(document.getElementById('lang-label')) document.getElementById('lang-label').innerText = state.lang === 'en' ? "English" : "Twi";
-        }
-
-        function initAudioEngine() {
-            if (audioCtx) return;
-            try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){}
-        }
-
-        function playSoundFX(type) {
-            initAudioEngine();
-            if (!audioCtx) return;
-            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
-            try {
-                let osc = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
-                osc.connect(gain); gain.connect(audioCtx.destination);
-
-                if (type === 'correct') {
-                    osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-                    osc.start(); osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2);
-                    osc.stop(audioCtx.currentTime + 0.35);
-                } else if (type === 'wrong') {
-                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(130, audioCtx.currentTime); gain.gain.setValueAtTime(0.07, audioCtx.currentTime);
-                    osc.start(); osc.frequency.linearRampToValueAtTime(65, audioCtx.currentTime + 0.25); osc.stop(audioCtx.currentTime + 0.3);
-                } else if (type === 'perk') {
-                    osc.type = 'triangle'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-                    osc.start(); osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.15); osc.stop(audioCtx.currentTime + 0.2);
-                } else if (type === 'tick') {
-                    osc.type = 'sine'; osc.frequency.setValueAtTime(850, audioCtx.currentTime); gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
-                    osc.start(); osc.stop(audioCtx.currentTime + 0.03);
-                }
-            } catch(e){}
-        }
-
-        function openShopModal() {
-            playSoundFX('perk');
-            const inventoryItems = [
-                { id: 'freeze', name: 'Chrono Freeze', desc: 'Stops countdown progression.', cost: 50, icon: '❄️' },
-                { id: 'half', name: 'Divine 50:50', desc: 'Discards two incorrect choices.', cost: 75, icon: '⚖️' },
-                { id: 'skip', name: 'Prophetic Skip', desc: 'Skips node without penalty risks.', cost: 100, icon: '🔮' },
-                { id: 'shield', name: 'Aegis Shield', desc: 'Blocks negative 20 coin deductions.', cost: 60, icon: '🛡️' },
-                { id: 'elixir', name: 'Time Elixir', desc: 'Grants +10 seconds onto clock.', cost: 40, icon: '🧪' }
-            ];
-
-            const grid = document.getElementById('modal-shop-grid'); 
-            if(!grid) return;
-            grid.innerHTML = "";
-            inventoryItems.forEach(item => {
-                const row = document.createElement('div');
-                row.className = "flex items-center justify-between p-3 bg-slate-900/80 rounded-2xl border border-white/5";
-                row.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <span class="text-2xl bg-slate-950 p-2 rounded-xl">${item.icon}</span>
-                        <div>
-                            <h4 class="text-xs font-black text-slate-200">${item.name}</h4>
-                            <p class="text-[9px] text-indigo-400 font-black">Owned: ${state.perks[item.id] || 0}</p>
-                        </div>
-                    </div>
-                    <button onclick="buyPerk('${item.id}', ${item.cost})" class="bg-indigo-600 hover:bg-indigo-500 font-bold text-xs px-3 py-1.5 rounded-xl text-white">${item.cost} 💰</button>
-                `;
-                grid.appendChild(row);
-            });
-            document.getElementById('shop-modal').classList.remove('hidden');
-        }
-
-        function closeShopModal() { document.getElementById('shop-modal').classList.add('hidden'); }
-
-        function buyPerk(id, cost) {
-            if (state.gold >= cost) {
-                state.gold -= cost; state.perks[id] = (state.perks[id] || 0) + 1;
-                saveState(); openShopModal();
-            } else { alert(state.lang === 'tw' ? "Sika dodo mfata!" : "Insufficient coin funds!"); }
-        }
-
-        function renderMenuMap() {
-            currentCampaign = "";
-            if(document.getElementById('back-btn')) document.getElementById('back-btn').classList.add('hidden');
-            if(document.getElementById('lobby-bag-btn')) document.getElementById('lobby-bag-btn').classList.remove('hidden');
-            stopSnowingEffect();
-            
-            const canvas = document.getElementById('window-canvas');
-            if(!canvas) return;
-
-            let heading = state.lang === 'tw' ? "TWERƐKRON KANEA" : "BIBLE QUEST";
-            let subheading = state.lang === 'tw' ? "Yiyi Ɔfasa a Wopɛ sɛ Wosua" : "Select Campaign Route";
-
-            canvas.innerHTML = `
-                <div class="text-center space-y-1 py-4 animate__animated animate__fadeInDown">
-                    <h1 class="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">${heading}</h1>
-                    <p class="text-xs text-slate-500 font-bold tracking-widest uppercase">${subheading}</p>
-                </div>
-
-                <div class="space-y-2.5 animate__animated animate__fadeInUp">
-                    <button onclick="launchCampaign('nt')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-indigo-500 transition-all">
-                        <div><h3 class="text-sm font-black text-indigo-300">${state.lang === 'tw' ? 'Apam Foforo Kwantenpon' : 'Phase 1: New Testament'}</h3><p class="text-[10px] text-slate-400">${state.lang === 'tw' ? 'Asɛmpa no ne Nkrataa' : 'Gospels & Epistles Letters'}</p></div>
-                        <span class="text-lg">⚡</span>
-                    </button>
-                    <button onclick="launchCampaign('ot')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-emerald-500 transition-all">
-                        <div><h3 class="text-sm font-black text-emerald-300">${state.lang === 'tw' ? 'Apam Dedaw Abakɔsɛm' : 'Phase 2: Old Testament'}</h3><p class="text-[10px] text-slate-400">${state.lang === 'tw' ? 'Mmara ne Hebrofo Atetesɛm' : 'Torah, Law & Hebrew History Chronicles'}</p></div>
-                        <span class="text-lg">📜</span>
-                    </button>
-                    <button onclick="launchCampaign('mix')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-purple-500 transition-all">
-                        <div><h3 class="text-sm font-black text-purple-300">${state.lang === 'tw' ? 'Afrafranto Akwan' : 'Phase 3: Grand Mixture'}</h3><p class="text-[10px] text-slate-400">${state.lang === 'tw' ? 'Nsɛmmisa a Wafra mu Ne Nyinaa' : 'Full Structural Random Pool Mix'}</p></div>
-                        <span class="text-lg">🌀</span>
-                    </button>
-                    <button onclick="launchCampaign('egw')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-amber-400 transition-all">
-                        <div><h3 class="text-sm font-black text-amber-300">${state.lang === 'tw' ? 'Ellen G. White Nkrataa' : 'Phase 4: E.G. White Writings'}</h3><p class="text-[10px] text-slate-400">${state.lang === 'tw' ? 'Nkɔmhyɛ mu Nhunumu Akwan' : 'Prophetic History Insights'}</p></div>
-                        <span class="text-lg">✒️</span>
-                    </button>
-                    <button onclick="launchCampaign('master')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-rose-500 transition-all">
-                        <div><h3 class="text-sm font-black text-rose-400">${state.lang === 'tw' ? 'Nkunimdie Mmerɛ Dawuru' : 'Phase 5: Mastery Blitz Mode'}</h3><p class="text-[10px] text-slate-400">${state.lang === 'tw' ? 'Ntɛmsoɔ Harehare: Nnarekodi 5 Pɛ!' : 'Hyper Speed Speedrun: 5-Second Blitz Clock!'}</p></div>
-                        <span class="text-lg">🔥</span>
-                    </button>
-                </div>
-            `;
-        }
-
-        function launchCampaign(mode) {
-            initAudioEngine(); currentCampaign = mode; levelIndex = 0; state.streak = 0;
-            if(document.getElementById('back-btn')) document.getElementById('back-btn').classList.remove('hidden');
-            if(document.getElementById('lobby-bag-btn')) document.getElementById('lobby-bag-btn').classList.add('hidden');
-            
-            let sourcePool = window.quizDatabase || [];
-            if (mode === 'nt') activePool = sourcePool.filter(b => b.group === 'NT');
-            else if (mode === 'ot') activePool = sourcePool.filter(b => b.group === 'OT');
-            else if (mode === 'egw') activePool = sourcePool.filter(b => b.group === 'EGW');
-            else activePool = [...sourcePool].sort(() => Math.random() - 0.5);
-
-            // Injected dynamic safety engine if no external database was detected
-            if (activePool.length === 0) {
-                activePool = [{
-                    name: state.lang === 'tw' ? "Asɛmpa Nhoma" : "Gospels Archive Pool",
-                    group: "NT",
-                    questions: [
-                        { q: "Where was Jesus born?", a: ["Nazareth", "Bethlehem", "Jerusalem", "Capernaum"], q_twi: "Hehefa na wɔwoo Yesu?", a_tw: ["Nasaret", "Betlehem", "Yerusalem", "Kapernaum"], correct: 1, subGroup: "Easy" },
-                        { q: "Who was the first man created?", a: ["Noah", "Adam", "Abel", "Seth"], q_twi: "Hwan ne onipa a odi kan a wɔbɔɔ no?", a_tw: ["Noa", "Adam", "Abel", "Set"], correct: 1, subGroup: "Easy" }
-                    ]
-                }];
-            }
-
-            initNewBookTrack();
-        }
-
-        function initNewBookTrack() {
-            if (levelIndex >= activePool.length) { renderVictoryScreen(); return; }
-            const targetBook = activePool[levelIndex];
-            bookQuestions = [...targetBook.questions].sort(() => Math.random() - 0.5);
-            questionIndex = 0;
-            loadQuestionNode();
-        }
-
-        function loadQuestionNode() {
-            if (questionIndex >= bookQuestions.length) { levelIndex++; initNewBookTrack(); return; }
-
-            inputBlocked = false; isShieldActive = false;
-            if(document.getElementById('shield-frame')) document.getElementById('shield-frame').className = "";
-            if (!isClockFrozen) {
-                if(document.getElementById('frost-frame')) document.getElementById('frost-frame').className = "";
-                stopSnowingEffect();
-            }
-
-            const targetBook = activePool[levelIndex];
-            activeQuestion = bookQuestions[questionIndex];
-            let tier = activeQuestion.subGroup || "Easy"; 
-
-            if (currentCampaign === 'master') { maxSeconds = 5; } 
-            else { maxSeconds = tier === "Difficult" ? 10 : tier === "Moderate" ? 15 : 20; }
-            
-            if (!isClockFrozen) { secondsLeft = maxSeconds; }
-
-            let tierColorClass = "bg-emerald-500";
-            if (tier === "Moderate") tierColorClass = "bg-amber-500";
-            else if (tier === "Difficult" || currentCampaign === 'master') tierColorClass = "bg-rose-500";
-
-            let questionText = (state.
+    `;
+}
