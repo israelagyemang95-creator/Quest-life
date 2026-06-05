@@ -40,27 +40,66 @@
             100% { top: 105%; transform: translateX(-15px) rotate(360deg); }
         }
 
-        /* 🏔️ ADVANCED MICRO-ENVIRONMENT CANVAS ENGINE */
-        .biome-viewport { position: relative; width: 100%; height: 110px; border-radius: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); background: #0b1329; }
+        /* 🏔️ DYNAMIC HIGH-LEVEL 2D ENVIRONMENT VIEWPORT */
+        .biome-viewport { position: relative; width: 100%; height: 140px; border-radius: 24px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: #090d1a; box-shadow: inset 0 0 30px rgba(0,0,0,0.8); }
         
-        /* Character Kinematic Motion Presets */
-        @keyframes climbAction { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-6px) rotate(4deg); } }
-        @keyframes rowAction { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 50% { transform: translate(-4px, -2px) rotate(-8deg); } }
-        @keyframes sprintAction { 0%, 100% { transform: translateY(0) scaleX(1); } 50% { transform: translateY(-4px) scaleX(0.95); } }
+        /* 🏃 ADVANCED 2D SPRITE STRUCTURAL KINEMATICS */
+        .sprite-2d { position: relative; width: 32px; height: 48px; }
+        .sprite-head { position: absolute; top: 0; left: 8px; width: 14px; height: 14px; background: #ffdbb5; border-radius: 50%; box-shadow: inset -2px -2px 0 rgba(0,0,0,0.15); }
+        .sprite-body { position: absolute; top: 13px; left: 7px; width: 16px; height: 20px; background: #3b82f6; border-radius: 4px; }
+        .sprite-limb { position: absolute; background: #334155; transform-origin: top center; border-radius: 3px; }
         
-        .actor-climb { animation: climbAction 0.5s infinite ease-in-out; }
-        .actor-row { animation: rowAction 0.7s infinite ease-in-out; }
-        .actor-sprint { animation: sprintAction 0.4s infinite ease-in-out; }
+        /* Arm and Leg Layout Mapping */
+        .arm-l { top: 14px; left: 4px; width: 5px; height: 15px; background: #2563eb; }
+        .arm-r { top: 14px; left: 21px; width: 5px; height: 15px; background: #1d4ed8; }
+        .leg-l { top: 32px; left: 8px; width: 6px; height: 16px; background: #1e293b; }
+        .leg-r { top: 32px; left: 16px; width: 6px; height: 16px; background: #0f172a; }
 
-        /* 🌧️ WEATHER PARTICLE INJECTIONS */
-        .rain-drop { position: absolute; background: linear-gradient(transparent, #7dd3fc); width: 1.5px; height: 14px; opacity: 0.6; animation: rainFall 0.6s linear infinite; }
+        /* 🔄 MULTI-AXIS KINEMATIC MOTION KEYFRAMES */
+        @keyframes climbCycle {
+            0%, 100% { transform: translateY(0) rotate(-5deg); }
+            25% { transform: translateY(-4px); .arm-l { transform: rotate(-110deg); } .leg-r { transform: rotate(30deg); } }
+            50% { transform: translateY(-2px) rotate(5deg); }
+            75% { transform: translateY(-5px); .arm-r { transform: rotate(-110deg); } .leg-l { transform: rotate(30deg); } }
+        }
+        @keyframes rowCycle {
+            0%, 100% { transform: rotate(5deg); }
+            50% { transform: translate(-6px, 2px) rotate(-15deg); }
+        }
+        @keyframes runCycle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        /* Sub-limb Cyclic Rotation Chains */
+        @keyframes armClimbL { 0%, 100% { transform: rotate(40deg); } 50% { transform: rotate(-80deg); } }
+        @keyframes armClimbR { 0%, 100% { transform: rotate(-80deg); } 50% { transform: rotate(40deg); } }
+        @keyframes legClimbL { 0%, 100% { transform: rotate(-30deg); } 50% { transform: rotate(20deg); } }
+        @keyframes legClimbR { 0%, 100% { transform: rotate(20deg); } 50% { transform: rotate(-30deg); } }
+
+        @keyframes armRow { 0%, 100% { transform: rotate(-60deg); } 50% { transform: rotate(40deg); } }
+        @keyframes legRow { 0%, 100% { transform: rotate(15deg); } 50% { transform: rotate(-15deg); } }
+
+        @keyframes armRunL { 0%, 100% { transform: rotate(-50deg); } 50% { transform: rotate(60deg); } }
+        @keyframes armRunR { 0%, 100% { transform: rotate(60deg); } 50% { transform: rotate(-50deg); } }
+        @keyframes legRunL { 0%, 100% { transform: rotate(50deg); } 50% { transform: rotate(-60deg); } }
+        @keyframes legRunR { 0%, 100% { transform: rotate(-60deg); } 50% { transform: rotate(50deg); } }
+
+        /* Activating Bone Animation States */
+        .animate-climb { animation: climbCycle 0.8s infinite linear; .arm-l { animation: armClimbL 0.8s infinite linear; } .arm-r { animation: armClimbR 0.8s infinite linear; } .leg-l { animation: legClimbL 0.8s infinite linear; } .leg-r { animation: legClimbR 0.8s infinite linear; } }
+        .animate-row { animation: rowCycle 1.2s infinite ease-in-out; .arm-l, .arm-r { animation: armRow 1.2s infinite ease-in-out; background: #b45309; } .leg-l, .leg-r { animation: legRow 1.2s infinite ease-in-out; } }
+        .animate-run { animation: runCycle 0.5s infinite linear; .arm-l { animation: armRunL 0.5s infinite linear; } .arm-r { animation: armRunR 0.5s infinite linear; } .leg-l { animation: legRunL 0.5s infinite linear; } .leg-r { animation: legRunR 0.5s infinite linear; } }
+
+        /* 🌧️ WEATHER SYSTEMS */
+        .rain-drop { position: absolute; background: linear-gradient(transparent, #38bdf8); width: 1.5px; height: 16px; opacity: 0.6; animation: rainFall 0.5s linear infinite; }
         @keyframes rainFall { 0% { top: -20%; } 100% { top: 120%; } }
+        .wind-streak { position: absolute; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); height: 2px; width: 80px; animation: windBlow 0.8s linear infinite; }
+        @keyframes windBlow { 0% { left: -90px; } 100% { left: 110%; } }
+        .sun-ray { position: absolute; inset: 0; background: radial-gradient(circle at top right, rgba(251,191,36,0.15) 0%, transparent 70%); animation: solarPulse 4s ease-in-out infinite; }
+        @keyframes solarPulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
 
-        .wind-streak { position: absolute; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); height: 2px; width: 60px; animation: windBlow 1s linear infinite; }
-        @keyframes windBlow { 0% { left: -70px; } 100% { left: 110%; } }
-
-        .sun-ray { position: absolute; inset: 0; background: radial-gradient(circle at top right, rgba(253, 224, 71, 0.15) 0%, transparent 65%); animation: solarPulse 3s ease-in-out infinite; }
-        @keyframes solarPulse { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+        /* 🛑 OVERLAY TELEMETRY NOTIFICATION LAYER (Replaces native alert popups) */
+        #telemetry-layer { position: absolute; inset: 0; z-index: 35; pointer-events: none; display: flex; items: center; justify-content: center; font-weight: 900; text-transform: uppercase; text-shadow: 0 3px 6px rgba(0,0,0,0.9); }
 
         #shield-frame { position: fixed; inset: 0; border: 12px solid rgba(245, 158, 11, 0.5); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 60px rgba(245, 158, 11, 0.25); }
         .shield-active { opacity: 1 !important; }
@@ -99,7 +138,7 @@
 
     <!-- SHOP LOBBY INVENTORY MODAL SUPPLIES -->
     <div id="shop-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="glass-card w-full max-w-sm p-6 space-y-4 border-indigo-500/30 bg-slate-950/80 animate__animated animate__zoomIn">
+        <div class="glass-card w-full max-w-sm p-6 space-y-4 border-indigo-500/30 bg-slate-950/80">
             <div class="flex justify-between items-center border-b border-white/10 pb-3">
                 <div class="flex items-center gap-2">
                     <span class="text-xl">🛒</span>
@@ -138,7 +177,6 @@
         let inputBlocked = false;
         let isShieldActive = false;
         
-        // 🧗 Activity & Weather Tracking Configurations
         let activityStep = 1; 
         const maxActivitySteps = 10;
         const weatherTypes = ['Sunny', 'Windy', 'Raining'];
@@ -186,6 +224,16 @@
             } catch(e){}
         }
 
+        // Inline HUD Notification Injection Method (Replaces alerts)
+        function triggerHUDMessage(text, TailwindColorClass) {
+            const telemetry = document.getElementById('telemetry-layer');
+            if (!telemetry) return;
+            telemetry.innerHTML = `<div class="animate__animated animate__zoomInUp text-center text-sm font-black p-3 rounded-xl bg-slate-950/90 border border-white/10 ${TailwindColorClass}">${text}</div>`;
+            setTimeout(() => {
+                if(telemetry) telemetry.innerHTML = "";
+            }, 3000);
+        }
+
         function openShopModal() {
             playSoundFX('perk');
             const inventoryItems = [
@@ -221,7 +269,7 @@
             if (state.gold >= cost) {
                 state.gold -= cost; state.perks[id] = (state.perks[id] || 0) + 1;
                 saveState(); openShopModal();
-            } else { alert("Insufficient coin funds!"); }
+            }
         }
 
         function renderMenuMap() {
@@ -308,28 +356,33 @@
             let questionText = (state.lang === 'tw' && activeQuestion.q_twi) ? activeQuestion.q_twi : activeQuestion.q;
             let choicesArray = (state.lang === 'tw' && activeQuestion.a_tw) ? activeQuestion.a_tw : activeQuestion.a;
 
-            // Determine Activity & Weather based on levelIndex
             let currentActivity = activityTypes[levelIndex % activityTypes.length];
             let currentWeather = weatherTypes[levelIndex % weatherTypes.length];
 
             const canvas = document.getElementById('window-canvas');
             canvas.innerHTML = `
-                <!-- 🏔️ DYNAMIC BIOME ACTIVITY GRAPHICS DISPLAY ENGINE -->
                 <div class="w-full space-y-1">
                     <div class="flex justify-between items-center text-[10px] font-bold text-slate-400 px-1">
-                        <span class="capitalize">Weather: ${currentWeather}</span>
+                        <span class="capitalize">☁️ Weather: ${currentWeather}</span>
                         <span class="text-indigo-400 tracking-wider font-extrabold">${currentActivity.toUpperCase()} (Node ${activityStep}/10)</span>
                     </div>
                     
                     <div id="biome-container" class="biome-viewport">
-                        <!-- Weather Visual Layer Elements -->
+                        <div id="telemetry-layer"></div>
                         <div id="weather-layer" class="absolute inset-0 z-20 pointer-events-none"></div>
-                        
-                        <!-- Environment Background Vector Layer -->
-                        <div id="vector-bg-layer" class="absolute inset-0 z-0 opacity-40"></div>
+                        <div id="vector-bg-layer" class="absolute inset-0 z-0 opacity-30"></div>
 
-                        <!-- Active Character Token Element Wrapper -->
-                        <div id="actor-token" class="absolute z-30 text-2xl transition-all duration-500 ease-out" style="left: 0px; bottom: 0px;"></div>
+                        <!-- 2D SPRITE CONTAINER WITH STRUCTURAL LIMBS -->
+                        <div id="actor-token" class="absolute z-30 transition-all duration-500 ease-out" style="left: 0px; bottom: 0px;">
+                            <div class="sprite-2d">
+                                <div class="sprite-head"></div>
+                                <div class="sprite-body"></div>
+                                <div class="sprite-limb arm-l"></div>
+                                <div class="sprite-limb arm-r"></div>
+                                <div class="sprite-limb leg-l"></div>
+                                <div class="sprite-limb leg-r"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -356,7 +409,6 @@
 
                 <div id="choice-matrix" class="space-y-2.5"></div>
 
-                <!-- PERSISTENT GAMEPLAY HOTBAR CONTROLS -->
                 <div class="fixed bottom-0 left-0 right-0 p-3 bg-slate-950/95 border-t border-white/10 z-40 flex justify-center gap-2">
                     <button onclick="triggerInGamePerk('freeze')" class="flex-1 bg-slate-900 border border-sky-500/30 p-2 rounded-xl flex flex-col items-center">
                         <span class="text-base">❄️</span>
@@ -401,73 +453,74 @@
             runCountdownLoop();
         }
 
-        // 🎨 CORE GRAPHICS ENGINE GENERATOR
+        // 🎨 HIGH-LEVEL 2D ENVIRONMENT & PARALLAX BACKGROUND GENERATOR
         function renderBiomeGraphics(activity, weather) {
             const wLayer = document.getElementById('weather-layer');
             const bgLayer = document.getElementById('vector-bg-layer');
             const actor = document.getElementById('actor-token');
             const container = document.getElementById('biome-container');
 
-            // 1. Inject Weather Particle System Overlays
             wLayer.innerHTML = "";
             if (weather === 'Sunny') {
-                container.style.background = "linear-gradient(to bottom, #131c38, #0b1329)";
+                container.style.background = "linear-gradient(to bottom, #131d35, #080d1a)";
                 const sun = document.createElement('div'); sun.className = "sun-ray";
                 wLayer.appendChild(sun);
             } else if (weather === 'Windy') {
-                container.style.background = "linear-gradient(to bottom, #1c2541, #0b1329)";
-                for(let i=0; i<6; i++) {
+                container.style.background = "linear-gradient(to bottom, #1a233a, #080d1a)";
+                for(let i=0; i<8; i++) {
                     const wind = document.createElement('div'); wind.className = "wind-streak";
-                    wind.style.top = `${Math.random() * 80}%`;
-                    wind.style.animationDuration = `${Math.random() * 0.6 + 0.6}s`;
-                    wind.style.animationDelay = `${Math.random() * 0.5}s`;
+                    wind.style.top = `${Math.random() * 85}%`;
+                    wind.style.animationDuration = `${Math.random() * 0.5 + 0.5}s`;
+                    wind.style.animationDelay = `${Math.random() * 0.4}s`;
                     wLayer.appendChild(wind);
                 }
             } else if (weather === 'Raining') {
-                container.style.background = "linear-gradient(to bottom, #0f172a, #020617)";
-                for(let i=0; i<18; i++) {
+                container.style.background = "linear-gradient(to bottom, #0e1626, #030712)";
+                for(let i=0; i<20; i++) {
                     const drop = document.createElement('div'); drop.className = "rain-drop";
                     drop.style.left = `${Math.random() * 100}%`;
-                    drop.style.animationDuration = `${Math.random() * 0.4 + 0.4}s`;
-                    drop.style.animationDelay = `${Math.random() * 0.5}s`;
+                    drop.style.animationDuration = `${Math.random() * 0.3 + 0.4}s`;
+                    drop.style.animationDelay = `${Math.random() * 0.4}s`;
                     wLayer.appendChild(drop);
                 }
             }
 
-            // 2. Inject Vector Environment Profiles & Set Spatial Position coordinates
             let stepPercent = (activityStep - 1) / (maxActivitySteps - 1);
             
             if (activity === 'Mountain Climb') {
-                bgLayer.innerHTML = `<div style="position: absolute; right: 0; bottom: 0; width: 100%; height: 100%; background: linear-gradient(135deg, transparent 40%, #1e293b 40%); clip-path: polygon(100% 0%, 100% 100%, 0% 100%);"></div>`;
-                actor.innerText = "🧗‍♂️";
-                actor.className = "absolute z-30 text-2xl transition-all duration-500 ease-out actor-climb";
-                
-                // Climb upwards diagonally along cliff vector paths
-                actor.style.left = `${15 + (stepPercent * 65)}%`;
-                actor.style.bottom = `${10 + (stepPercent * 55)}px`;
+                // High-fidelity multi-tier mountain skyline path
+                bgLayer.innerHTML = `
+                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position: absolute; bottom: 0; width: 100%; height: 120px;">
+                        <polygon points="0,100 40,30 70,70 100,20 100,100" fill="#1e293b"/>
+                        <polygon points="20,100 55,45 80,80 100,40 100,100" fill="#334155" opacity="0.7"/>
+                        <polygon points="40,30 50,45 35,45" fill="#f8fafc"/>
+                        <polygon points="100,20 90,35 95,38" fill="#f8fafc"/>
+                    </svg>
+                `;
+                actor.className = "absolute z-30 transition-all duration-500 ease-out animate-climb";
+                actor.style.left = `${10 + (stepPercent * 70)}%`;
+                actor.style.bottom = `${12 + (stepPercent * 70)}px`;
             } 
             else if (activity === 'River Rowing') {
+                // Vector blue water parallax lines
                 bgLayer.innerHTML = `
-                    <div style="position: absolute; bottom: 12px; width: 100%; height: 10px; background: rgba(56, 189, 248, 0.3); border-radius: 50%;"></div>
-                    <div style="position: absolute; bottom: 2px; width: 100%; height: 10px; background: rgba(56, 189, 248, 0.2); border-radius: 50%;"></div>
+                    <div style="position: absolute; bottom: 0; width: 100%; height: 35px; background: linear-gradient(transparent, #1d4ed8); opacity: 0.4;"></div>
+                    <div style="position: absolute; bottom: 15px; width: 130%; height: 4px; background: #38bdf8; opacity: 0.6; border-radius: 2px;"></div>
+                    <div style="position: absolute; bottom: 5px; width: 120%; height: 3px; background: #0ea5e9; opacity: 0.5; border-radius: 2px; left: -10px;"></div>
                 `;
-                actor.innerText = "🚣‍♂️";
-                actor.className = "absolute z-30 text-2xl transition-all duration-500 ease-out actor-row";
-                
-                // Track linear horizontal river crossing pathways
+                actor.className = "absolute z-30 transition-all duration-500 ease-out animate-row";
                 actor.style.left = `${5 + (stepPercent * 80)}%`;
-                actor.style.bottom = "8px";
+                actor.style.bottom = "12px";
             } 
             else if (activity === 'Desert Marathon') {
+                // Linear sand dune vectors
                 bgLayer.innerHTML = `
-                    <div style="position: absolute; bottom: 0; width: 40%; height: 25px; background: #334155; border-radius: 50% 50% 0 0; left: -10%;"></div>
-                    <div style="position: absolute; bottom: 0; width: 50%; height: 15px; background: #1e293b; border-radius: 50% 50% 0 0; right: -5%;"></div>
+                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position: absolute; bottom: 0; width: 100%; height: 50px;">
+                        <path d="M0,60 Q25,30 50,70 T100,50 L100,100 L0,100 Z" fill="#1e293b"/>
+                        <path d="M0,80 Q35,60 70,85 T100,75 L100,100 L0,100 Z" fill="#0f172a" opacity="0.8"/>
+                    </svg>
                 `;
-                actor.innerText = "跑 / 🏃‍♂️"; // Multilingual character support standard anchor fallback
-                actor.innerText = "🏃‍♂️";
-                actor.className = "absolute z-30 text-2xl transition-all duration-500 ease-out actor-sprint";
-                
-                // Sprint straight across dune horizons
+                actor.className = "absolute z-30 transition-all duration-500 ease-out animate-run";
                 actor.style.left = `${5 + (stepPercent * 85)}%`;
                 actor.style.bottom = "4px";
             }
@@ -538,18 +591,15 @@
                 playSoundFX('correct');
                 
                 state.gold += 15; state.streak++;
-                
-                // Advance Expedition Track Progress Step
                 activityStep++;
                 saveState();
 
-                // Check for Independent Expedition Completion +100 Gold Bonus Trigger
                 if (activityStep > maxActivitySteps) {
-                    activityStep = 1; // Loop back profile steps
+                    activityStep = 1; 
                     state.gold += 100;
                     saveState();
                     playSoundFX('bonus');
-                    alert("👑 EXPEDITION COMPLETED! You earned a +100 Coin Summit Bonus!");
+                    triggerHUDMessage("👑 SUMMIT REACHED! +100 COINS BONUS!", "text-amber-400 border-amber-500");
                 }
 
                 questionIndex++; 
@@ -565,10 +615,11 @@
             clearInterval(timerClockInterval);
             state.streak = 0; isClockFrozen = false;
 
-            // Retain score structure but scale back track position
             activityStep = Math.max(1, activityStep - 1);
 
-            if (isShieldActive) { alert("🛡️ Aegis Shield Blocked Your Coin Penalty! Shuffling book now."); } 
+            if (isShieldActive) { 
+                triggerHUDMessage("🛡️ AEGIS BLOCKED PENALTY!", "text-amber-500 border-amber-500");
+            } 
             else {
                 state.gold = Math.max(0, state.gold - 20); saveState();
                 const goldHUD = document.getElementById('gold-container');
@@ -576,20 +627,20 @@
                     goldHUD.classList.add('animate__shakeX', 'bg-red-950/80');
                     setTimeout(() => goldHUD.classList.remove('animate__shakeX', 'bg-red-950/80'), 800);
                 }
-                alert("❌ Incorrect! -20 Coins. Character slipped back one position.");
+                triggerHUDMessage("❌ INCORRECT! -20 COINS & SLIPPED BACK", "text-rose-500 border-rose-500");
             }
 
             const targetBook = activePool[levelIndex];
             bookQuestions = [...targetBook.questions].sort(() => Math.random() - 0.5);
             questionIndex = 0; 
-            loadQuestionNode();
+            setTimeout(loadQuestionNode, 2000);
         }
 
         function renderVictoryScreen(fullCampaignCleared = false) {
             stopSnowingEffect();
             const canvas = document.getElementById('window-canvas');
             canvas.innerHTML = `
-                <div class="glass-card p-8 text-center space-y-5 animate__animated animate__backInDown border border-amber-500/20">
+                <div class="glass-card p-8 text-center space-y-5 border border-amber-500/20">
                     <h1 class="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-yellow-200">🏆 ROUTE CLEARED!</h1>
                     <p class="text-xs text-slate-300 font-medium">All active books within this phase journey have been successfully conquered!</p>
                     <button onclick="exitToMenu()" class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 p-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl">
