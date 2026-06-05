@@ -7,12 +7,26 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
-        body { background-color: #050811; font-family: system-ui, -apple-system, sans-serif; overflow-x: hidden; }
-        #bg-tint { position: fixed; inset: 0; background: radial-gradient(circle at center, rgba(17, 24, 47, 0.5) 0%, rgba(2, 4, 10, 0.99) 100%); z-index: 1; pointer-events: none; }
-        .glass-card { background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; color: white; }
+        body { 
+            background-color: #050811; 
+            font-family: system-ui, -apple-system, sans-serif; 
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at center, rgba(16, 23, 42, 0.4) 0%, rgba(2, 6, 23, 0.98) 100%);
+        }
         
-        .btn-choice { width: 100%; text-align: left; padding: 1.1rem 1.4rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.03); font-weight: 600; color: #f1f5f9; transition: all 0.2s ease; position: relative; }
-        .btn-choice:hover { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.15); }
+        /* Dynamic Question Area Background Layers */
+        .game-bg-active {
+            background-image: url('https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?auto=format&fit=crop&w=800&q=80') !important;
+            background-size: cover !important;
+            background-position: center !important;
+            background-blend-mode: overlay !important;
+            background-color: rgba(5, 8, 20, 0.85) !important;
+        }
+
+        .glass-card { background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; color: white; }
+        
+        .btn-choice { width: 100%; text-align: left; padding: 1.1rem 1.4rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.07); background: rgba(15, 23, 42, 0.8); font-weight: 600; color: #f1f5f9; transition: all 0.2s ease; position: relative; }
+        .btn-choice:hover { background: rgba(30, 41, 59, 0.9); border-color: rgba(255, 255, 255, 0.2); transform: translateY(-1px); }
         
         /* 🌈 FLOATING LIQUID RAINBOW AURORA MIXTURE ANIMATION */
         @keyframes auroraFlow {
@@ -49,8 +63,6 @@
     </style>
 </head>
 <body class="p-4 min-h-screen flex flex-col items-center justify-start text-white select-none">
-    
-    <div id="bg-tint"></div>
 
     <div id="frost-frame"></div>
     <div id="shield-frame"></div>
@@ -92,9 +104,19 @@
 
     <script src="questions.js"></script>
     <script>
-        // Global Fallback Array Engine to fully eliminate initialization race conditions or blank views
-        if (typeof window.quizDatabase === 'undefined') {
-            window.quizDatabase = [];
+        // Failsafe initialization engine hook to completely protect against empty file anomalies
+        if (typeof window.quizDatabase === 'undefined' || !Array.isArray(window.quizDatabase)) {
+            window.quizDatabase = [
+                {
+                    name: "Genesis & Gospels Track",
+                    group: "NT",
+                    questions: [
+                        { q: "Where was Jesus born?", a: ["Nazareth", "Bethlehem", "Jerusalem", "Capernaum"], q_twi: "Hehefa na wɔwoo Yesu?", a_tw: ["Nasaret", "Betlehem", "Yerusalem", "Kapernaum"], correct: 1, subGroup: "Easy" },
+                        { q: "Who built the ark?", a: ["Moses", "Noah", "Abraham", "David"], q_twi: "Hwan na ɔyɛɛ adaka no?", a_tw: ["Mose", "Noa", "Abraham", "David"], correct: 1, subGroup: "Easy" },
+                        { q: "What is the first book of the New Testament?", a: ["Mark", "Matthew", "Luke", "John"], q_twi: "Nhoma bɛn na edi kan wɔ Apam Foforo no mu?", a_tw: ["Marko", "Mateo", "Luka", "Yohane"], correct: 1, subGroup: "Easy" }
+                    ]
+                }
+            ];
         }
 
         let state = JSON.parse(localStorage.getItem('bqArcadeV5Data')) || {
@@ -105,11 +127,13 @@
         };
 
         let currentCampaign = "";
-        let levelIndex = 0;
-        let activePool = [];
-        let bookQuestions = [];
-        let questionIndex = 0;
+        let currentActivityNode = 1; // 1 to 10 progressive gauntlet track counter
+        const TOTAL_ACTIVITIES_PER_BOOK = 10;
+        
+        let campaignQuestionsPool = [];
         let activeQuestion = null;
+        let completedQuestionIds = new Set(); // Registry tracking to completely prevent repeating questions
+
         let timerClockInterval = null;
         let secondsLeft = 0;
         let maxSeconds = 20;
@@ -140,36 +164,37 @@
                 osc.connect(gain); gain.connect(audioCtx.destination);
 
                 if (type === 'correct') {
-                    osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-                    osc.start(); osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2);
-                    osc.stop(audioCtx.currentTime + 0.35);
+                    // Crisp, upbeat vintage melodic progression
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                    osc.start(); osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08); osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.16);
+                    osc.stop(audioCtx.currentTime + 0.3);
                 } else if (type === 'wrong') {
-                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(130, audioCtx.currentTime); gain.gain.setValueAtTime(0.07, audioCtx.currentTime);
-                    osc.start(); osc.frequency.linearRampToValueAtTime(65, audioCtx.currentTime + 0.25); osc.stop(audioCtx.currentTime + 0.3);
+                    // Deep acoustic drop bass slam
+                    osc.type = 'triangle'; osc.frequency.setValueAtTime(140, audioCtx.currentTime); gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+                    osc.start(); osc.frequency.linearRampToValueAtTime(70, audioCtx.currentTime + 0.2); osc.stop(audioCtx.currentTime + 0.25);
                 } else if (type === 'perk') {
-                    osc.type = 'triangle'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-                    osc.start(); osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.15); osc.stop(audioCtx.currentTime + 0.2);
+                    // Retro shimmer arpeggio
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(300, audioCtx.currentTime); gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                    osc.start(); osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.2); osc.stop(audioCtx.currentTime + 0.22);
                 } else if (type === 'tick') {
-                    osc.type = 'sine'; osc.frequency.setValueAtTime(850, audioCtx.currentTime); gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
-                    osc.start(); osc.stop(audioCtx.currentTime + 0.03);
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(900, audioCtx.currentTime); gain.gain.setValueAtTime(0.015, audioCtx.currentTime);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.02);
                 }
             } catch(e){}
         }
 
         function openShopModal() {
             playSoundFX('perk');
-            const inventoryItems = [
+            const items = [
                 { id: 'freeze', name: 'Chrono Freeze', desc: 'Stops countdown progression.', cost: 50, icon: '❄️' },
                 { id: 'half', name: 'Divine 50:50', desc: 'Discards two incorrect choices.', cost: 75, icon: '⚖️' },
                 { id: 'skip', name: 'Prophetic Skip', desc: 'Skips node without penalty risks.', cost: 100, icon: '🔮' },
                 { id: 'shield', name: 'Aegis Shield', desc: 'Blocks negative 20 coin deductions.', cost: 60, icon: '🛡️' },
                 { id: 'elixir', name: 'Time Elixir', desc: 'Grants +10 seconds onto clock.', cost: 40, icon: '🧪' }
             ];
-
-            const grid = document.getElementById('modal-shop-grid'); 
-            if(!grid) return;
+            const grid = document.getElementById('modal-shop-grid'); if(!grid) return;
             grid.innerHTML = "";
-            inventoryItems.forEach(item => {
+            items.forEach(item => {
                 const row = document.createElement('div');
                 row.className = "flex items-center justify-between p-3 bg-slate-900/80 rounded-2xl border border-white/5";
                 row.innerHTML = `
@@ -186,7 +211,6 @@
             });
             document.getElementById('shop-modal').classList.remove('hidden');
         }
-
         function closeShopModal() { document.getElementById('shop-modal').classList.add('hidden'); }
 
         function buyPerk(id, cost) {
@@ -198,13 +222,12 @@
 
         function renderMenuMap() {
             currentCampaign = "";
+            document.body.classList.remove('game-bg-active');
             if(document.getElementById('back-btn')) document.getElementById('back-btn').classList.add('hidden');
             if(document.getElementById('lobby-bag-btn')) document.getElementById('lobby-bag-btn').classList.remove('hidden');
             stopSnowingEffect();
             
-            const canvas = document.getElementById('window-canvas');
-            if(!canvas) return;
-
+            const canvas = document.getElementById('window-canvas'); if(!canvas) return;
             let heading = state.lang === 'tw' ? "TWERƐKRON KANEA" : "BIBLE QUEST";
             let subheading = state.lang === 'tw' ? "Yiyi Ɔfasa a Wopɛ sɛ Wosua" : "Select Campaign Route";
 
@@ -213,7 +236,6 @@
                     <h1 class="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">${heading}</h1>
                     <p class="text-xs text-slate-500 font-bold tracking-widest uppercase">${subheading}</p>
                 </div>
-
                 <div class="space-y-2.5 animate__animated animate__fadeInUp">
                     <button onclick="launchCampaign('nt')" class="w-full p-4 glass-card text-left flex justify-between items-center hover:border-indigo-500 transition-all">
                         <div>
@@ -255,41 +277,51 @@
         }
 
         function launchCampaign(mode) {
-            initAudioEngine(); currentCampaign = mode; levelIndex = 0; state.streak = 0;
+            initAudioEngine();
+            currentCampaign = mode;
+            currentActivityNode = 1; 
+            completedQuestionIds.clear();
+
             if(document.getElementById('back-btn')) document.getElementById('back-btn').classList.remove('hidden');
             if(document.getElementById('lobby-bag-btn')) document.getElementById('lobby-bag-btn').classList.add('hidden');
             
-            let sourcePool = window.quizDatabase || [];
-            if (mode === 'nt') activePool = sourcePool.filter(b => b.group === 'NT');
-            else if (mode === 'ot') activePool = sourcePool.filter(b => b.group === 'OT');
-            else if (mode === 'egw') activePool = sourcePool.filter(b => b.group === 'EGW');
-            else activePool = [...sourcePool].sort(() => Math.random() - 0.5);
+            // Gather matching question databases smoothly
+            let matchedBooks = [];
+            if (mode === 'nt') matchedBooks = window.quizDatabase.filter(b => b.group === 'NT');
+            else if (mode === 'ot') matchedBooks = window.quizDatabase.filter(b => b.group === 'OT');
+            else if (mode === 'egw') matchedBooks = window.quizDatabase.filter(b => b.group === 'EGW');
+            else matchedBooks = window.quizDatabase; // Mixture maps
 
-            // Dynamic core backup safety layout context injection
-            if (activePool.length === 0) {
-                activePool = [{
-                    name: state.lang === 'tw' ? "Asɛmpa Nhoma" : "Gospels Archive Pool",
-                    group: "NT",
-                    questions: [
-                        { q: "Where was Jesus born?", a: ["Nazareth", "Bethlehem", "Jerusalem", "Capernaum"], q_twi: "Hehefa na wɔwoo Yesu?", a_tw: ["Nasaret", "Betlehem", "Yerusalem", "Kapernaum"], correct: 1, subGroup: "Easy" },
-                        { q: "Who was the first man created?", a: ["Noah", "Adam", "Abel", "Seth"], q_twi: "Hwan ne onipa a odi kan a wɔbɔɔ no?", a_tw: ["Noa", "Adam", "Abel", "Set"], correct: 1, subGroup: "Easy" }
-                    ]
-                }];
+            if(matchedBooks.length === 0) matchedBooks = window.quizDatabase;
+
+            // Extract questions directly into flat target pool
+            campaignQuestionsPool = [];
+            matchedBooks.forEach(b => {
+                if(b.questions && Array.isArray(b.questions)) {
+                    b.questions.forEach(q => {
+                        // Tag with source book context tracking metadata dynamically
+                        q._bookName = b.name; 
+                        campaignQuestionsPool.push(q);
+                    });
+                }
+            });
+
+            // Ultimate protection fallback array population
+            if(campaignQuestionsPool.length === 0) {
+                campaignQuestionsPool = [
+                    { q: "Who was the first man?", a: ["Moses", "Adam", "Noah", "David"], q_twi: "Hwan ne onipa a odi kan?", a_tw: ["Mose", "Adam", "Noa", "David"], correct: 1, subGroup: "Easy", _bookName: "Genesis" }
+                ];
             }
 
-            initNewBookTrack();
-        }
-
-        function initNewBookTrack() {
-            if (levelIndex >= activePool.length) { renderVictoryScreen(); return; }
-            const targetBook = activePool[levelIndex];
-            bookQuestions = [...targetBook.questions].sort(() => Math.random() - 0.5);
-            questionIndex = 0;
             loadQuestionNode();
         }
 
         function loadQuestionNode() {
-            if (questionIndex >= bookQuestions.length) { levelIndex++; initNewBookTrack(); return; }
+            // Check if 10-activity quest line is successfully cleared!
+            if (currentActivityNode > TOTAL_ACTIVITIES_PER_BOOK) { renderVictoryScreen(); return; }
+
+            // Apply dynamic visual container backdrop theme skin
+            document.body.classList.add('game-bg-active');
 
             inputBlocked = false; isShieldActive = false;
             if(document.getElementById('shield-frame')) document.getElementById('shield-frame').className = "";
@@ -298,32 +330,47 @@
                 stopSnowingEffect();
             }
 
-            const targetBook = activePool[levelIndex];
-            activeQuestion = bookQuestions[questionIndex];
-            let tier = activeQuestion.subGroup || "Easy"; 
+            // FILTER POOL DEPENDING ON COMPLETED IDS TO PREVENT DUPLICATES
+            let availablePool = campaignQuestionsPool.filter(q => !completedQuestionIds.has(q.q));
+            if (availablePool.length === 0) { completedQuestionIds.clear(); availablePool = campaignQuestionsPool; }
 
+            // PROGRESSIVE GAUNTLET LEVEL ENGINE: Filter via target difficulty based on level track activity node
+            let targetDifficulty = "Easy";
+            if (currentActivityNode >= 4 && currentActivityNode <= 7) targetDifficulty = "Moderate";
+            else if (currentActivityNode >= 8) targetDifficulty = "Difficult";
+
+            let subFiltered = availablePool.filter(q => (q.subGroup || "Easy") === targetDifficulty);
+            // Fallback backstop strategy if specific sub-tier arrays run out
+            if (subFiltered.length === 0) subFiltered = availablePool;
+
+            // Pick a completely random question from the selected difficulty curve tier
+            activeQuestion = subFiltered[Math.floor(Math.random() * subFiltered.length)];
+
+            let currentTier = activeQuestion.subGroup || "Easy";
             if (currentCampaign === 'master') { maxSeconds = 5; } 
-            else { maxSeconds = tier === "Difficult" ? 10 : tier === "Moderate" ? 15 : 20; }
+            else { maxSeconds = currentTier === "Difficult" ? 10 : currentTier === "Moderate" ? 15 : 20; }
             
             if (!isClockFrozen) { secondsLeft = maxSeconds; }
 
             let tierColorClass = "bg-emerald-500";
-            if (tier === "Moderate") tierColorClass = "bg-amber-500";
-            else if (tier === "Difficult" || currentCampaign === 'master') tierColorClass = "bg-rose-500";
+            if (currentTier === "Moderate") tierColorClass = "bg-amber-500";
+            else if (currentTier === "Difficult" || currentCampaign === 'master') tierColorClass = "bg-rose-500";
 
             let questionText = (state.lang === 'tw' && activeQuestion.q_twi) ? activeQuestion.q_twi : activeQuestion.q;
             let choicesArray = (state.lang === 'tw' && activeQuestion.a_tw) ? activeQuestion.a_tw : activeQuestion.a;
 
-            const canvas = document.getElementById('window-canvas');
-            if(!canvas) return;
+            const canvas = document.getElementById('window-canvas'); if(!canvas) return;
 
             canvas.innerHTML = `
-                <div class="glass-card p-4 space-y-3 flex flex-col animate__animated animate__fadeIn">
+                <div class="glass-card p-4 space-y-3 flex flex-col animate__animated animate__fadeIn bg-slate-900/90 shadow-2xl">
                     <div class="flex justify-between items-center">
                         <div>
-                            <h2 class="text-lg font-black text-slate-100 tracking-wide">${targetBook.name}</h2>
+                            <h2 class="text-sm font-black text-indigo-400 uppercase tracking-wider">${activeQuestion._bookName || "Bible Quest"}</h2>
+                            <div class="text-xs font-bold text-slate-300 mt-0.5">
+                                ${state.lang === 'tw' ? `Dwumadie ${currentActivityNode} mu ${TOTAL_ACTIVITIES_PER_BOOK}` : `Activity ${currentActivityNode} of ${TOTAL_ACTIVITIES_PER_BOOK}`}
+                            </div>
                             <span class="text-[9px] uppercase px-2 py-0.5 rounded font-black bg-slate-950 text-slate-400 mt-1 inline-block">
-                                ${currentCampaign === 'master' ? '5s Mastery Blitz' : tier}
+                                ${currentCampaign === 'master' ? '5s Mastery Blitz' : currentTier}
                             </span>
                         </div>
                         <div id="clock-wrapper" class="text-2xl font-black tracking-tighter tabular-nums text-amber-400 bg-slate-950/70 px-3 py-1.5 rounded-2xl border border-white/10">
@@ -335,8 +382,8 @@
                     </div>
                 </div>
 
-                <div class="glass-card p-6 min-h-[64px] flex items-center justify-center text-center animate__animated animate__zoomIn">
-                    <h3 class="text-md font-bold leading-snug text-slate-100">${questionText}</h3>
+                <div class="glass-card p-6 min-h-[80px] flex items-center justify-center text-center animate__animated animate__zoomIn bg-slate-900/95 border border-indigo-500/20 shadow-xl">
+                    <h3 class="text-base font-bold leading-snug text-slate-100">${questionText}</h3>
                 </div>
 
                 <div id="choice-matrix" class="space-y-2.5"></div>
@@ -369,7 +416,7 @@
             if(matrix && choicesArray) {
                 choicesArray.forEach((opt, idx) => {
                     const btn = document.createElement('button');
-                    btn.className = "btn-choice animate__animated animate__fadeInUp";
+                    btn.className = "btn-choice animate__animated animate__fadeInUp bg-slate-900/90";
                     btn.style.animationDelay = `${idx * 0.02}s`;
                     btn.innerText = opt;
                     btn.onclick = () => evaluateAnswer(idx, btn);
@@ -423,7 +470,7 @@
                 });
             } 
             else if (id === 'skip') { 
-                questionIndex++; 
+                currentActivityNode++; 
                 loadQuestionNode();
             } 
             else if (id === 'shield') {
@@ -461,7 +508,10 @@
                 state.gold += 15; state.streak++;
                 saveState();
 
-                questionIndex++; 
+                // Lock this layout prompt text string so it can't repeat during this campaign segment run
+                completedQuestionIds.add(activeQuestion.q);
+
+                currentActivityNode++; 
                 setTimeout(loadQuestionNode, 1400);
             } else {
                 clickedElement.className = "btn-choice bg-rose-600 border-rose-400 text-white animate__animated animate__shakeX font-bold shadow-lg";
@@ -476,7 +526,7 @@
             isClockFrozen = false;
 
             if (isShieldActive) { 
-                alert(state.lang === 'tw' ? "🛡️ Akokoa Kataa Wo Sika So Afiri Pɔn mu!" : "🛡️ Aegis Shield Blocked Your Coin Penalty! Shuffling book now."); 
+                alert(state.lang === 'tw' ? "🛡️ Akokoa Kataa Wo Sika So Afiri Pɔn mu!" : "🛡️ Aegis Shield Blocked Your Coin Penalty! Reshuffling current activity node."); 
             } 
             else {
                 state.gold = Math.max(0, state.gold - 20); saveState();
@@ -488,23 +538,21 @@
                 alert(state.lang === 'tw' ? "❌ Wo bɔɔ afiri! Sika -20 Coins." : "❌ Incorrect! -20 Coins.");
             }
 
-            const targetBook = activePool[levelIndex];
-            bookQuestions = [...targetBook.questions].sort(() => Math.random() - 0.5);
-            questionIndex = 0; 
+            // Shuffle active node cleanly upon error failures to preserve game balance fun mechanics
             loadQuestionNode();
         }
 
         function renderVictoryScreen() {
             stopSnowingEffect();
-            const canvas = document.getElementById('window-canvas');
-            if(!canvas) return;
+            document.body.classList.remove('game-bg-active');
+            const canvas = document.getElementById('window-canvas'); if(!canvas) return;
 
             canvas.innerHTML = `
-                <div class="glass-card p-8 text-center space-y-5 animate__animated animate__backInDown border border-amber-500/20">
-                    <h1 class="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-yellow-200">${state.lang === 'tw' ? '🏆 NKUNIMDIE AKWAN!' : '🏆 ROUTE CLEARED!'}</h1>
-                    <p class="text-xs text-slate-300 font-medium">${state.lang === 'tw' ? 'Wawie saa adesua fa yi nyinaa yie koraa!' : 'Excellent work completing this entire study pathway segment!'}</p>
+                <div class="glass-card p-8 text-center space-y-5 animate__animated animate__backInDown border border-amber-500/20 bg-slate-900/95 shadow-2xl">
+                    <h1 class="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-yellow-200">${state.lang === 'tw' ? '🏆 NKUNIMDIE AKWAN!' : '🏆 COMPLETED!'}</h1>
+                    <p class="text-xs text-slate-300 font-medium">${state.lang === 'tw' ? 'Wawie saa adesua dwumadie 10 yi nyinaa pɛpɛɛpɛ!' : 'Incredible! You completed all 10 activities for this study track route successfully!'}</p>
                     <button onclick="exitToMenu()" class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 p-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl">
-                        ${state.lang === 'tw' ? 'Sane Kɔ Akwanmu Mfonini' : 'Return to Map Selection'}
+                        ${state.lang === 'tw' ? 'Sane Kɔ Akwanmu Mfonini' : 'Return to Map Hub'}
                     </button>
                 </div>
             `;
