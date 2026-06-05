@@ -93,7 +93,7 @@
             border: 1px solid rgba(255, 255, 255, 0.15);
         }
         .quiz-overlay-shade {
-            background: linear-gradient(180deg, rgba(10, 15, 30, 0.7) 0%, rgba(6, 8, 16, 0.95) 100%);
+            background: linear-gradient(180deg, rgba(10, 15, 30, 0.65) 0%, rgba(6, 8, 16, 0.95) 100%);
             width: 100%;
             height: 100%;
             padding: 1.25rem;
@@ -105,7 +105,6 @@
 </head>
 <body class="p-3 min-h-screen flex flex-col items-center justify-start text-white select-none pb-24">
 
-    <!-- Global App Header Navigation Strip -->
     <header class="w-full max-w-md flex justify-between items-center mb-2 z-50">
         <button onclick="backToMainMenu()" id="global-hub-btn" class="bg-slate-900 border border-white/10 text-white px-3 py-1.5 rounded-full font-bold text-xs uppercase hidden">
             🚪 Main Menu
@@ -122,10 +121,8 @@
         </div>
     </header>
 
-    <!-- Main Dynamic Canvas Frame Real Estate -->
     <main id="app-viewport" class="w-full max-w-md space-y-2 flex flex-col relative z-10"></main>
 
-    <!-- FLOATING POWER-UP PODS CONTROLS (Hidden on Menu by default style configuration) -->
     <div id="powerups-footer-bar" class="bubble-bag-container hidden flex justify-between gap-1.5">
         <button onclick="usePowerUp('freeze')" class="flex-1 bubble-pod-btn p-1 flex flex-col items-center">
             <span>❄️</span><span class="text-[9px] text-slate-400 font-bold">Freeze: <span id="qty-freeze">1</span></span>
@@ -145,6 +142,11 @@
     </div>
 
     <script>
+        // Global Fallback Variable Initialization to completely prevent crash loops
+        if (typeof window.quizDatabase === 'undefined') {
+            window.quizDatabase = [];
+        }
+
         let appState = JSON.parse(localStorage.getItem('bibleQuestSave')) || {
             gold: 500,
             lang: 'en',
@@ -175,10 +177,10 @@
         }
 
         function drawMainMenu() {
-            document.getElementById('global-hub-btn').classList.add('hidden');
-            document.getElementById('spacer-div').classList.remove('hidden');
+            if(document.getElementById('global-hub-btn')) document.getElementById('global-hub-btn').classList.add('hidden');
+            if(document.getElementById('spacer-div')) document.getElementById('spacer-div').classList.remove('hidden');
             
-            // Explicitly remove bar from view layout structural display rules
+            // Explicitly hide powerups tray from menu
             const bar = document.getElementById('powerups-footer-bar');
             if (bar) {
                 bar.classList.add('hidden');
@@ -186,6 +188,8 @@
             }
 
             const target = document.getElementById('app-viewport');
+            if (!target) return;
+            
             target.innerHTML = `
                 <div class="glass-panel p-3 border-amber-500/30 bg-amber-950/20 space-y-2 mb-1 animate__animated animate__fadeInDown">
                     <div class="flex justify-between items-center text-[11px] font-black tracking-wider text-amber-300">
@@ -234,33 +238,34 @@
             selectedLevelGroup = groupName;
             currentQuestions = [];
 
-            // Safely verify and scan question database sheets 
+            // Safe parsing matrix check loop
             let sourcePool = window.quizDatabase || [];
             if (sourcePool && sourcePool.length > 0) {
                 sourcePool.forEach(category => {
                     if (groupName === 'Mastery' || category.group === groupName) {
                         if (category.questions && Array.isArray(category.questions)) {
                             category.questions.forEach(q => {
-                                currentQuestions.push({ ...q, bookName: category.name });
+                                currentQuestions.push({ ...q, bookName: category.name || 'Bible Database' });
                             });
                         }
                     }
                 });
             }
 
-            // Fallback backup if the questions file is empty or missing on runtime
+            // Fallback content safety injector
             if (currentQuestions.length === 0) {
                 currentQuestions = [
-                    { q: "Where was Jesus born?", a: ["Nazareth", "Bethlehem", "Jerusalem", "Capernaum"], q_twi: "Hehefa na wɔwoo Yesu?", a_tw: ["Nasaret", "Betlehem", "Yerusalem", "Kapernaum"], correct: 1, subGroup: "Easy", bookName: "Gospels Pool" }
+                    { q: "Where was Jesus born?", a: ["Nazareth", "Bethlehem", "Jerusalem", "Capernaum"], q_twi: "Hehefa na wɔwoo Yesu?", a_tw: ["Nasaret", "Betlehem", "Yerusalem", "Kapernaum"], correct: 1, subGroup: "Easy", bookName: "New Testament Archive" },
+                    { q: "Who was the first man created?", a: ["Noah", "Adam", "Abel", "Seth"], q_twi: "Hwan ne onipa a odi kan a wɔbɔɔ no?", a_tw: ["Noa", "Adam", "Abel", "Set"], correct: 1, subGroup: "Easy", bookName: "Old Testament Archive" }
                 ];
             }
 
             questionIndex = 0;
             bookObjectivesCleared = 0;
-            document.getElementById('global-hub-btn').classList.remove('hidden');
-            document.getElementById('spacer-div').classList.add('hidden');
+            if(document.getElementById('global-hub-btn')) document.getElementById('global-hub-btn').classList.remove('hidden');
+            if(document.getElementById('spacer-div')) document.getElementById('spacer-div').classList.add('hidden');
             
-            // Show power ups panel bar cleanly on active quiz scenes
+            // Flex design trigger for game rounds scene views
             const bar = document.getElementById('powerups-footer-bar');
             if (bar) {
                 bar.classList.remove('hidden');
@@ -283,7 +288,7 @@
             let displayPrompt = (appState.lang === 'tw' && activeQuestion.q_twi) ? activeQuestion.q_twi : activeQuestion.q;
             let displayChoices = (appState.lang === 'tw' && activeQuestion.a_tw) ? activeQuestion.a_tw : activeQuestion.a;
 
-            // Beautiful atmospheric backdrops restocked for clear readable contrast bounds
+            // Restored beautiful dynamic graphical backdrops
             let graphicPanelImage = "https://images.unsplash.com/photo-1543324564-7032d16eb630?q=80&w=600&auto=format&fit=crop"; 
             if (selectedLevelGroup === 'NT') {
                 graphicPanelImage = "https://images.unsplash.com/photo-1438211331416-0ee898ec0130?q=80&w=600&auto=format&fit=crop";
@@ -294,6 +299,8 @@
             }
 
             const target = document.getElementById('app-viewport');
+            if(!target) return;
+
             target.innerHTML = `
                 <div class="w-full space-y-1">
                     <div class="flex justify-between items-center text-[10px] font-bold text-slate-400 px-1 uppercase tracking-wide">
@@ -303,7 +310,6 @@
                         <span class="text-teal-400 font-extrabold">OBJECTIVES METER: ${bookObjectivesCleared}/${totalObjectivesNeeded}</span>
                     </div>
                     
-                    <!-- 📻 DIORAMA COMPONENT ZONE -->
                     <div class="diorama-container">
                         <div id="lightning-sheet" class="lightning-sheet ${isWeatherRainy ? 'lightning-active' : ''}"></div>
                         <div id="rain-particle-field" class="weather-layer"></div>
@@ -325,7 +331,6 @@
                     </div>
                 </div>
 
-                <!-- 🌄 IMMERSIVE ATMOSPHERIC BACKGROUND PANEL CARD -->
                 <div class="quiz-background-card text-white shadow-2xl animate__animated animate__fadeIn" style="background-image: url('${graphicPanelImage}');">
                     <div class="quiz-overlay-shade space-y-4">
                         <div class="flex justify-between items-center border-b border-white/10 pb-2">
@@ -351,7 +356,7 @@
             renderRainEffect();
 
             const matrixBox = document.getElementById('answers-box');
-            if (displayChoices && Array.isArray(displayChoices)) {
+            if (matrixBox && displayChoices && Array.isArray(displayChoices)) {
                 displayChoices.forEach((choice, index) => {
                     const btn = document.createElement('button');
                     btn.className = "choice-btn animate__animated animate__fadeInUp";
@@ -492,11 +497,9 @@
             drawMainMenu();
         }
 
-        // Safe setup that triggers immediately to guarantee elements appear instantly
-        window.addEventListener('DOMContentLoaded', () => {
-            saveState();
-            drawMainMenu();
-        });
+        // Instant initialization runner
+        saveState();
+        drawMainMenu();
     </script>
 </body>
 </html>
