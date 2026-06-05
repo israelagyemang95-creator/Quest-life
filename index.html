@@ -14,7 +14,6 @@
             background-image: radial-gradient(circle at center, rgba(16, 23, 42, 0.4) 0%, rgba(2, 6, 23, 0.98) 100%);
         }
         
-        /* Dynamic Question Area Background Layers */
         .game-bg-active {
             background-image: url('https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?auto=format&fit=crop&w=800&q=80') !important;
             background-size: cover !important;
@@ -28,7 +27,6 @@
         .btn-choice { width: 100%; text-align: left; padding: 1.1rem 1.4rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.07); background: rgba(15, 23, 42, 0.8); font-weight: 600; color: #f1f5f9; transition: all 0.2s ease; position: relative; }
         .btn-choice:hover { background: rgba(30, 41, 59, 0.9); border-color: rgba(255, 255, 255, 0.2); transform: translateY(-1px); }
         
-        /* 🌈 FLOATING LIQUID RAINBOW AURORA MIXTURE ANIMATION */
         @keyframes auroraFlow {
             0% { background-position: 0% 50%; filter: hue-rotate(0deg); }
             50% { background-position: 100% 50%; filter: hue-rotate(180deg); }
@@ -45,7 +43,6 @@
             box-shadow: 0 0 25px rgba(0, 240, 255, 0.5) !important;
         }
 
-        /* ❄️ FULL-SCREEN DISTRIBUTED BLIZZARD SNOW SYSTEM */
         #frost-frame { position: fixed; inset: 0; border: 14px solid rgba(56, 189, 248, 0.45); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 80px rgba(14, 165, 233, 0.35); }
         .frost-active { opacity: 1 !important; }
         
@@ -71,6 +68,9 @@
     <div class="fixed top-4 left-4 right-4 flex justify-between items-center z-50 max-w-md mx-auto w-full px-2">
         <button onclick="exitToMenu()" id="back-btn" class="hidden bg-slate-900/95 border border-white/10 text-white px-4 py-2 rounded-full font-bold text-xs uppercase tracking-wider shadow-2xl transition-all">
             🚪 Map Hub
+        </button>
+        <button onclick="openActivitiesModal()" id="hud-activities-btn" class="hidden bg-gradient-to-r from-purple-600 to-indigo-600 border border-white/10 text-white px-3 py-2 rounded-full font-bold text-xs uppercase tracking-wider shadow-2xl transition-all flex items-center gap-1">
+            📋 Quest List (<span id="hud-act-count">0/20</span>)
         </button>
         <div class="flex gap-2 ml-auto">
             <button onclick="toggleLanguage()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-full font-bold text-xs uppercase shadow-md transition-all">
@@ -98,13 +98,37 @@
         </div>
     </div>
 
+    <div id="activities-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card w-full max-w-md p-6 space-y-4 border-purple-500/30 bg-slate-950/90 animate__animated animate__fadeInUp flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center border-b border-white/10 pb-3 flex-shrink-0">
+                <div>
+                    <h3 class="text-base font-black uppercase tracking-wider text-purple-400">Phase Progress Dashboard</h3>
+                    <p class="text-[10px] text-slate-400 font-bold">20 Specialized Canonical Milestone Activities</p>
+                </div>
+                <button onclick="closeActivitiesModal()" class="text-slate-400 hover:text-white font-black text-sm bg-white/5 w-7 h-7 rounded-full flex items-center justify-center">✕</button>
+            </div>
+
+            <div class="bg-slate-900 p-3 rounded-2xl border border-white/5 flex-shrink-0 space-y-1.5">
+                <div class="flex justify-between text-xs font-black">
+                    <span class="text-indigo-400 uppercase tracking-widest">Phase Milestone Progress</span>
+                    <span id="modal-progress-pct" class="text-amber-400">0%</span>
+                </div>
+                <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden p-0.5 border border-white/5">
+                    <div id="modal-progress-bar" class="h-full rounded-full bg-gradient-to-r from-purple-500 via-indigo-500 to-amber-400 transition-all duration-500" style="width: 0%;"></div>
+                </div>
+                <p class="text-[9px] text-slate-400 font-medium">Complete all 20 to secure +200 Bonus Coins & +2 Armory Power-Up sets!</p>
+            </div>
+
+            <div id="modal-activities-stack" class="space-y-2 overflow-y-auto flex-1 pr-1"></div>
+        </div>
+    </div>
+
     <button id="lobby-bag-btn" onclick="openShopModal()" class="fixed bottom-6 right-6 z-40 bg-gradient-to-tr from-indigo-600 to-purple-600 border border-white/20 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl text-2xl animate__animated animate__pulse animate__infinite">
         🎒
     </button>
 
     <script src="questions.js"></script>
     <script>
-        // Failsafe initialization engine hook to completely protect against empty file anomalies
         if (typeof window.quizDatabase === 'undefined' || !Array.isArray(window.quizDatabase)) {
             window.quizDatabase = [
                 {
@@ -119,20 +143,20 @@
             ];
         }
 
-        let state = JSON.parse(localStorage.getItem('bqArcadeV5Data')) || {
+        let state = JSON.parse(localStorage.getItem('bqArcadeV6Data')) || {
             gold: 500,
             lang: 'en',
             perks: { freeze: 2, half: 2, skip: 2, shield: 1, elixir: 2 },
-            streak: 0
+            streak: 0,
+            clearedQuestions: [] // Permanent registry tracker preventing repeats across game loops
         };
 
         let currentCampaign = "";
-        let currentActivityNode = 1; // 1 to 10 progressive gauntlet track counter
-        const TOTAL_ACTIVITIES_PER_BOOK = 10;
+        let currentActivityNode = 1; 
+        const TOTAL_ACTIVITIES_PER_PHASE = 20;
         
         let campaignQuestionsPool = [];
         let activeQuestion = null;
-        let completedQuestionIds = new Set(); // Registry tracking to completely prevent repeating questions
 
         let timerClockInterval = null;
         let secondsLeft = 0;
@@ -144,9 +168,12 @@
         let audioCtx = null;
 
         function saveState() {
-            localStorage.setItem('bqArcadeV5Data', JSON.stringify(state));
+            localStorage.setItem('bqArcadeV6Data', JSON.stringify(state));
             if(document.getElementById('gold-val')) document.getElementById('gold-val').innerText = state.gold;
             if(document.getElementById('lang-label')) document.getElementById('lang-label').innerText = state.lang === 'en' ? "English" : "Twi";
+            
+            let displayCount = Math.min(TOTAL_ACTIVITIES_PER_PHASE, currentActivityNode - 1);
+            if(document.getElementById('hud-act-count')) document.getElementById('hud-act-count').innerText = `${displayCount}/${TOTAL_ACTIVITIES_PER_PHASE}`;
         }
 
         function initAudioEngine() {
@@ -164,20 +191,17 @@
                 osc.connect(gain); gain.connect(audioCtx.destination);
 
                 if (type === 'correct') {
-                    // Crisp, upbeat vintage melodic progression
                     osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
                     osc.start(); osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08); osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.16);
                     osc.stop(audioCtx.currentTime + 0.3);
                 } else if (type === 'wrong') {
-                    // Deep acoustic drop bass slam
                     osc.type = 'triangle'; osc.frequency.setValueAtTime(140, audioCtx.currentTime); gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
                     osc.start(); osc.frequency.linearRampToValueAtTime(70, audioCtx.currentTime + 0.2); osc.stop(audioCtx.currentTime + 0.25);
                 } else if (type === 'perk') {
-                    // Retro shimmer arpeggio
-                    osc.type = 'sine'; osc.frequency.setValueAtTime(300, audioCtx.currentTime); gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-                    osc.start(); osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.2); osc.stop(audioCtx.currentTime + 0.22);
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(350, audioCtx.currentTime); gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                    osc.start(); osc.frequency.exponentialRampToValueAtTime(1100, audioCtx.currentTime + 0.18); osc.stop(audioCtx.currentTime + 0.2);
                 } else if (type === 'tick') {
-                    osc.type = 'sine'; osc.frequency.setValueAtTime(900, audioCtx.currentTime); gain.gain.setValueAtTime(0.015, audioCtx.currentTime);
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(950, audioCtx.currentTime); gain.gain.setValueAtTime(0.015, audioCtx.currentTime);
                     osc.start(); osc.stop(audioCtx.currentTime + 0.02);
                 }
             } catch(e){}
@@ -220,10 +244,55 @@
             } else { alert(state.lang === 'tw' ? "Sika dodo mfata!" : "Insufficient coin funds!"); }
         }
 
+        // Pop-up menu panel algorithm showing distinct rewards/difficulties dynamically mapped
+        function openActivitiesModal() {
+            playSoundFX('perk');
+            let displayCount = Math.min(TOTAL_ACTIVITIES_PER_PHASE, currentActivityNode - 1);
+            let progressPct = Math.round((displayCount / TOTAL_ACTIVITIES_PER_PHASE) * 100);
+            
+            if(document.getElementById('modal-progress-pct')) document.getElementById('modal-progress-pct').innerText = `${progressPct}%`;
+            if(document.getElementById('modal-progress-bar')) document.getElementById('modal-progress-bar').style.width = `${progressPct}%`;
+
+            const stack = document.getElementById('modal-activities-stack');
+            if(!stack) return;
+            stack.innerHTML = "";
+
+            for(let i = 1; i <= TOTAL_ACTIVITIES_PER_PHASE; i++) {
+                let diff = "Easy";
+                let rewardText = "15 💰";
+                if(i >= 7 && i <= 14) { diff = "Moderate"; rewardText = "25 💰"; }
+                else if(i >= 15) { diff = "Difficult"; rewardText = "40 💰 + 🛡️"; }
+
+                let isCleared = i < currentActivityNode;
+                let statusIcon = isCleared ? "✅" : "🔒 Active";
+                let cardBg = isCleared ? "bg-slate-900/40 opacity-60" : "bg-slate-900/90 border-l-4 border-purple-500";
+                
+                let activityTitle = state.lang === 'tw' ? `Dwumadie Nhyehyɛe ${i}` : `Canonical Milestone Task ${i}`;
+
+                const row = document.createElement('div');
+                row.className = `p-3 rounded-xl flex items-center justify-between text-xs border border-white/5 ${cardBg}`;
+                row.innerHTML = `
+                    <div>
+                        <div class="font-black text-slate-100 flex items-center gap-1.5">
+                            <span>${activityTitle}</span>
+                            <span class="text-[8px] uppercase font-black tracking-tight px-1.5 py-0.5 rounded bg-slate-950 text-purple-400">${diff}</span>
+                        </div>
+                        <p class="text-[9px] text-slate-400 font-medium mt-0.5">Reward Tier Valuation: <span class="text-amber-400 font-bold">${rewardText}</span></p>
+                    </div>
+                    <span class="font-black text-[10px] uppercase tracking-wider">${statusIcon}</span>
+                `;
+                stack.appendChild(row);
+            }
+
+            document.getElementById('activities-modal').classList.remove('hidden');
+        }
+        function closeActivitiesModal() { document.getElementById('activities-modal').classList.add('hidden'); }
+
         function renderMenuMap() {
             currentCampaign = "";
             document.body.classList.remove('game-bg-active');
             if(document.getElementById('back-btn')) document.getElementById('back-btn').classList.add('hidden');
+            if(document.getElementById('hud-activities-btn')) document.getElementById('hud-activities-btn').classList.add('hidden');
             if(document.getElementById('lobby-bag-btn')) document.getElementById('lobby-bag-btn').classList.remove('hidden');
             stopSnowingEffect();
             
@@ -280,33 +349,29 @@
             initAudioEngine();
             currentCampaign = mode;
             currentActivityNode = 1; 
-            completedQuestionIds.clear();
 
             if(document.getElementById('back-btn')) document.getElementById('back-btn').classList.remove('hidden');
+            if(document.getElementById('hud-activities-btn')) document.getElementById('hud-activities-btn').classList.remove('hidden');
             if(document.getElementById('lobby-bag-btn')) document.getElementById('lobby-bag-btn').classList.add('hidden');
             
-            // Gather matching question databases smoothly
             let matchedBooks = [];
             if (mode === 'nt') matchedBooks = window.quizDatabase.filter(b => b.group === 'NT');
             else if (mode === 'ot') matchedBooks = window.quizDatabase.filter(b => b.group === 'OT');
             else if (mode === 'egw') matchedBooks = window.quizDatabase.filter(b => b.group === 'EGW');
-            else matchedBooks = window.quizDatabase; // Mixture maps
+            else matchedBooks = window.quizDatabase;
 
             if(matchedBooks.length === 0) matchedBooks = window.quizDatabase;
 
-            // Extract questions directly into flat target pool
             campaignQuestionsPool = [];
             matchedBooks.forEach(b => {
                 if(b.questions && Array.isArray(b.questions)) {
                     b.questions.forEach(q => {
-                        // Tag with source book context tracking metadata dynamically
                         q._bookName = b.name; 
                         campaignQuestionsPool.push(q);
                     });
                 }
             });
 
-            // Ultimate protection fallback array population
             if(campaignQuestionsPool.length === 0) {
                 campaignQuestionsPool = [
                     { q: "Who was the first man?", a: ["Moses", "Adam", "Noah", "David"], q_twi: "Hwan ne onipa a odi kan?", a_tw: ["Mose", "Adam", "Noa", "David"], correct: 1, subGroup: "Easy", _bookName: "Genesis" }
@@ -317,12 +382,9 @@
         }
 
         function loadQuestionNode() {
-            // Check if 10-activity quest line is successfully cleared!
-            if (currentActivityNode > TOTAL_ACTIVITIES_PER_BOOK) { renderVictoryScreen(); return; }
+            if (currentActivityNode > TOTAL_ACTIVITIES_PER_PHASE) { renderVictoryScreen(); return; }
 
-            // Apply dynamic visual container backdrop theme skin
             document.body.classList.add('game-bg-active');
-
             inputBlocked = false; isShieldActive = false;
             if(document.getElementById('shield-frame')) document.getElementById('shield-frame').className = "";
             if (!isClockFrozen) {
@@ -330,20 +392,24 @@
                 stopSnowingEffect();
             }
 
-            // FILTER POOL DEPENDING ON COMPLETED IDS TO PREVENT DUPLICATES
-            let availablePool = campaignQuestionsPool.filter(q => !completedQuestionIds.has(q.q));
-            if (availablePool.length === 0) { completedQuestionIds.clear(); availablePool = campaignQuestionsPool; }
+            // EXCLUSION FILTER MATRIX: Remove historical clears to completely eradicate repeating prompts
+            let availablePool = campaignQuestionsPool.filter(q => !state.clearedQuestions.includes(q.q));
+            
+            // Failsafe backup recycling system if player exhausts the entire canonical question file
+            if (availablePool.length === 0) { 
+                state.clearedQuestions = []; 
+                saveState();
+                availablePool = campaignQuestionsPool; 
+            }
 
-            // PROGRESSIVE GAUNTLET LEVEL ENGINE: Filter via target difficulty based on level track activity node
+            // Distinct difficulty balancing logic based on node step progression
             let targetDifficulty = "Easy";
-            if (currentActivityNode >= 4 && currentActivityNode <= 7) targetDifficulty = "Moderate";
-            else if (currentActivityNode >= 8) targetDifficulty = "Difficult";
+            if (currentActivityNode >= 7 && currentActivityNode <= 14) targetDifficulty = "Moderate";
+            else if (currentActivityNode >= 15) targetDifficulty = "Difficult";
 
             let subFiltered = availablePool.filter(q => (q.subGroup || "Easy") === targetDifficulty);
-            // Fallback backstop strategy if specific sub-tier arrays run out
             if (subFiltered.length === 0) subFiltered = availablePool;
 
-            // Pick a completely random question from the selected difficulty curve tier
             activeQuestion = subFiltered[Math.floor(Math.random() * subFiltered.length)];
 
             let currentTier = activeQuestion.subGroup || "Easy";
@@ -361,24 +427,30 @@
 
             const canvas = document.getElementById('window-canvas'); if(!canvas) return;
 
+            let calculatedPct = Math.round(((currentActivityNode - 1) / TOTAL_ACTIVITIES_PER_PHASE) * 100);
+
             canvas.innerHTML = `
                 <div class="glass-card p-4 space-y-3 flex flex-col animate__animated animate__fadeIn bg-slate-900/90 shadow-2xl">
                     <div class="flex justify-between items-center">
                         <div>
                             <h2 class="text-sm font-black text-indigo-400 uppercase tracking-wider">${activeQuestion._bookName || "Bible Quest"}</h2>
                             <div class="text-xs font-bold text-slate-300 mt-0.5">
-                                ${state.lang === 'tw' ? `Dwumadie ${currentActivityNode} mu ${TOTAL_ACTIVITIES_PER_BOOK}` : `Activity ${currentActivityNode} of ${TOTAL_ACTIVITIES_PER_BOOK}`}
+                                ${state.lang === 'tw' ? `Dwumadie ${currentActivityNode} mu ${TOTAL_ACTIVITIES_PER_PHASE}` : `Activity ${currentActivityNode} of ${TOTAL_ACTIVITIES_PER_PHASE}`}
                             </div>
-                            <span class="text-[9px] uppercase px-2 py-0.5 rounded font-black bg-slate-950 text-slate-400 mt-1 inline-block">
-                                ${currentCampaign === 'master' ? '5s Mastery Blitz' : currentTier}
-                            </span>
                         </div>
                         <div id="clock-wrapper" class="text-2xl font-black tracking-tighter tabular-nums text-amber-400 bg-slate-950/70 px-3 py-1.5 rounded-2xl border border-white/10">
                             ⏰ <span id="clock-digit">${secondsLeft}</span>s
                         </div>
                     </div>
-                    <div class="w-full bg-slate-950/60 h-2 rounded-full overflow-hidden p-0.5 border border-white/5">
-                        <div id="bar-fill" class="h-full rounded-full ${tierColorClass}" style="width: ${(secondsLeft/maxSeconds)*100}%; transition: width 1s linear;"></div>
+                    
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[10px] font-black uppercase tracking-tight text-slate-400">
+                            <span>Phase Completion Progress</span>
+                            <span class="text-purple-400">${calculatedPct}%</span>
+                        </div>
+                        <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden p-0.5 border border-white/5">
+                            <div class="h-full rounded-full bg-gradient-to-r from-purple-500 via-indigo-400 to-amber-400 transition-all duration-500" style="width: ${calculatedPct}%;"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -430,6 +502,7 @@
             }
 
             runCountdownLoop();
+            saveState();
         }
 
         function runCountdownLoop() {
@@ -505,11 +578,14 @@
                 clickedElement.className = "btn-choice rainbow-correct shadow-2xl";
                 playSoundFX('correct');
                 
-                state.gold += 15; state.streak++;
-                saveState();
+                // Add variable coin rewards depending on question difficulty tier splits
+                let diffBonus = activeQuestion.subGroup === "Difficult" ? 40 : activeQuestion.subGroup === "Moderate" ? 25 : 15;
+                state.gold += diffBonus;
+                state.streak++;
 
-                // Lock this layout prompt text string so it can't repeat during this campaign segment run
-                completedQuestionIds.add(activeQuestion.q);
+                // Lock prompt into database registry arrays immediately to completely prevent loops
+                state.clearedQuestions.push(activeQuestion.q);
+                saveState();
 
                 currentActivityNode++; 
                 setTimeout(loadQuestionNode, 1400);
@@ -526,7 +602,7 @@
             isClockFrozen = false;
 
             if (isShieldActive) { 
-                alert(state.lang === 'tw' ? "🛡️ Akokoa Kataa Wo Sika So Afiri Pɔn mu!" : "🛡️ Aegis Shield Blocked Your Coin Penalty! Reshuffling current activity node."); 
+                alert(state.lang === 'tw' ? "🛡️ Akokoa Kataa Wo Sika So Afiri Pɔn mu!" : "🛡️ Aegis Shield Blocked Your Coin Penalty! Shuffling activity node configurations."); 
             } 
             else {
                 state.gold = Math.max(0, state.gold - 20); saveState();
@@ -538,7 +614,6 @@
                 alert(state.lang === 'tw' ? "❌ Wo bɔɔ afiri! Sika -20 Coins." : "❌ Incorrect! -20 Coins.");
             }
 
-            // Shuffle active node cleanly upon error failures to preserve game balance fun mechanics
             loadQuestionNode();
         }
 
@@ -547,10 +622,26 @@
             document.body.classList.remove('game-bg-active');
             const canvas = document.getElementById('window-canvas'); if(!canvas) return;
 
+            // Apply Grand Mega Phase Cleared Rewards Layout (+200 coins and +2 all inventory perks)
+            state.gold += 200;
+            state.perks.freeze += 2;
+            state.perks.half += 2;
+            state.perks.skip += 2;
+            state.perks.shield += 2;
+            state.perks.elixir += 2;
+            saveState();
+
             canvas.innerHTML = `
                 <div class="glass-card p-8 text-center space-y-5 animate__animated animate__backInDown border border-amber-500/20 bg-slate-900/95 shadow-2xl">
-                    <h1 class="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-yellow-200">${state.lang === 'tw' ? '🏆 NKUNIMDIE AKWAN!' : '🏆 COMPLETED!'}</h1>
-                    <p class="text-xs text-slate-300 font-medium">${state.lang === 'tw' ? 'Wawie saa adesua dwumadie 10 yi nyinaa pɛpɛɛpɛ!' : 'Incredible! You completed all 10 activities for this study track route successfully!'}</p>
+                    <h1 class="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500">🏆 PHASE CLEARED!</h1>
+                    <p class="text-sm text-slate-300 font-medium">${state.lang === 'tw' ? 'Mo! Wawiec saa adesua dwumadie 20 yi nyinaa pɛpɛɛpɛ!' : 'Incredible performance! You completed all 20 unique activities for this study track route successfully!'}</p>
+                    
+                    <div class="p-4 bg-slate-950/60 rounded-2xl border border-white/5 space-y-1.5 text-left">
+                        <h4 class="text-xs font-black text-amber-400 tracking-wider uppercase">✨ Grand Phase Rewards Added:</h4>
+                        <p class="text-[11px] text-slate-300">💰 Added <span class="font-black text-amber-400">+200 Coins</span> to vault</p>
+                        <p class="text-[11px] text-slate-300">🎒 Added <span class="font-black text-indigo-400">+2 of all power-ups</span> items</p>
+                    </div>
+
                     <button onclick="exitToMenu()" class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 p-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl">
                         ${state.lang === 'tw' ? 'Sane Kɔ Akwanmu Mfonini' : 'Return to Map Hub'}
                     </button>
