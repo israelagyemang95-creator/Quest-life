@@ -59,15 +59,15 @@
         .p-leg-l { top: 30px; left: 4px; width: 4px; height: 9px; }
         .p-leg-r { top: 30px; left: 16px; width: 4px; height: 9px; }
 
-        @keyframes armSwingLeft { 0% { transform: rotate(-60deg); } 100% { transform: rotate(10deg); } }
-        @keyframes armSwingRight { 0% { transform: rotate(10deg); } 100% { transform: rotate(-60deg); } }
-        @keyframes legPedalLeft { 0% { transform: scaleY(1); } 100% { transform: scaleY(0.5); } }
-        @keyframes legPedalRight { 0% { transform: scaleY(0.5); } 100% { transform: scaleY(1); } }
-
         .climb-active .p-arm-l { animation: armSwingLeft 0.25s infinite alternate ease-in-out; }
         .climb-active .p-arm-r { animation: armSwingRight 0.25s infinite alternate ease-in-out; }
         .climb-active .p-leg-l { animation: legPedalLeft 0.25s infinite alternate linear; }
         .climb-active .p-leg-r { animation: legPedalRight 0.25s infinite alternate linear; }
+
+        @keyframes armSwingLeft { 0% { transform: rotate(-60deg); } 100% { transform: rotate(10deg); } }
+        @keyframes armSwingRight { 0% { transform: rotate(10deg); } 100% { transform: rotate(-60deg); } }
+        @keyframes legPedalLeft { 0% { transform: scaleY(1); } 100% { transform: scaleY(0.5); } }
+        @keyframes legPedalRight { 0% { transform: scaleY(0.5); } 100% { transform: scaleY(1); } }
 
         /* 🎈 TRANSLUCENT FLOATING HOVER ACTION CONTAINER */
         .bubble-bag-container {
@@ -93,7 +93,7 @@
             border: 1px solid rgba(255, 255, 255, 0.15);
         }
         .quiz-overlay-shade {
-            background: linear-gradient(180deg, rgba(10, 15, 30, 0.75) 0%, rgba(6, 8, 16, 0.95) 100%);
+            background: linear-gradient(180deg, rgba(10, 15, 30, 0.7) 0%, rgba(6, 8, 16, 0.95) 100%);
             width: 100%;
             height: 100%;
             padding: 1.25rem;
@@ -125,8 +125,8 @@
     <!-- Main Dynamic Canvas Frame Real Estate -->
     <main id="app-viewport" class="w-full max-w-md space-y-2 flex flex-col relative z-10"></main>
 
-    <!-- FLOATING POWER-UP PODS CONTROLS -->
-    <div id="powerups-footer-bar" class="bubble-bag-container flex justify-between gap-1.5 opacity-0 pointer-events-none transform translate-y-10">
+    <!-- FLOATING POWER-UP PODS CONTROLS (Hidden on Menu by default style configuration) -->
+    <div id="powerups-footer-bar" class="bubble-bag-container hidden flex justify-between gap-1.5">
         <button onclick="usePowerUp('freeze')" class="flex-1 bubble-pod-btn p-1 flex flex-col items-center">
             <span>❄️</span><span class="text-[9px] text-slate-400 font-bold">Freeze: <span id="qty-freeze">1</span></span>
         </button>
@@ -160,33 +160,33 @@
         let countdownTimer = null;
         let timeRemaining = 15;
         let isWeatherRainy = false;
-        
-        // 🧗 Independent Track Matrix Parameters
         let bookObjectivesCleared = 0;
         const totalObjectivesNeeded = 10;
 
         function saveState() {
             localStorage.setItem('bibleQuestSave', JSON.stringify(appState));
-            document.getElementById('gold-display').innerText = appState.gold;
-            document.getElementById('qty-freeze').innerText = appState.inventory.freeze;
-            document.getElementById('qty-half').innerText = appState.inventory.half;
-            document.getElementById('qty-skip').innerText = appState.inventory.skip;
-            document.getElementById('qty-shield').innerText = appState.inventory.shield;
-            document.getElementById('qty-elixir').innerText = appState.inventory.elixir;
-            document.getElementById('lang-indicator').innerText = appState.lang === 'en' ? "English" : "Twi";
+            if(document.getElementById('gold-display')) document.getElementById('gold-display').innerText = appState.gold;
+            if(document.getElementById('qty-freeze')) document.getElementById('qty-freeze').innerText = appState.inventory.freeze;
+            if(document.getElementById('qty-half')) document.getElementById('qty-half').innerText = appState.inventory.half;
+            if(document.getElementById('qty-skip')) document.getElementById('qty-skip').innerText = appState.inventory.skip;
+            if(document.getElementById('qty-shield')) document.getElementById('qty-shield').innerText = appState.inventory.shield;
+            if(document.getElementById('qty-elixir')) document.getElementById('qty-elixir').innerText = appState.inventory.elixir;
+            if(document.getElementById('lang-indicator')) document.getElementById('lang-indicator').innerText = appState.lang === 'en' ? "English" : "Twi";
         }
 
         function drawMainMenu() {
             document.getElementById('global-hub-btn').classList.add('hidden');
             document.getElementById('spacer-div').classList.remove('hidden');
             
-            // Hide power-up tray context from main menu UI entirely
+            // Explicitly remove bar from view layout structural display rules
             const bar = document.getElementById('powerups-footer-bar');
-            bar.className = "bubble-bag-container flex justify-between gap-1.5 opacity-0 pointer-events-none transform translate-y-10";
+            if (bar) {
+                bar.classList.add('hidden');
+                bar.classList.remove('flex');
+            }
 
             const target = document.getElementById('app-viewport');
             target.innerHTML = `
-                <!-- 🎯 DAILY ACHIEVEMENT BONUS HUB PANEL -->
                 <div class="glass-panel p-3 border-amber-500/30 bg-amber-950/20 space-y-2 mb-1 animate__animated animate__fadeInDown">
                     <div class="flex justify-between items-center text-[11px] font-black tracking-wider text-amber-300">
                         <span>🎯 DAILY ACTIVE QUESTS</span>
@@ -234,32 +234,38 @@
             selectedLevelGroup = groupName;
             currentQuestions = [];
 
+            // Safely verify and scan question database sheets 
             let sourcePool = window.quizDatabase || [];
-            sourcePool.forEach(category => {
-                if (groupName === 'Mastery' || category.group === groupName) {
-                    if (Array.isArray(category.questions)) {
-                        category.questions.forEach(q => {
-                            currentQuestions.push({ ...q, bookName: category.name });
-                        });
+            if (sourcePool && sourcePool.length > 0) {
+                sourcePool.forEach(category => {
+                    if (groupName === 'Mastery' || category.group === groupName) {
+                        if (category.questions && Array.isArray(category.questions)) {
+                            category.questions.forEach(q => {
+                                currentQuestions.push({ ...q, bookName: category.name });
+                            });
+                        }
                     }
-                }
-            });
+                });
+            }
 
+            // Fallback backup if the questions file is empty or missing on runtime
             if (currentQuestions.length === 0) {
                 currentQuestions = [
-                    { q: "Who was the first man created?", a: ["Noah", "Adam", "Abel", "Seth"], q_twi: "Hwan ne onipa a odi kan a wɔbɔɔ no?", a_tw: ["Noa", "Adam", "Abel", "Set"], correct: 1, subGroup: "Easy", bookName: "Genesis" }
+                    { q: "Where was Jesus born?", a: ["Nazareth", "Bethlehem", "Jerusalem", "Capernaum"], q_twi: "Hehefa na wɔwoo Yesu?", a_tw: ["Nasaret", "Betlehem", "Yerusalem", "Kapernaum"], correct: 1, subGroup: "Easy", bookName: "Gospels Pool" }
                 ];
             }
 
             questionIndex = 0;
-            appState.altitudeStep = 1;
             bookObjectivesCleared = 0;
             document.getElementById('global-hub-btn').classList.remove('hidden');
-            document.getElementById('spacer-div').className = "hidden";
+            document.getElementById('spacer-div').classList.add('hidden');
             
-            // Bring back power ups for the question round view scene
+            // Show power ups panel bar cleanly on active quiz scenes
             const bar = document.getElementById('powerups-footer-bar');
-            bar.className = "bubble-bag-container flex justify-between gap-1.5 opacity-100 pointer-events-auto transform translate-y-0";
+            if (bar) {
+                bar.classList.remove('hidden');
+                bar.classList.add('flex');
+            }
 
             loadQuestionNode();
         }
@@ -277,12 +283,14 @@
             let displayPrompt = (appState.lang === 'tw' && activeQuestion.q_twi) ? activeQuestion.q_twi : activeQuestion.q;
             let displayChoices = (appState.lang === 'tw' && activeQuestion.a_tw) ? activeQuestion.a_tw : activeQuestion.a;
 
-            // Generate an elegant, context-aware imagery theme matching the active query level node
-            let fallbackImage = "https://images.unsplash.com/photo-1507692049790-de58290a4334?q=80&w=600&auto=format&fit=crop"; 
+            // Beautiful atmospheric backdrops restocked for clear readable contrast bounds
+            let graphicPanelImage = "https://images.unsplash.com/photo-1543324564-7032d16eb630?q=80&w=600&auto=format&fit=crop"; 
             if (selectedLevelGroup === 'NT') {
-                fallbackImage = "https://images.unsplash.com/photo-1438211331416-0ee898ec0130?q=80&w=600&auto=format&fit=crop";
+                graphicPanelImage = "https://images.unsplash.com/photo-1438211331416-0ee898ec0130?q=80&w=600&auto=format&fit=crop";
             } else if (selectedLevelGroup === 'OT') {
-                fallbackImage = "https://images.unsplash.com/photo-1447069387593-a5de0862481e?q=80&w=600&auto=format&fit=crop";
+                graphicPanelImage = "https://images.unsplash.com/photo-1447069387593-a5de0862481e?q=80&w=600&auto=format&fit=crop";
+            } else if (selectedLevelGroup === 'EGW') {
+                graphicPanelImage = "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=600&auto=format&fit=crop";
             }
 
             const target = document.getElementById('app-viewport');
@@ -295,7 +303,7 @@
                         <span class="text-teal-400 font-extrabold">OBJECTIVES METER: ${bookObjectivesCleared}/${totalObjectivesNeeded}</span>
                     </div>
                     
-                    <!-- 📻 COMPACT DIORAMA AREA -->
+                    <!-- 📻 DIORAMA COMPONENT ZONE -->
                     <div class="diorama-container">
                         <div id="lightning-sheet" class="lightning-sheet ${isWeatherRainy ? 'lightning-active' : ''}"></div>
                         <div id="rain-particle-field" class="weather-layer"></div>
@@ -317,12 +325,12 @@
                     </div>
                 </div>
 
-                <!-- 🌄 IMMERSIVE BACKGROUND INTERFACE PANEL -->
-                <div class="quiz-background-card text-white shadow-2xl animate__animated animate__fadeIn" style="background-image: url('${fallbackImage}');">
+                <!-- 🌄 IMMERSIVE ATMOSPHERIC BACKGROUND PANEL CARD -->
+                <div class="quiz-background-card text-white shadow-2xl animate__animated animate__fadeIn" style="background-image: url('${graphicPanelImage}');">
                     <div class="quiz-overlay-shade space-y-4">
                         <div class="flex justify-between items-center border-b border-white/10 pb-2">
                             <div>
-                                <h2 class="text-md font-black text-amber-300 tracking-tight">${activeQuestion.bookName || 'Quest'}</h2>
+                                <h2 class="text-md font-black text-amber-300 tracking-tight">${activeQuestion.bookName || 'Quest Pathway'}</h2>
                                 <span class="text-[9px] uppercase px-1.5 py-0.5 rounded font-black bg-black text-indigo-300 inline-block mt-0.5">${activeQuestion.subGroup || 'Easy'}</span>
                             </div>
                             <div class="text-sm font-bold text-cyan-400 bg-slate-950/80 px-2.5 py-1 rounded-lg border border-white/20 tabular-nums">
@@ -343,13 +351,15 @@
             renderRainEffect();
 
             const matrixBox = document.getElementById('answers-box');
-            displayChoices.forEach((choice, index) => {
-                const btn = document.createElement('button');
-                btn.className = "choice-btn animate__animated animate__fadeInUp";
-                btn.innerText = choice;
-                btn.onclick = () => validateResponse(index, btn);
-                matrixBox.appendChild(btn);
-            });
+            if (displayChoices && Array.isArray(displayChoices)) {
+                displayChoices.forEach((choice, index) => {
+                    const btn = document.createElement('button');
+                    btn.className = "choice-btn animate__animated animate__fadeInUp";
+                    btn.innerText = choice;
+                    btn.onclick = () => validateResponse(index, btn);
+                    matrixBox.appendChild(btn);
+                });
+            }
 
             startClock();
         }
@@ -482,10 +492,11 @@
             drawMainMenu();
         }
 
-        window.onload = () => {
+        // Safe setup that triggers immediately to guarantee elements appear instantly
+        window.addEventListener('DOMContentLoaded', () => {
             saveState();
             drawMainMenu();
-        };
+        });
     </script>
 </body>
 </html>
