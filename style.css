@@ -1,0 +1,67 @@
+/* ============================================================================
+   HARDWARE ACCELERATED ANIMATION CORE
+   ============================================================================ */
+
+/* Root Gameplay Wrapper Configuration */
+#game-play-container {
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  /* Hint to GPU that these elements animate frequently */
+  will-change: transform, box-shadow, border-color;
+}
+
+/* Screen Shake: Using purely hardware-accelerated 3D transforms */
+@keyframes screenShake3D {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  20% { transform: translate3d(-4px, 3px, 0) rotate(-0.5deg); }
+  40% { transform: translate3d(3px, -2px, 0) rotate(0.5deg); }
+  60% { transform: translate3d(-3px, -1px, 0) rotate(-0.5deg); }
+  80% { transform: translate3d(3px, 3px, 0) rotate(0deg); }
+}
+.animate-shake {
+  animation: screenShake3D 0.4s cubic-bezier(.36, .07, .19, .97) both;
+}
+
+/* Lightning Blitz Flash: Uses opacity layer blending for full GPU pipeline efficiency */
+@keyframes lightningFlashGPU {
+  0%, 100% { opacity: 0; }
+  12%, 34% { opacity: 0.9; background-color: #ffffff; }
+  22%, 44% { opacity: 0.2; background-color: #e0f2fe; }
+  52% { opacity: 1; background-color: #ffffff; }
+}
+.lightning-effect {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  border-radius: 1rem;
+  will-change: opacity;
+  animation: lightningFlashGPU 0.55s ease-out forwards;
+}
+
+/* Divine Shield Aura: Leverages high-performance composite pulsing layers */
+@keyframes shieldGlowGPU {
+  0%, 100% { 
+    box-shadow: inset 0 0 25px rgba(245, 158, 11, 0.3), 0 0 20px rgba(245, 158, 11, 0.4); 
+    border-color: rgba(245, 158, 11, 0.8); 
+  }
+  50% { 
+    box-shadow: inset 0 0 60px rgba(245, 158, 11, 0.6), 0 0 45px rgba(251, 191, 36, 0.9); 
+    border-color: rgba(251, 191, 36, 1); 
+  }
+}
+.active-shield-overlay {
+  animation: shieldGlowGPU 1.6s infinite ease-in-out;
+}
+
+/* Hardware-Accelerated Weather Canvas Layer */
+#weather-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  border-radius: 1rem;
+  transform: translateZ(0); /* Forces GPU layer backing */
+  will-change: transform;
+}
