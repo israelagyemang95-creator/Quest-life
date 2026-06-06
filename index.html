@@ -33,7 +33,7 @@
             100% { background-position: 0% 50%; filter: hue-rotate(360deg); }
         }
         .rainbow-correct { 
-            background: linear-gradient(45deg, #10b981, #059669, #34d399, #047857) !important;
+            background: linear-gradient(45deg, #10b981, #2563eb, #8b5cf6, #059669) !important;
             background-size: 300% 300% !important;
             animation: auroraFlow 4s ease infinite !important;
             border-color: transparent !important;
@@ -50,10 +50,10 @@
         #shield-frame { position: fixed; inset: 0; border: 12px solid rgba(245, 158, 11, 0.5); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 60px rgba(245, 158, 11, 0.25); }
         .shield-active { opacity: 1 !important; }
 
-        /* Spin Wheel Graphic Elements */
-        .wheel-container { position: relative; width: 220px; height: 220px; margin: 0 auto; }
-        .wheel-canvas { width: 100%; height: 100%; border-radius: 50%; border: 6px solid #312e81; background: conic-gradient(#1e1b4b 0deg 60deg, #312e81 60deg 120deg, #4338ca 120deg 180deg, #1e1b4b 180deg 240deg, #312e81 240deg 300deg, #4338ca 300deg 360deg); transition: transform 4s cubic-bezier(0.1, 0.8, 0.3, 1); }
-        .wheel-pointer { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 20px solid #ef4444; z-index: 10; }
+        /* Compact Spin Wheel pop up canvas adjustments */
+        .wheel-container { position: relative; width: 280px; height: 280px; margin: 0 auto; }
+        #wheel-canvas { width: 100%; height: 100%; border-radius: 50%; border: 8px solid #4338ca; transition: transform 4s cubic-bezier(0.1, 0.8, 0.2, 1); background: #1e1b4b; }
+        .wheel-pointer { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent; border-top: 24px solid #ef4444; z-index: 30; }
     </style>
 </head>
 <body class="p-4 min-h-screen flex flex-col items-center justify-start text-white select-none">
@@ -61,7 +61,7 @@
     <div id="frost-frame"></div>
     <div id="shield-frame"></div>
 
-    <!-- Top Navigation HUD -->
+    <!-- Global HUD Display Panel -->
     <div class="fixed top-4 left-4 right-4 flex justify-between items-center z-50 max-w-md mx-auto w-full px-2">
         <button onclick="exitToMenu()" id="back-btn" class="hidden bg-slate-900/95 border border-white/10 text-white px-4 py-2 rounded-full font-bold text-xs uppercase tracking-wider shadow-2xl transition-all">
             🚪 Map Hub
@@ -77,60 +77,87 @@
         </div>
     </div>
 
-    <!-- Main Canvas Frame -->
-    <main id="window-canvas" class="w-full max-w-md mt-16 relative z-10 space-y-5 flex flex-col mb-28"></main>
+    <!-- Main Dynamic Application Canvas Render Target -->
+    <main id="window-canvas" class="w-full max-w-md mt-16 space-y-5 flex flex-col mb-28"></main>
 
-    <!-- Item Shop -->
+    <!-- IN-GAME SYSTEM POPUP MODAL NOTIFICATION ENGINE -->
+    <div id="game-alert-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div id="alert-box-card" class="glass-card w-full max-w-xs p-6 text-center space-y-4 border-indigo-500/30 bg-slate-950/90 animate__animated">
+            <div id="alert-icon" class="text-4xl">⚠️</div>
+            <h3 id="alert-title" class="text-base font-black uppercase tracking-wider text-slate-100">Notification</h3>
+            <p id="alert-msg" class="text-xs text-slate-300 leading-relaxed font-medium"></p>
+            <button onclick="dismissSystemModal()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition-all shadow-md">
+                CONTINUE PROCEEDING
+            </button>
+        </div>
+    </div>
+
+    <!-- INTERACTIVE DAILY WHEEL POPUP POPULATED LAYER -->
+    <div id="wheel-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card w-full max-w-sm p-6 space-y-5 text-center bg-slate-950/90 border-amber-500/30">
+            <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                <h3 class="text-xs font-black uppercase tracking-wider text-amber-400">🎯 Prophetic Prize Wheel Manifest</h3>
+                <button onclick="closeWheelModal()" class="text-slate-400 hover:text-white text-xs bg-white/5 px-2 py-1 rounded">CLOSE</button>
+            </div>
+            <div class="wheel-container">
+                <div class="wheel-pointer"></div>
+                <canvas id="wheel-canvas" width="280" height="280"></canvas>
+            </div>
+            <button onclick="spinWheelActionLogic()" id="spin-action-trigger" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 font-black text-xs py-3 rounded-xl shadow-xl hover:scale-[1.01] transition-all">
+                START PROPHETIC SPIN
+            </button>
+        </div>
+    </div>
+
+    <!-- Inventory Armory Shop Modal Layer -->
     <div id="shop-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
         <div class="glass-card w-full max-w-sm p-6 space-y-4 border-indigo-500/30 bg-slate-950/80">
             <div class="flex justify-between items-center border-b border-white/10 pb-3">
-                <div class="flex items-center gap-2">
-                    <span>🛒</span>
-                    <h3 class="text-sm font-black uppercase tracking-wider text-indigo-300">Armory Depot Shop</h3>
-                </div>
+                <div class="flex items-center gap-2"><span>🛒</span><h3 class="text-sm font-black uppercase tracking-wider text-indigo-300">Armory Depot</h3></div>
                 <button onclick="closeShopModal()" class="text-slate-400 text-sm bg-white/5 w-7 h-7 rounded-full">✕</button>
             </div>
             <div id="modal-shop-grid" class="space-y-2"></div>
         </div>
     </div>
 
-    <!-- Floating Bag Button -->
-    <button id="lobby-bag-btn" onclick="openShopModal()" class="fixed bottom-6 right-6 z-40 bg-gradient-to-tr from-indigo-600 to-purple-600 border border-white/20 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl text-2xl transition-all">
-        🎒
-    </button>
+    <!-- Floating Inventory Bag Button Trigger -->
+    <button id="lobby-bag-btn" onclick="openShopModal()" class="fixed bottom-6 right-6 z-40 bg-gradient-to-tr from-indigo-600 to-purple-600 border border-white/20 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl text-2xl transition-all">🎒</button>
 
     <script>
-        // Expanded Game Database with Phase 6: Adventist Doctrines Included
+        // Game Scriptural Database Engine Definition
         window.quizDatabase = [
-            { name: "Matthew", group: "NT", questions: [{ q: "Who was chosen to be the earthly mother of Jesus?", a: ["Elizabeth", "Mary", "Martha", "Salome"], correct: 1 }] },
-            { name: "Mark", group: "NT", questions: [{ q: "Which prophet did Mark quote at the beginning of his Gospel?", a: ["Isaiah", "Jeremiah", "Ezekiel", "Daniel"], correct: 0 }] },
-            { name: "Luke", group: "NT", questions: [{ q: "What was the professional occupation of Luke?", a: ["Tax Collector", "Physician", "Fisherman", "Tentmaker"], correct: 1 }] },
-            { name: "John", group: "NT", questions: [{ q: "Complete the text: 'In the beginning was the...'", a: ["Light", "Spirit", "Word", "Kingdom"], correct: 2 }] },
-            { name: "Genesis", group: "OT", questions: [{ q: "What was the name of the garden home created for mankind's initial placement?", a: ["Gethsemane", "Eden", "Sinai", "Ararat"], correct: 1 }] },
-            { name: "Exodus", group: "OT", questions: [{ q: "Out of what burning anomaly element did God speak to Moses?", a: ["Cloud", "Bush", "Rock", "Whirlwind"], correct: 1 }] },
-            { name: "EGW Writings", group: "EGW", questions: [{ q: "Which E.G. White book traces the cosmic history of conflict between Christ and Satan?", a: ["Steps to Christ", "The Great Controversy", "Education", "Ministry of Healing"], correct: 1 }] },
-            { name: "Adventist Sanctuary", group: "SDA", questions: [{ q: "In what year did the prophetic cleansing of the heavenly sanctuary begin, fulfilling the 2300 days?", a: ["1798", "1844", "1888", "1931"], correct: 1 }] },
-            { name: "Fundamental Beliefs", group: "SDA", questions: [{ q: "Which day is recognized as the biblical Sabbath according to Adventist Fundamental Beliefs?", a: ["First Day (Sunday)", "Sixth Day (Friday)", "Seventh Day (Saturday)", "Any chosen rest day"], correct: 2 }] },
-            { name: "State of the Dead", group: "SDA", questions: [{ q: "How does the Bible describe the condition of death according to Adventist doctrine?", a: ["An immediate purgatory", "A state of unconscious sleep", "Disembodied spirit wandering", "Immediate ascent to eternal torment"], correct: 1 }] }
+            { name: "Matthew", group: "NT", questions: [{ q: "Who was chosen to be the earthly mother of Jesus Christ?", a: ["Elizabeth", "Mary", "Martha", "Salome"], correct: 1 }] },
+            { name: "Mark", group: "Mark", questions: [{ q: "Which prophet did Mark quote at the opening of his Gospel script?", a: ["Isaiah", "Jeremiah", "Ezekiel", "Daniel"], correct: 0 }] },
+            { name: "Luke", group: "NT", questions: [{ q: "What was the professional trade of Luke before writing?", a: ["Tax Collector", "Physician", "Fisherman", "Tentmaker"], correct: 1 }] },
+            { name: "John", group: "NT", questions: [{ q: "Complete the prophetic text: 'In the beginning was the...'", a: ["Light", "Spirit", "Word", "Kingdom"], correct: 2 }] },
+            { name: "Genesis", group: "OT", questions: [{ q: "What garden home was explicitly planted for Adam and Eve's habitation?", a: ["Gethsemane", "Eden", "Sinai", "Ararat"], correct: 1 }] },
+            { name: "Exodus", group: "OT", questions: [{ q: "Out of what elemental item did God call Moses in the desert?", a: ["Cloud", "Bush", "Rock", "Whirlwind"], correct: 1 }] },
+            { name: "EGW Writings", group: "EGW", questions: [{ q: "Which work traces the cosmic metanarrative between Christ and Satan?", a: ["Steps to Christ", "The Great Controversy", "Education", "Ministry of Healing"], correct: 1 }] },
+            { name: "Adventist Sanctuary", group: "SDA", questions: [{ q: "In what year did the prophetic cleansing of the heavenly sanctuary commence?", a: ["1798", "1844", "1888", "1931"], correct: 1 }] },
+            { name: "Fundamental Beliefs", group: "SDA", questions: [{ q: "Which day is recognized as the biblical Sabbath according to Adventist Teachings?", a: ["First Day (Sunday)", "Sixth Day (Friday)", "Seventh Day (Saturday)", "Any chosen rest day"], correct: 2 }] },
+            { name: "State of the Dead", group: "SDA", questions: [{ q: "How does Scripture describe the condition of death according to Adventist doctrine?", a: ["An immediate purgatory", "A state of unconscious sleep", "Disembodied spirit wandering", "Immediate ascent to eternal torment"], correct: 1 }] }
         ];
 
-        // State Machine Tracking Active Achievements & Stats
-        let state = JSON.parse(localStorage.getItem('bqArcadeV9Data')) || {
+        // State Machine Storage Architecture
+        let state = JSON.parse(localStorage.getItem('bqArcadeV10Data')) || {
             gold: 500, lang: 'en',
             perks: { freeze: 3, half: 2, skip: 1, shield: 2 },
             lastSpinTimestamp: 0,
             activitiesAccordOpen: false,
-            // Trackable Gameplay Stats for Achievements
-            stats: { currentStreak: 0, freezeUsed: 0, totalCoinsEarned: 500, blitzSurvivals: 0 },
-            completedActivities: {}
+            // Trackable metrics for programmatic evaluation
+            stats: { currentStreak: 0, freezeUsed: 0, totalCoinsEarned: 500, blitzSurvivals: 0, overallAnswers: 0 },
+            // Procedural Activity State Pipeline 
+            activitySetTier: 1,
+            activityProgressCounters: [0, 0, 0, 0, 0] // tracks step indices for the current active 5 goals
         };
 
-        // Static Level Task Definitions Based on Gameplay Actions
-        const activityDefinitions = [
-            { id: "act_streak", text: "Answer 5 questions in a row without an error", check: () => state.stats.currentStreak >= 5, payout: 50 },
-            { id: "act_freeze", text: "Deploy the Chrono Freeze utility 10 times", check: () => state.stats.freezeUsed >= 10, payout: 40 },
-            { id: "act_banker", text: "Amass a continuous wallet balance of 1000 total coins", check: () => state.gold >= 1000, payout: 100 },
-            { id: "act_blitz", text: "Survive 3 Mastery Blitz fast-paced questions", check: () => state.stats.blitzSurvivals >= 3, payout: 60 }
+        const prizes = [
+            { text: "50 Coins", action: () => { state.gold += 50; } },
+            { text: "Freeze +1", action: () => { state.perks.freeze += 1; } },
+            { text: "100 Coins", action: () => { state.gold += 100; } },
+            { text: "Shield +1", action: () => { state.perks.shield += 1; } },
+            { text: "50:50 Core", action: () => { state.perks.half += 1; } },
+            { text: "Skip Ticket", action: () => { state.perks.skip += 1; } }
         ];
 
         let currentCampaignMode = "";
@@ -140,70 +167,243 @@
         let secondsRemaining = 0;
         let inputInteractionsBlocked = false;
         let isShieldActive = false;
-        let audioContextInstance = null;
+        let audioCtx = null;
+        let activePostAlertCallback = null;
 
         function saveState() {
-            localStorage.setItem('bqArcadeV9Data', JSON.stringify(state));
+            localStorage.setItem('bqArcadeV10Data', JSON.stringify(state));
             document.getElementById('gold-val').innerText = state.gold;
             document.getElementById('lang-label').innerText = state.lang === 'en' ? "English" : "Twi";
         }
 
-        function initAudioEngine() {
-            if (!audioContextInstance) audioContextInstance = new (window.AudioContext || window.webkitAudioContext)();
+        // Beautiful, Harmonious Synthesized Audio Triad Cord Engine
+        function playChimeAudio(type) {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                let now = audioCtx.currentTime;
+                
+                if (type === 'correct') {
+                    // Play a beautiful, enjoyable major triad chord (C5, E5, G5) with a soft, lush synthesizer decay envelope
+                    let freqs = [523.25, 659.25, 783.99]; 
+                    freqs.forEach((f, i) => {
+                        let osc = audioCtx.createOscillator();
+                        let gainNode = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(f, now + (i * 0.03)); // Arpeggiated strike entry
+                        
+                        gainNode.gain.setValueAtTime(0.15, now);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                        
+                        osc.connect(gainNode);
+                        gainNode.connect(audioCtx.destination);
+                        osc.start(now);
+                        osc.stop(now + 0.45);
+                    });
+                } else if (type === 'wrong') {
+                    // A soft, low-frequency dull synth hum (not jarring or screechy)
+                    let osc = audioCtx.createOscillator();
+                    let gainNode = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(130.81, now); 
+                    gainNode.gain.setValueAtTime(0.2, now);
+                    gainNode.gain.linearRampToValueAtTime(0.001, now + 0.3);
+                    osc.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else {
+                    // Micro systemic interface pulse tap
+                    let osc = audioCtx.createOscillator();
+                    let gainNode = audioCtx.createGain();
+                    osc.frequency.setValueAtTime(440, now);
+                    gainNode.gain.setValueAtTime(0.08, now);
+                    gainNode.gain.linearRampToValueAtTime(0.001, now + 0.05);
+                    osc.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.06);
+                }
+            } catch(e) { console.log("Audio failed initialization structural hook:", e); }
         }
 
-        function playChimeAudio(type) {
-            initAudioEngine();
-            if (!audioContextInstance) return;
-            let now = audioContextInstance.currentTime;
-            let osc = audioContextInstance.createOscillator();
-            let gain = audioContextInstance.createGain();
-            osc.connect(gain); gain.connect(audioContextInstance.destination);
+        // Custom Modal Overlay Manager (Replaces irritating default browser prompts)
+        function triggerInGameAlert(title, message, icon, completeCallback = null) {
+            document.getElementById('alert-title').innerText = title;
+            document.getElementById('alert-msg').innerText = message;
+            document.getElementById('alert-icon').innerText = icon || '⚠️';
+            activePostAlertCallback = completeCallback;
             
-            if(type === 'correct') {
-                osc.frequency.setValueAtTime(523.25, now); osc.start(now); osc.stop(now + 0.15);
-            } else if(type === 'wrong') {
-                osc.type = 'triangle'; osc.frequency.setValueAtTime(150, now); osc.start(now); osc.stop(now + 0.25);
-            } else {
-                osc.frequency.setValueAtTime(440, now); osc.start(now); osc.stop(now + 0.08);
+            const element = document.getElementById('game-alert-modal');
+            element.classList.remove('hidden');
+            const card = document.getElementById('alert-box-card');
+            card.className = "glass-card w-full max-w-xs p-6 text-center space-y-4 border-indigo-500/30 bg-slate-950/90 animate__animated animate__bounceIn";
+        }
+
+        function dismissSystemModal() {
+            playChimeAudio('tap');
+            document.getElementById('game-alert-modal').classList.add('hidden');
+            if (activePostAlertCallback) {
+                const cb = activePostAlertCallback;
+                activePostAlertCallback = null;
+                cb();
             }
         }
 
+        // Infinite Procedural Generation Engine Logic for the 5 Active Tasks
+        function getProceduralActiveSet() {
+            let t = state.activitySetTier;
+            return [
+                { idx: 0, text: `Answer ${3 + t} total questions successfully across any stage`, target: 3 + t, current: state.activityProgressCounters[0] },
+                { idx: 1, text: `Maintain a win streak of ${2 + t} correct choices in a row`, target: 2 + t, current: state.stats.currentStreak },
+                { idx: 2, text: `Activate the Chrono Freeze utility ${1 + Math.floor(t/2)} times`, target: 1 + Math.floor(t/2), current: state.activityProgressCounters[2] },
+                { idx: 3, text: `Survive a total of ${t} extreme Mastery Blitz questions`, target: t, current: state.stats.blitzSurvivals },
+                { idx: 4, text: `Acquire and possess a coin volume balance of ${400 + (t * 100)} gold`, target: 400 + (t * 100), current: state.gold }
+            ];
+        }
+
+        function evaluateActivityIncrements(type, amount = 1) {
+            let activeSet = getProceduralActiveSet();
+            if(type === 'answer') state.activityProgressCounters[0] += amount;
+            if(type === 'freeze') state.activityProgressCounters[2] += amount;
+            saveState();
+
+            // Check if all 5 procedures within the set have hit maturity targets simultaneously
+            activeSet = getProceduralActiveSet();
+            let completedCount = 0;
+            activeSet.forEach(act => {
+                if(act.current >= act.target) completedCount++;
+            });
+
+            if (completedCount >= 5) {
+                let milestonePayout = 100 + (state.activitySetTier * 50);
+                state.gold += milestonePayout;
+                state.activitySetTier++;
+                state.activityProgressCounters = [0, 0, 0, 0, 0]; // Reset counter slots for fresh procedural generation seeds
+                saveState();
+                
+                triggerInGameAlert(
+                    "🎉 Activity Set Cleared!", 
+                    `Superb effort! You have completed all 5 active goals. Tier increased to ${state.activitySetTier}, and a milestone payout of ${milestonePayout} Coins has been loaded into your treasury.`, 
+                    "🏆"
+                );
+            }
+        }
+
+        // Tiny Sector Spin Wheel Initialization Mechanics
+        function openWheelModal() {
+            playChimeAudio('tap');
+            document.getElementById('wheel-modal').classList.remove('hidden');
+            renderWheelCanvasTextGraphics();
+        }
+        function closeWheelModal() { document.getElementById('wheel-modal').classList.add('hidden'); }
+
+        function renderWheelCanvasTextGraphics() {
+            const canvas = document.getElementById('wheel-canvas');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const numSectors = prizes.length;
+            const arcSize = (2 * Math.PI) / numSectors;
+
+            ctx.clearRect(0,0,280,280);
+            
+            for(let i=0; i<numSectors; i++) {
+                let angle = i * arcSize;
+                ctx.fillStyle = (i % 2 === 0) ? "#1e1b4b" : "#312e81";
+                ctx.beginPath();
+                ctx.moveTo(140, 140);
+                ctx.arc(140, 140, 130, angle, angle + arcSize);
+                ctx.lineTo(140, 140);
+                ctx.fill();
+                ctx.strokeStyle = "rgba(255,255,255,0.1)";
+                ctx.stroke();
+
+                // Project physical prize texts directly onto the wheel sector
+                ctx.save();
+                ctx.fillStyle = "#f1f5f9";
+                ctx.font = "bold 11px system-ui";
+                ctx.translate(140, 140);
+                ctx.rotate(angle + arcSize / 2);
+                ctx.textAlign = "right";
+                ctx.fillText(prizes[i].text, 120, 4);
+                ctx.restore();
+            }
+        }
+
+        function spinWheelActionLogic() {
+            const now = Date.now();
+            const cooldownPeriod = 24 * 60 * 60 * 1000;
+            if (now - state.lastSpinTimestamp < cooldownPeriod) {
+                triggerInGameAlert("Matrix Recharging", "Your daily prophetic prize drop is cooling down. Please return tomorrow.", "⏳");
+                return;
+            }
+
+            playChimeAudio('tap');
+            document.getElementById('spin-action-trigger').disabled = true;
+            state.lastSpinTimestamp = now;
+            saveState();
+
+            const canvas = document.getElementById('wheel-canvas');
+            const randomRotationDegrees = Math.floor(Math.random() * 360) + 2160; // Spin 6 full circles min
+            canvas.style.transform = `rotate(${randomRotationDegrees}deg)`;
+
+            setTimeout(() => {
+                const relativeDegrees = (360 - (randomRotationDegrees % 360)) % 360;
+                const arcLengthDegrees = 360 / prizes.length;
+                const targetPrizeIndex = Math.floor(relativeDegrees / arcLengthDegrees);
+                const selectedAward = prizes[targetPrizeIndex] || prizes[0];
+
+                selectedAward.action();
+                saveState();
+
+                triggerInGameAlert(
+                    "🎁 Wheel Manifestation", 
+                    `The needle settled precisely on: ${selectedAward.text}! Item added to inventory profile immediately.`, 
+                    "🎉", 
+                    () => {
+                        document.getElementById('spin-action-trigger').disabled = false;
+                        closeWheelModal();
+                        renderMenuMap();
+                    }
+                );
+            }, 4100);
+        }
+
+        // Shop Overlay Infrastructure
         function openShopModal() {
-            const items = [
+            const catalog = [
                 { id: 'freeze', name: 'Chrono Freeze', cost: 50, icon: '❄️' },
                 { id: 'half', name: 'Divine 50:50', cost: 75, icon: '⚖️' },
                 { id: 'skip', name: 'Prophetic Skip', cost: 100, icon: '🔮' },
                 { id: 'shield', name: 'Aegis Shield', cost: 60, icon: '🛡️' }
             ];
             const grid = document.getElementById('modal-shop-grid'); grid.innerHTML = "";
-            items.forEach(item => {
-                const row = document.createElement('div');
-                row.className = "flex items-center justify-between p-3 bg-slate-900 rounded-xl border border-white/5";
-                row.innerHTML = `
+            catalog.forEach(item => {
+                const block = document.createElement('div');
+                block.className = "flex items-center justify-between p-3 bg-slate-900 rounded-xl border border-white/5";
+                block.innerHTML = `
                     <div class="flex items-center gap-3">
                         <span class="text-xl bg-slate-950 p-2 rounded-lg">${item.icon}</span>
                         <div>
                             <h4 class="text-xs font-black text-slate-200">${item.name}</h4>
-                            <p class="text-[9px] text-indigo-400 font-bold">Stock: ${state.perks[item.id] || 0}</p>
+                            <p class="text-[9px] text-indigo-400 font-bold">In Bag: ${state.perks[item.id] || 0}</p>
                         </div>
                     </div>
-                    <button onclick="buyPerk('${item.id}', ${item.cost})" class="bg-indigo-600 hover:bg-indigo-500 font-bold text-xs px-3 py-1.5 rounded-lg text-white">${item.cost} 💰</button>
+                    <button onclick="purchaseInventoryPerk('${item.id}', ${item.cost})" class="bg-indigo-600 hover:bg-indigo-500 font-bold text-xs px-3 py-1.5 rounded-lg text-white">${item.cost} 💰</button>
                 `;
-                grid.appendChild(row);
+                grid.appendChild(block);
             });
             document.getElementById('shop-modal').classList.remove('hidden');
         }
         function closeShopModal() { document.getElementById('shop-modal').classList.add('hidden'); }
 
-        function buyPerk(id, cost) {
+        function purchaseInventoryPerk(id, cost) {
             if (state.gold >= cost) {
                 state.gold -= cost; state.perks[id] = (state.perks[id] || 0) + 1;
                 saveState(); playChimeAudio('tap'); openShopModal();
-            } else { alert("Insufficient coins."); }
+            } else { triggerInGameAlert("Treasury Shortage", "You do not have enough golden coins to finance this inventory deployment.", "🪙"); }
         }
 
-        // Main App Navigation Menu Screen
+        // Menu Hub Generation Screen Matrix Layout
         function renderMenuMap() {
             currentCampaignMode = "";
             document.body.classList.remove('game-bg-active');
@@ -212,58 +412,60 @@
             
             const canvas = document.getElementById('window-canvas');
             canvas.innerHTML = `
-                <div class="text-center space-y-1 py-2">
-                    <h1 class="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">BIBLE QUEST</h1>
-                    <p class="text-[10px] text-slate-500 font-bold tracking-widest uppercase">Select Campaign Route Pipeline</p>
+                <div class="text-center space-y-1 py-1">
+                    <h1 class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">BIBLE QUEST</h1>
+                    <p class="text-[9px] text-slate-500 font-bold tracking-widest uppercase">Select Campaign Route Pipeline</p>
                 </div>
 
-                <!-- DAILY SPIN WHEEL INTERACTIVE OBJECT -->
-                <div class="glass-card p-4 text-center space-y-3 border-amber-500/20 bg-slate-900/40">
-                    <h3 class="text-xs font-black uppercase text-amber-400 tracking-wider">🎯 Daily Prophetic Prize Wheel</h3>
-                    <div class="wheel-container">
-                        <div class="wheel-pointer"></div>
-                        <div id="spin-wheel-graphics" class="wheel-canvas"></div>
+                <!-- NEW COMPACT SEC-WHEEL TINY ENTRY COMPONENT -->
+                <div class="glass-card p-3.5 flex items-center justify-between border-amber-500/20 bg-gradient-to-r from-slate-900 via-indigo-950/20 to-slate-900">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl animate-pulse">🎯</span>
+                        <div class="text-left">
+                            <h4 class="text-xs font-black uppercase text-amber-400 tracking-wider">Prophetic Wheel Available</h4>
+                            <p class="text-[9px] text-slate-400">Spin once every 24 hours to claim power rewards</p>
+                        </div>
                     </div>
-                    <button onclick="executeDailyWheelSpin()" id="spin-trigger-btn" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs py-2.5 rounded-xl shadow-lg transition-all">
-                        SPIN WHEEL (FREE DAILY)
+                    <button onclick="openWheelModal()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 text-[10px] font-black px-3 py-2 rounded-xl transition-all shadow-md shrink-0 uppercase tracking-wide">
+                        OPEN WHEEL
                     </button>
                 </div>
                 
-                <!-- LEVELS MATRIX NAVIGATION LINKS -->
+                <!-- CAMPAIGN SECTORS BUTTON MAP PATHWAYS -->
                 <div class="space-y-2">
                     <button onclick="startArcadePipeline('nt')" class="w-full p-3.5 glass-card text-left flex justify-between items-center hover:border-blue-500 transition-all">
-                        <div><h3 class="text-xs font-black text-blue-300">Phase 1: New Testament Arcade</h3></div>
-                        <span class="text-[10px] bg-blue-950 px-2 py-1 rounded text-blue-400 font-bold">⚡ PLAY</span>
+                        <div><h3 class="text-xs font-black text-blue-300">Phase 1: New Testament</h3></div>
+                        <span class="text-[9px] bg-blue-950 px-2 py-1 rounded text-blue-400 font-bold uppercase">⚡ Play</span>
                     </button>
                     <button onclick="startArcadePipeline('ot')" class="w-full p-3.5 glass-card text-left flex justify-between items-center hover:border-emerald-500 transition-all">
-                        <div><h3 class="text-xs font-black text-emerald-300">Phase 2: Old Testament Arcade</h3></div>
-                        <span class="text-[10px] bg-emerald-950 px-2 py-1 rounded text-emerald-400 font-bold">📜 PLAY</span>
+                        <div><h3 class="text-xs font-black text-emerald-300">Phase 2: Old Testament</h3></div>
+                        <span class="text-[9px] bg-emerald-950 px-2 py-1 rounded text-emerald-400 font-bold uppercase">📜 Play</span>
                     </button>
                     <button onclick="startArcadePipeline('mix')" class="w-full p-3.5 glass-card text-left flex justify-between items-center hover:border-purple-500 transition-all">
                         <div><h3 class="text-xs font-black text-purple-300">Phase 3: Grand Mixture Pool</h3></div>
-                        <span class="text-[10px] bg-purple-950 px-2 py-1 rounded text-purple-400 font-bold">🌀 PLAY</span>
+                        <span class="text-[9px] bg-purple-950 px-2 py-1 rounded text-purple-400 font-bold uppercase">🌀 Mix</span>
                     </button>
                     <button onclick="startArcadePipeline('egw')" class="w-full p-3.5 glass-card text-left flex justify-between items-center hover:border-amber-400 transition-all">
                         <div><h3 class="text-xs font-black text-amber-300">Phase 4: E.G. White Chronicles</h3></div>
-                        <span class="text-[10px] bg-amber-950 px-2 py-1 rounded text-amber-400 font-bold">✒️ PLAY</span>
+                        <span class="text-[9px] bg-amber-950 px-2 py-1 rounded text-amber-400 font-bold uppercase">✒️ Read</span>
                     </button>
-                    <button onclick="startArcadePipeline('mastery')" class="w-full p-3.5 glass-card text-left flex justify-between items-center border border-red-500/30 bg-red-950/20">
+                    <button onclick="startArcadePipeline('mastery')" class="w-full p-3.5 glass-card text-left flex justify-between items-center border border-red-500/30 bg-red-950/20 hover:border-red-500 transition-all">
                         <div><h3 class="text-xs font-black text-red-400">Phase 5: Mastery Blitz Mode (5s)</h3></div>
-                        <span class="text-[10px] bg-red-950 px-2 py-1 rounded text-red-400 font-bold">🔥 BLITZ</span>
+                        <span class="text-[9px] bg-red-950 px-2 py-1 rounded text-red-400 font-bold uppercase">🔥 Blitz</span>
                     </button>
                     <button onclick="startArcadePipeline('sda')" class="w-full p-3.5 glass-card text-left flex justify-between items-center border border-indigo-500/40 bg-indigo-950/20 hover:border-indigo-400 transition-all">
                         <div>
                             <h3 class="text-xs font-black text-indigo-400">Phase 6: Adventist Teachings & Doctrines</h3>
                             <p class="text-[9px] text-slate-400">The 28 Fundamental Sanctuary & Prophetic Beliefs</p>
                         </div>
-                        <span class="text-[10px] bg-indigo-900 px-2 py-1 rounded text-indigo-300 font-bold">🕊️ STUDY</span>
+                        <span class="text-[9px] bg-indigo-900 px-2 py-1 rounded text-indigo-300 font-bold uppercase">🕊️ Study</span>
                     </button>
                 </div>
 
-                <!-- ACCORDION ACTIVITIES REGISTRY SECTION -->
-                <div class="pt-2">
-                    <button onclick="toggleActivitiesAccordion()" class="w-full p-3 glass-card bg-slate-900/90 border border-purple-500/30 flex justify-between items-center font-bold text-xs text-purple-300">
-                        <span>📋 View Sectors Task Explorer (Achievements)</span>
+                <!-- PROCEDURAL ACTIVITIES ACCORDION DRAWER WRAPPER -->
+                <div class="pt-1">
+                    <button onclick="toggleActivitiesAccordion()" class="w-full p-3.5 glass-card bg-slate-900/90 border border-purple-500/30 flex justify-between items-center font-bold text-xs text-purple-300">
+                        <span class="flex items-center gap-1.5">📋 View Sectors Task Explorer (Set Tier ${state.activitySetTier})</span>
                         <span id="accord-arrow">${state.activitiesAccordOpen ? '▲' : '▼'}</span>
                     </button>
                     <div id="activities-accord-body" class="${state.activitiesAccordOpen ? '' : 'hidden'} mt-2 space-y-2"></div>
@@ -282,73 +484,33 @@
             const container = document.getElementById('activities-accord-body'); if(!container) return;
             container.innerHTML = "";
             
-            activityDefinitions.forEach(act => {
-                let isCompleted = state.completedActivities[act.id];
-                let systemConditionMet = act.check();
-                
-                if(systemConditionMet && !isCompleted) {
-                    // Auto-mark completed when checked if criteria met
-                    state.completedActivities[act.id] = true;
-                    isCompleted = true;
-                    saveState();
-                }
+            let activeSet = getProceduralActiveSet();
+            activeSet.forEach(act => {
+                let currentProgress = Math.min(act.target, act.current);
+                let isCompleted = currentProgress >= act.target;
+                let mathPct = Math.floor((currentProgress / act.target) * 100);
 
-                let statusBadge = `<span class="text-[9px] text-slate-500 uppercase font-black">In Progress</span>`;
-                let cardGlow = "bg-slate-900/80 border border-white/5";
+                let statusBadge = `<span class="text-[9px] text-indigo-400 font-black">${currentProgress}/${act.target} (${mathPct}%)</span>`;
+                let cardGlow = "bg-slate-900/90 border border-white/5";
 
                 if(isCompleted) {
-                    statusBadge = `<span class="text-[9px] text-emerald-400 font-black uppercase">✓ Completed (+${act.payout} 💰 awarded)</span>`;
+                    statusBadge = `<span class="text-[9px] text-emerald-400 font-black uppercase">✓ READY</span>`;
                     cardGlow = "completed-glow bg-emerald-950/20 border border-emerald-500/30";
                 }
 
                 const block = document.createElement('div');
-                block.className = `p-3 rounded-xl flex items-center justify-between ${cardGlow}`;
+                block.className = `p-3 rounded-xl flex flex-col gap-1.5 ${cardGlow}`;
                 block.innerHTML = `
-                    <div class="pr-2">
-                        <p class="text-xs font-bold text-slate-200">${act.text}</p>
-                        <p class="text-[9px] text-amber-400 mt-0.5">Value Payout: ${act.payout} Coins</p>
+                    <div class="flex items-center justify-between">
+                        <p class="text-xs font-bold text-slate-200 leading-tight">${act.text}</p>
+                        <div class="shrink-0 ml-2">${statusBadge}</div>
                     </div>
-                    <div class="shrink-0">${statusBadge}</div>
+                    <div class="w-full bg-slate-950 h-1 rounded-full overflow-hidden">
+                        <div class="bg-indigo-500 h-full transition-all" style="width: ${mathPct}%"></div>
+                    </div>
                 `;
                 container.appendChild(block);
             });
-        }
-
-        // Daily Spin Wheel Mechanical Core Logic Routine
-        function executeDailyWheelSpin() {
-            const now = Date.now();
-            const oneDayMs = 24 * 60 * 60 * 1000;
-            if(now - state.lastSpinTimestamp < oneDayMs) {
-                alert("The dynamic reward matrix is recharging. Please return tomorrow for your next prophetic spin.");
-                return;
-            }
-
-            playChimeAudio('tap');
-            const wheel = document.getElementById('spin-wheel-graphics');
-            const randomDegrees = Math.floor(Math.random() * 360) + 1440; // Spining at least 4 full circles
-            wheel.style.transform = `rotate(${randomDegrees}deg)`;
-            
-            document.getElementById('spin-trigger-btn').disabled = true;
-            state.lastSpinTimestamp = now;
-
-            setTimeout(() => {
-                const prizePool = [
-                    { name: "50 Bonus Coins", effect: () => { state.gold += 50; } },
-                    { name: "Chrono Freeze Pack", effect: () => { state.perks.freeze += 1; } },
-                    { name: "100 Mega Coins", effect: () => { state.gold += 100; } },
-                    { name: "Aegis Shield Guard", effect: () => { state.perks.shield += 1; } },
-                    { name: "Divine 50:50 Core", effect: () => { state.perks.half += 1; } },
-                    { name: "Prophetic Skip Ticket", effect: () => { state.perks.skip += 1; } }
-                ];
-                
-                const sectorWon = Math.floor(((randomDegrees % 360)) / 60);
-                const award = prizePool[sectorWon] || prizePool[0];
-                
-                award.effect();
-                alert(`Prize Wheel Manifested: ${award.name}!`);
-                saveState();
-                renderMenuMap();
-            }, 4100);
         }
 
         function startArcadePipeline(mode) {
@@ -376,23 +538,15 @@
         }
 
         function launchNextActiveQuestionEngine() {
-            // HIDE RED BACKPACK POPUP ON QUESTIONS PAGE
             document.getElementById('lobby-bag-btn').classList.add('hidden');
             document.body.classList.add('game-bg-active');
             inputInteractionsBlocked = false; isShieldActive = false;
             document.getElementById('shield-frame').className = "";
             document.getElementById('frost-frame').className = "";
 
-            // Evaluate live achievements dynamically
-            activityDefinitions.forEach(act => {
-                if(act.check() && !state.completedActivities[act.id]) {
-                    state.completedActivities[act.id] = true;
-                    state.gold += act.payout;
-                    saveState();
-                }
-            });
+            // Continually evaluate standard state requirements across loops
+            evaluateActivityIncrements('check_only', 0);
 
-            // Draw a completely random node from the runtime campaign index structure
             const activeNode = campaignActivePool[Math.floor(Math.random() * campaignActivePool.length)];
             currentActiveQuestion = activeNode.questions[Math.floor(Math.random() * activeNode.questions.length)];
             currentActiveQuestion._sourceBookContext = activeNode.name;
@@ -419,7 +573,6 @@
 
                 <div id="choice-matrix" class="space-y-2.5"></div>
 
-                <!-- In-Game Bottom Actions Utility Ribbon Grid -->
                 <div class="fixed bottom-0 left-0 right-0 p-3 bg-slate-950/95 border-t border-white/10 z-40 flex justify-center gap-2">
                     <button onclick="applyInGameUtility('freeze')" class="flex-1 bg-slate-900 border border-sky-500/30 p-2 rounded-xl flex flex-col items-center"><span>❄️</span><span class="text-[9px] text-slate-400 font-bold">Qty: ${state.perks.freeze}</span></button>
                     <button onclick="applyInGameUtility('half')" class="flex-1 bg-slate-900 border border-rose-500/30 p-2 rounded-xl flex flex-col items-center"><span>⚖️</span><span class="text-[9px] text-slate-400 font-bold">Qty: ${state.perks.half}</span></button>
@@ -449,7 +602,7 @@
                 
                 if(secondsRemaining <= 0) {
                     clearInterval(countdownTimerRef);
-                    executeFailureSequence();
+                    executeFailureSequence("Countdown Time Expired!");
                 }
             }, 1000);
         }
@@ -467,19 +620,19 @@
                 state.gold += 15;
                 if(currentCampaignMode === 'mastery') state.stats.blitzSurvivals++;
                 saveState();
+                evaluateActivityIncrements('answer', 1);
 
-                setTimeout(() => { launchNextActiveQuestionEngine(); }, 1200);
+                setTimeout(() => { launchNextActiveQuestionEngine(); }, 1400);
             } else {
                 clickTarget.className = "btn-choice bg-rose-600 border-rose-400 text-white text-xs animate__animated animate__shakeX font-bold shadow-lg";
                 playChimeAudio('wrong');
-                state.stats.currentStreak = 0; // Break win streak metrics instantly
+                state.stats.currentStreak = 0; 
                 saveState();
-                setTimeout(executeFailureSequence, 1200);
+                setTimeout(() => { executeFailureSequence("Incorrect Answer Choice Selected!"); }, 1200);
             }
         }
 
-        // Deduct 20 Coins and Shuffle Instantly, Trigger Game Over only at Zero
-        function executeFailureSequence() {
+        function executeFailureSequence(reason) {
             clearInterval(countdownTimerRef);
             
             if(!isShieldActive) {
@@ -488,18 +641,26 @@
             }
 
             if(state.gold <= 0) {
-                alert("🚨 Wallet Depleted! Your coin balance has hit zero. Returning to tactical map hub.");
-                exitToMenu();
+                triggerInGameAlert(
+                    "🚨 Wallet Depleted", 
+                    "Your coin balance has hit zero. Returning to tactical menu map hub.", 
+                    "💀", 
+                    () => { exitToMenu(); }
+                );
             } else {
-                alert(`⚠️ Incorrect! 20 coins deducted. Shuffling immediately to next card.`);
-                launchNextActiveQuestionEngine();
+                triggerInGameAlert(
+                    "⚠️ Deducted -20 Coins", 
+                    `${reason} 20 coins deducted. Shuffling immediately to next card query loop.`, 
+                    "📉", 
+                    () => { launchNextActiveQuestionEngine(); }
+                );
             }
         }
 
         function applyInGameUtility(type) {
             if (state.perks[type] <= 0 || inputInteractionsBlocked) return;
             state.perks[type]--; 
-            if(type === 'freeze') state.stats.freezeUsed++;
+            if(type === 'freeze') evaluateActivityIncrements('freeze', 1);
             saveState(); 
             playChimeAudio('perk');
 
