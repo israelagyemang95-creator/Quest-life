@@ -1,282 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bible Quest: Ultimate Arcade Edition</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    <style>
-        body { 
-            background-color: #030611; 
-            font-family: system-ui, -apple-system, sans-serif; 
-            overflow-x: hidden;
-            position: relative;
-        }
-
-        #ambient-particle-canvas {
-            position: fixed;
-            inset: 0;
-            z-index: 1;
-            pointer-events: none;
-            opacity: 0.65;
-        }
-        
-        .game-bg-active {
-            background-image: url('https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?auto=format&fit=crop&w=800&q=80') !important;
-            background-size: cover !important;
-            background-position: center !important;
-            background-blend-mode: overlay !important;
-            background-color: rgba(3, 6, 17, 0.92) !important;
-        }
-
-        .glass-card { 
-            background: rgba(13, 18, 35, 0.75); 
-            backdrop-filter: blur(24px); 
-            -webkit-backdrop-filter: blur(24px); 
-            border: 1px solid rgba(255, 255, 255, 0.06); 
-            border-radius: 24px; 
-            color: white; 
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .level-card-interactive {
-            background: rgba(15, 23, 42, 0.65);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-        }
-        .level-card-interactive:hover {
-            transform: translateY(-4px) scale(1.02);
-            background: rgba(23, 37, 84, 0.45);
-            border-color: rgba(99, 102, 241, 0.4);
-            box-shadow: 0 15px 30px rgba(99, 102, 241, 0.25);
-        }
-        
-        .btn-choice { 
-            width: 100%; 
-            text-align: left; 
-            padding: 1.1rem 1.4rem; 
-            border-radius: 20px; 
-            border: 1px solid rgba(255,255,255,0.07); 
-            background: rgba(13, 18, 35, 0.85); 
-            font-weight: 600; 
-            color: #f1f5f9; 
-            transition: all 0.2s ease; 
-        }
-        .btn-choice:hover { 
-            background: rgba(37, 99, 235, 0.15); 
-            border-color: rgba(37, 99, 235, 0.4); 
-            transform: translateY(-1px); 
-        }
-        
-        @keyframes titleShimmer {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .shimmer-title {
-            background: linear-gradient(45deg, #60a5fa, #a78bfa, #f472b6, #34d399, #60a5fa);
-            background-size: 300% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: titleShimmer 6s linear infinite;
-        }
-
-        @keyframes auroraFlow {
-            0% { background-position: 0% 50%; filter: hue-rotate(0deg); }
-            50% { background-position: 100% 50%; filter: hue-rotate(180deg); }
-            100% { background-position: 0% 50%; filter: hue-rotate(360deg); }
-        }
-        .rainbow-correct { 
-            background: linear-gradient(45deg, #10b981, #2563eb, #8b5cf6, #059669) !important;
-            background-size: 300% 300% !important;
-            animation: auroraFlow 4s ease infinite !important;
-            border-color: transparent !important;
-            color: #ffffff !important;
-            font-weight: 900 !important;
-            box-shadow: 0 0 25px rgba(16, 185, 129, 0.6) !important;
-        }
-
-        .completed-glow { box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); border-color: rgba(16, 185, 129, 0.6); }
-
-        #frost-frame { position: fixed; inset: 0; border: 14px solid rgba(56, 189, 248, 0.45); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 80px rgba(14, 165, 233, 0.35); }
-        .frost-active { opacity: 1 !important; }
-        
-        #shield-frame { position: fixed; inset: 0; border: 12px solid rgba(245, 158, 11, 0.5); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 60px rgba(245, 158, 11, 0.25); }
-        .shield-active { opacity: 1 !important; }
-
-        .wheel-container { position: relative; width: 260px; height: 260px; margin: 0 auto; filter: drop-shadow(0 0 25px rgba(99, 102, 241, 0.35)); }
-        #wheel-canvas { width: 100%; height: 100%; border-radius: 50%; border: 6px solid #4f46e5; transition: transform 4s cubic-bezier(0.1, 0.8, 0.25, 1); background: #0f172a; }
-        .wheel-pointer { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent; border-top: 22px solid #ef4444; z-index: 30; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.4)); }
-        
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* Wallet Drop Flash Effect Styles */
-        .wallet-deduct-flash {
-            border-color: #ef4444 !important;
-            background-color: rgba(220, 38, 38, 0.25) !important;
-            transform: scale(1.08);
-            transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
-        }
-        .wallet-deduct-flash #gold-val {
-            color: #ef4444 !important;
-            text-shadow: 0 0 12px rgba(239, 68, 68, 0.8) !important;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 </head>
-<body class="p-4 min-h-screen flex flex-col items-center justify-start text-white select-none">
+<body class="bg-slate-900 text-white font-sans p-6">
 
-    <canvas id="ambient-particle-canvas"></canvas>
+  <div class="max-w-md mx-auto space-y-6">
+    
+    <header class="text-center space-y-2">
+      <h1 data-i18n="mapHub" class="text-3xl font-bold tracking-wide text-blue-400"></h1>
+      <p data-i18n="subtitle" class="text-sm text-slate-400"></p>
+    </header>
 
-    <div id="frost-frame"></div>
-    <div id="shield-frame"></div>
-
-    <div class="w-full max-w-md flex flex-col gap-2 z-50 relative">
-        <div class="flex justify-between items-center w-full px-1">
-            <button onclick="exitToMenu(event)" id="back-btn" class="hidden bg-slate-950/95 border border-white/15 text-white px-4 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-wider shadow-xl transition-all">
-                🚪 <span data-i18n="mapHub">Map Hub</span>
-            </button>
-            
-            <button id="audio-toggle-btn" onclick="toggleGlobalAudioSystem(event)" class="bg-slate-950/95 border border-emerald-500/30 text-emerald-400 px-3 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-xl ml-0">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span id="audio-label">AMBIANCE: ON</span>
-            </button>
-
-            <div class="flex gap-1.5 ml-auto">
-                <button onclick="toggleLanguage(event)" class="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white px-3 py-1.5 rounded-full font-bold text-[10px] uppercase shadow-lg transition-all">
-                    🌐 <span id="lang-label">English</span>
-                </button>
-                <div id="gold-container" class="bg-slate-950/95 border border-white/15 px-3 py-1.5 rounded-full shadow-2xl flex items-center gap-1.5 transition-all duration-300">
-                    <span class="text-xs">💰</span>
-                    <span id="gold-val" class="font-black text-amber-400 text-xs drop-shadow-[0_0_10px_rgba(245,158,11,0.5)] transition-colors">500</span>
-                </div>
-            </div>
-        </div>
-
-        <div id="lobby-activities-bar" class="relative w-full">
-            <button onclick="toggleActivitiesDropWindow(event)" class="w-full bg-slate-900/60 hover:bg-slate-900/90 border border-white/5 backdrop-blur-md px-4 py-2.5 rounded-xl text-xs font-bold text-indigo-300 flex justify-between items-center transition-all shadow-md">
-                <span class="flex items-center gap-2">📋 <span data-i18n="viewTasks">View Sectors Task Explorer</span></span>
-                <span id="activities-drop-arrow" class="transition-transform duration-200 text-[10px]">▼</span>
-            </button>
-            <div id="activities-drop-window" onclick="event.stopPropagation()" class="hidden absolute top-full left-0 right-0 mt-1.5 bg-slate-950/95 border border-white/10 rounded-2xl p-3 shadow-2xl space-y-2 z-50 max-h-60 overflow-y-auto no-scrollbar"></div>
-        </div>
-
-        <div id="lobby-wheel-bar" class="relative w-full">
-            <button onclick="toggleWheelDropWindow(event)" class="w-full bg-gradient-to-r from-amber-950/30 via-slate-900/60 to-amber-950/30 hover:brightness-110 border border-amber-500/20 backdrop-blur-md px-4 py-2.5 rounded-xl text-xs font-bold text-amber-400 flex justify-between items-center transition-all shadow-md">
-                <span class="flex items-center gap-2">🎯 <span data-i18n="launchWheel">Launch Prophetic Reward Wheel</span></span>
-                <span id="wheel-drop-arrow" class="transition-transform duration-200 text-[10px]">▼</span>
-            </button>
-            
-            <div id="wheel-drop-window" onclick="event.stopPropagation()" class="hidden absolute top-full left-0 right-0 mt-1.5 bg-slate-950/98 border border-amber-500/30 rounded-3xl p-5 shadow-2xl z-50 text-center space-y-4">
-                <div class="wheel-container">
-                    <div class="wheel-pointer"></div>
-                    <canvas id="wheel-canvas" width="250" height="250"></canvas>
-                </div>
-                <button onclick="spinWheelActionLogic(event)" id="spin-action-trigger" class="w-full bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 text-slate-950 font-black text-xs py-3 rounded-xl shadow-xl hover:brightness-110 active:scale-[0.98] transition-all tracking-wider uppercase" data-i18n="startSpin">
-                    START PROPHETIC SPIN
-                </button>
-            </div>
-        </div>
+    <div class="flex justify-center my-4">
+      <button class="flex items-center justify-center shadow-2xl text-xl hover:scale-110 active:scale-95 transition-all animate__animated animate__pulse animate__infinite bg-amber-500 p-4 rounded-full cursor-pointer">
+        🍓 <span data-i18n="launchWheel" class="ml-2 text-sm font-semibold text-slate-900 hidden"></span>
+      </button>
     </div>
 
-    <main id="window-canvas" class="w-full max-w-md mt-6 space-y-4 flex flex-col mb-28 relative z-10"></main>
+    <main class="space-y-4">
+      <div class="p-4 bg-slate-800/80 rounded-xl border border-slate-700 backdrop-blur-md">
+        <h2 data-i18n="phase1Title" class="text-lg font-bold text-emerald-400"></h2>
+        <p data-i18n="phase1Desc" class="text-sm text-slate-300 mt-1"></p>
+      </div>
 
-    <div id="game-alert-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div id="alert-box-card" class="glass-card w-full max-w-xs p-6 text-center space-y-4 border-indigo-500/40 bg-slate-950/95 shadow-2xl animate__animated">
-            <div id="alert-icon" class="text-5xl">⚠️</div>
-            <h3 id="alert-title" class="text-base font-black uppercase tracking-wider text-slate-100">Notification</h3>
-            <p id="alert-msg" class="text-xs text-slate-300 leading-relaxed font-medium"></p>
-            <button onclick="dismissSystemModal(event)" class="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold text-xs py-3 rounded-xl transition-all shadow-md transform active:scale-95" data-i18n="continueBtn">
-                CONTINUE PROCEEDING
-            </button>
+      <div class="p-4 bg-slate-800/80 rounded-xl border border-slate-700 backdrop-blur-md">
+        <h2 data-i18n="phase2Title" class="text-lg font-bold text-emerald-400"></h2>
+        <p data-i18n="phase2Desc" class="text-sm text-slate-300 mt-1"></p>
+      </div>
+
+      <div class="p-4 bg-slate-800/80 rounded-xl border border-slate-700 backdrop-blur-md">
+        <h2 data-i18n="phase3Title" class="text-lg font-bold text-emerald-400"></h2>
+        <p data-i18n="phase3Desc" class="text-sm text-slate-300 mt-1"></p>
+      </div>
+
+      <div class="p-4 bg-slate-800/80 rounded-xl border border-slate-700 backdrop-blur-md">
+        <h2 data-i18n="phase4Title" class="text-lg font-bold text-amber-400"></h2>
+        <p data-i18n="phase4Desc" class="text-sm text-slate-300 mt-1"></p>
+      </div>
+
+      <div class="p-4 bg-slate-800/80 rounded-xl border border-slate-700 backdrop-blur-md">
+        <h2 data-i18n="phase5Title" class="text-lg font-bold text-rose-400"></h2>
+        <p data-i18n="phase5Desc" class="text-sm text-slate-300 mt-1"></p>
+      </div>
+
+      <div class="p-4 bg-slate-800/80 rounded-xl border border-slate-700 backdrop-blur-md">
+        <h2 data-i18n="phase6Title" class="text-lg font-bold text-purple-400"></h2>
+        <p data-i18n="phase6Desc" class="text-sm text-slate-300 mt-1"></p>
+      </div>
+    </main>
+
+    <section class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+      <h3 data-i18n="viewTasks" class="text-xs font-semibold tracking-wider text-slate-500 uppercase"></h3>
+      <div id="tasks-list" class="space-y-2 text-sm">
         </div>
-    </div>
+    </section>
 
-    <div id="shop-modal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="glass-card w-full max-w-sm p-6 space-y-4 border-indigo-500/30 bg-slate-950/90 shadow-2xl" onclick="event.stopPropagation()">
-            <div class="flex justify-between items-center border-b border-white/10 pb-3">
-                <div class="flex items-center gap-2"><span>🛒</span><h3 class="text-sm font-black uppercase tracking-wider text-indigo-300" data-i18n="armoryTitle">Armory Depot</h3></div>
-                <button onclick="closeShopModal(event)" class="text-slate-400 text-sm bg-white/5 w-7 h-7 rounded-full">✕</button>
-            </div>
-            <div id="modal-shop-grid" class="space-y-2"></div>
+  </div>
+
+  <script>
+    // System Localization Registry System Database
+    const i18nRegistry = {
+      en: {
+        mapHub: "Map Hub",
+        viewTasks: "View Sectors Task Explorer",
+        launchWheel: "Launch Prophetic Reward Wheel",
+        startSpin: "START PROPHETIC SPIN",
+        armoryTitle: "Armory Depot",
+        continueBtn: "CONTINUE PROCEEDING",
+        subtitle: "Tap a Phase Card to Explore",
+        
+        phase1Title: "Phase 1: New Testament",
+        phase1Desc: "Explore the Gospels and Epistles",
+        
+        phase2Title: "Phase 2: Old Testament",
+        phase2Desc: "Continuous Covenant Law Pools",
+        
+        phase3Title: "Phase 3: Grand Mixture Pool",
+        phase3Desc: "Randomized Across All Scriptural Cards",
+        
+        phase4Title: "Phase 4: E.G. White Chronicles",
+        phase4Desc: "Prophetic Heritage Insight Pools",
+        
+        phase5Title: "Phase 5: Mastery Blitz Mode",
+        phase5Desc: "5-Second Extreme Rapid Fire Speed Clock",
+        
+        phase6Title: "Phase 6: Adventist Teachings",
+        phase6Desc: "The 28 Fundamental Sanctuary & Prophetic Beliefs",
+        
+        // Fixed target strings
+        task1: "Answer {target} questions across any stage",
+        task2: "Maintain a win streak of {target}"
+      }
+    };
+
+    /**
+     * Translates standard static UI elements matching data-i18n attributes
+     */
+    function initStaticLocalization(lang = 'en') {
+      const strings = i18nRegistry[lang];
+      if (!strings) return;
+
+      document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (strings[key]) {
+          element.textContent = strings[key];
+        }
+      });
+    }
+
+    /**
+     * Handles dynamic templates containing local variables like {target}
+     */
+    function getTranslatedTask(taskKey, targetValue, lang = 'en') {
+      const template = i18nRegistry[lang]?.[taskKey];
+      return template ? template.replace('{target}', targetValue) : '';
+    }
+
+    /**
+     * Renders tasks dynamically into the task container
+     */
+    function renderTasks() {
+      const container = document.getElementById('tasks-list');
+      if (!container) return;
+
+      // Mock data for game states
+      const activeTasks = [
+        { key: 'task1', target: '10' },
+        { key: 'task2', target: '5' }
+      ];
+
+      container.innerHTML = activeTasks.map(task => `
+        <div class="flex items-center space-x-2 bg-slate-900 p-2 rounded border border-slate-800">
+          <input type="checkbox" class="accent-emerald-500 rounded">
+          <span>${getTranslatedTask(task.key, task.target, 'en')}</span>
         </div>
-    </div>
+      `).join('');
+    }
 
-    <button id="lobby-bag-btn" onclick="openShopModal(event)" class="fixed bottom-6 right-6 z-40 bg-gradient-to-tr from-indigo-500 via-purple-600 to-pink-500 border border-white/20 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl text-xl hover:scale-110 active:scale-95 transition-all animate__animated animate__pulse animate__infinite">🎒</button>
-
-    <script>
-        // System Localization Registry System Database
-        const i18nRegistry = {
-            en: {
-                mapHub: "Map Hub", viewTasks: "View Sectors Task Explorer", launchWheel: "Launch Prophetic Reward Wheel",
-                startSpin: "START PROPHETIC SPIN", armoryTitle: "Armory Depot", continueBtn: "CONTINUE PROCEEDING",
-                subtitle: "Tap a Phase Card to Explore", phase1Title: "Phase 1: New Testament", phase1Desc: "Explore the Gospels and Epistles",
-                phase2Title: "Phase 2: Old Testament", phase2Desc: "Continuous Covenant Law Pools", phase3Title: "Phase 3: Grand Mixture Pool",
-                phase3Desc: "Randomized Across All Scriptural Cards", phase4Title: "Phase 4: E.G. White Chronicles", phase4Desc: "Prophetic Heritage Insight Pools",
-                phase5Title: "Phase 5: Mastery Blitz Mode", phase5Desc: "5-Second Extreme Rapid Fire Speed Clock", phase6Title: "Phase 6: Adventist Teachings",
-                phase6Desc: "The 28 Fundamental Sanctuary & Prophetic Beliefs", task1: "Answer {target} questions across any stage",
-                task2: "Maintain a win streak of {target} choices", task3: "Activate Chrono Freeze {target} times",
-                task4: "Survive {target} extreme Mastery Blitz cards", task5: "Possess a volume balance of {target} gold",
-                rechargeTitle: "Engine Recharging", rechargeMsg: "Your daily prophetic reward drop is cooling down. Return tomorrow.",
-                prizeTitle: "🎁 Prize Unlocked!", prizeMsg: "The animated needle settled perfectly! Reward item applied to inventory stack.",
-                shortageTitle: "Treasury Shortage", shortageMsg: "You do not have enough coins to purchase this deployable perk item.",
-                clearTitle: "🎉 Activity Set Cleared!", clearMsg: "Superb effort! Completed all active goals. Tier increased to {tier}, reward loaded.",
-                timeoutReason: "Countdown Time Expired!", wrongReason: "Incorrect Answer Choice Selected!",
-                walletTitle: "🚨 Wallet Depleted", walletMsg: "Your coin balance has hit zero. Returning to tactical menu map hub.",
-                continuousLoop: "Continuous Active Shuffle Loop"
-            },
-            tw: {
-                mapHub: "Kyerɛ Maap", viewTasks: "Hwɛ Dwumadi Ahodoɔ Yi", launchWheel: "Bɔ Twa Nkyekyɛmu Afiri No",
-                startSpin: "HYƐ TWA NO ASE", armoryTitle: "Akodeɛ Koraeɛ", continueBtn: "KƆ SO DWUMADI NO",
-                subtitle: "Mia Phase Kaade Biara So", phase1Title: "Phase 1: Apam Foforɔ", phase1Desc: "Hwɛ Asɛmpa Nnwuma Ahodoɔ No",
-                phase2Title: "Phase 2: Apam Dada", phase2Desc: "Mmara ne Ahyɛdeɛ Ahodoɔ", phase3Title: "Phase 3: Nneɛma Frafra Koraeɛ",
-                phase3Desc: "Nsɛmmisa Frafra afiri Twerɛnsɛm mu", phase4Title: "Phase 4: E.G. White Atwerɛeɛ", phase4Desc: "Nkɔmhyɛ ne Tete Sukuu Ahodoɔ",
-                phase5Title: "Phase 5: Mastery Blitz kwan", phase5Desc: "Nnarekodi Nsekene 5 Nsɛmmisa Denden", phase6Title: "Phase 6: Adventist Nkyerɛkyerɛ",
-                phase6Desc: "Gyidie nnyinasoɔ 28 ne Ɔsoro Kronkronbea no", task1: "Bua nsɛmmisa {target} wɔ fa biara",
-                task2: "Kora nkɔsoɔ streak {target} so pɛpɛɛpɛ", task3: "Fa Chrono Freeze dwuma mpren {target}",
-                task4: "Tena Mastery Blitz kaade {target} mu", task5: "Kora sika botaeɔ {target} sika kɔkɔɔ so",
-                rechargeTitle: "Afiri No Rehyia", rechargeMsg: "Wo da biara da nkɔmhyɛ nkyekyɛmu rehome. San bra ɔkyena.",
-                prizeTitle: "🎁 Akyɛdeɛ Abue!", prizeMsg: "Paaneɛ no sii baabi pa! Yɛde nneɛma no ahyɛ wo koraeɛ mu.",
-                shortageTitle: "Sika Anni Mu", shortageMsg: "Wo sika kɔkɔɔ nnu sɛ wobɛtɔ saa akodeɛ dwumadie perk yi.",
-                clearTitle: "🎉 Dwumadi Ahodoɔ No Anyam!", clearMsg: "Mmɔdenbɔ pa! Woawie botaeɛ nketewa no nyinaa. Tier akɔ {tier}.",
-                timeoutReason: "Berɛ a Yɛde Maeɛ No Asa!", wrongReason: "Mmuaeɛ a Woapaw No Nyɛ Pɛpɛɛpɛ!",
-                walletTitle: "🚨 Sika Koraeɛ Ahwe Ase", walletMsg: "Wo sika kɔkɔɔ anya asa korakora. Yɛresan akɔ maap hub no mu.",
-                continuousLoop: "Kwan a Nsɛmmisa Resesa Berɛ Biara"
-            }
-        };
-
-        // Complete scriptural quiz asset array mapped across all modes
-        window.quizDatabase = [
-            { name: "Matthew", group: "NT", questions: [
-                { q: "Who was chosen to be the earthly mother of Jesus Christ?", a: ["Elizabeth", "Mary", "Martha", "Salome"], correct: 1 },
-                { q: "Where was Jesus Christ born historically?", a: ["Nazareth", "Jerusalem", "Bethlehem", "Capernaum"], correct: 2 }
-            ]},
-            { name: "Mark", group: "NT", questions: [
-                { q: "Which prophet did Mark quote at the opening of his Gospel script?", a: ["Isaiah", "Jeremiah", "Ezekiel", "Daniel"], correct: 0 },
-                { q: "Who was the father of John the Baptist?", a: ["Zechariah", "Simeon", "Levi", "Joseph"], correct: 0 }
-            ]},
-            { name: "Luke", group: "NT", questions: [
-                { q: "What was the professional trade of Luke before writing?", a: ["Tax Collector", "Physician", "Fisherman", "Tentmaker"], correct: 1 }
-            ]},
-            { name: "John", group: "NT", questions: [
-                { q: "Complete the prophetic text: 'In the beginning was the...'", a: ["Light", "Spirit", "Word", "Kingdom"], correct: 2 }
-            ]},
-            { name: "Genesis", group: "OT", questions: [
-                { q: "What garden home was explicitly planted for Adam and Eve's habitation?", a: ["Gethsemane", "Eden", "Sinai", "Ararat"], correct: 1 },
-                { q: "How many days did God take to create the universe in Genesis?", a: ["5 Days", "6 Days", "7 Days", "10 Days"], correct: 1 }
-            ]},
-            { name: "Exodus", group: "OT", questions: [
-                { q: "Out of what elemental item did God call Moses in the desert?", a: ["Cloud", "Bush", "Rock", "Whirlwind"], correct: 1 },
-                { q: "What was the first plague poured upon the kingdom of Egypt?", a: ["Frogs", "Lice", "Blood", "Locusts"], correct: 2 }
-            ]},
-            { name: "EGW Writings", group: "EGW", questions: [
-                { q: "Which work traces the cosmic metanarrative between Christ and Satan?", a: ["Steps to Christ", "The Great Controversy", "Education", "Ministry of Healing"], correct: 1 },
-                { q: "Which book focuses heavily on daily salvation devotional steps?", a: ["Steps to Christ", "The Desire of Ages", "Patriarchs and Prophets", "Prophets and Kings"], correct: 0 }
-            ]},
-            { name: "Adventist Sanctuary", group: "SDA", questions: [
-                { q: "In what year did the prophetic cleansing of the heavenly sanctuary commence?", a: ["1798", "1844", "1888", "1931"], correct: 1 },
-                { q: "Which compartment of the sanctuary contained the Ark of the Covenant?", a: ["Courtyard", "Holy Place", "Most Holy Place", "Outer Altar"], correct: 2 }
-            ]},
-            { name: "Fundamental Beliefs", group: "SDA", questions:
+    // Initialize application on window load
+    document.addEventListener('DOMContentLoaded', () => {
+      initStaticLocalization('en');
+      renderTasks();
+    });
+  </script>
+</body>
+</html>
