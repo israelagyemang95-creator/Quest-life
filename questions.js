@@ -1,8 +1,8 @@
-// questions.js
+// ============================================================================
+// PART 1: COMPREHENSIVE CANONICAL BLUEPRINT DATABASE (50 Questions per Phase)
+// ============================================================================
 window.bookQuestions = {
-  // ==========================================
-  // PHASE 1: NEW TESTAMENT (50 Questions)
-  // ==========================================
+  // PHASE 1: NEW TESTAMENT
   "Matthew": [
     { id: 1, difficulty: "easy", question: "According to Matthew 1, how many generations were there from Abraham to David?", options: ["7 generations", "12 generations", "14 generations", "40 generations"], correctAnswer: 2 },
     { id: 2, difficulty: "easy", question: "What was Matthew's occupation before becoming a disciple of Jesus?", options: ["Fisherman", "Tax Collector", "Tentmaker", "Physician"], correctAnswer: 1 },
@@ -64,9 +64,7 @@ window.bookQuestions = {
     { id: 50, difficulty: "difficult", question: "What was the name of the sorcerer in Samaria who tried to buy the gift of the Holy Spirit with money?", options: ["Simon", "Elymas", "Bar-Jesus", "Demetrius"], correctAnswer: 0 }
   ],
 
-  // ==========================================
-  // PHASE 2: OLD TESTAMENT (50 Questions)
-  // ==========================================
+  // PHASE 2: OLD TESTAMENT
   "Genesis": [
     { id: 51, difficulty: "easy", question: "On which day of creation did God make the sun, moon, and stars?", options: ["First Day", "Third Day", "Fourth Day", "Sixth Day"], correctAnswer: 2 },
     { id: 52, difficulty: "easy", question: "What sign did God place in the sky as a covenant never to destroy the earth by flood again?", options: ["A pillar of fire", "A rainbow", "A solar eclipse", "A comet"], correctAnswer: 1 },
@@ -128,9 +126,7 @@ window.bookQuestions = {
     { id: 100, difficulty: "difficult", question: "Which prophet had a vision of a flying scroll and a woman sitting inside a measuring basket?", options: ["Zechariah", "Haggai", "Amos", "Habakkuk"], correctAnswer: 0 }
   ],
 
-  // ==========================================
-  // PHASE 3: FINANCIAL LITERACY (50 Questions)
-  // ==========================================
+  // PHASE 3: FINANCIAL LITERACY
   "Rich Dad Poor Dad": [
     { id: 101, difficulty: "easy", question: "According to Robert Kiyosaki, what is the primary definition of an asset?", options: ["Anything of sentimental value", "Something that puts money into your pocket", "A large personal liability", "Your primary vehicle"], correctAnswer: 1 },
     { id: 102, difficulty: "easy", question: "What does Kiyosaki call the cycle of working a regular day job to pay off recurring monthly bills?", options: ["The Corporate Ladder", "The Rat Race", "The Wealth Cycle", "The Golden Handcuffs"], correctAnswer: 1 },
@@ -169,7 +165,7 @@ window.bookQuestions = {
     { id: 131, difficulty: "moderate", question: "What is the difference between a stock and a bond?", options: ["Stocks are loans to governments; bonds represent company ownership", "Stocks represent equity ownership in a company; bonds represent a debt security or loan to an entity", "Stocks have zero risk; bonds have high risk", "They are identical instruments under different regulatory names"], correctAnswer: 1 },
     { id: 132, difficulty: "moderate", question: "What is a FICO score?", options: ["A global trading software platform", "A mathematical model predicting creditworthiness based on credit history analyses", "A tax identification index number", "A metric evaluating annual investment returns"], correctAnswer: 1 },
     { id: 133, difficulty: "moderate", question: "What is dollar-cost averaging (DCA)?", options: ["Exchanging local currency for US dollars regularly", "Investing a fixed amount of money at regular intervals regardless of asset pricing fluctuations", "Selling off assets when market drops hit 10%", "Borrowing funds to average out debt balances"], correctAnswer: 1 },
-    { id: 134, difficulty: "moderate", question: "What is the primary characteristic of a index fund?", options: ["It actively trades stocks based on daily economic news", "It passively tracks the components of a specific market index to match performance", "It invests exclusively in foreign commodity futures", "It guarantees zero market risk to the investor"], correctAnswer: 1 },
+    { id: 134, difficulty: "moderate", question: "What is the primary characteristic of an index fund?", options: ["It actively trades stocks based on daily economic news", "It passively tracks the components of a specific market index to match performance", "It invests exclusively in foreign commodity futures", "It guarantees zero market risk to the investor"], correctAnswer: 1 },
     { id: 135, difficulty: "difficult", question: "What is a capital gain?", options: ["The total amount of money spent to start a business", "The profit earned from selling an asset for more than its purchase price", "The dividend paid monthly by mutual funds", "The registration fee charged by corporate registers"], correctAnswer: 1 },
     { id: 136, difficulty: "difficult", question: "What is a bear market?", options: ["A period of rising stock prices and optimism", "A market condition where security prices fall 20% or more from recent highs amid widespread pessimism", "A niche commodity exchange market handling raw furs", "A market with low trading volume and high interest rates"], correctAnswer: 1 },
     { id: 137, difficulty: "difficult", question: "What is a bull market?", options: ["A market characterized by falling asset values", "A financial market condition where asset prices are rising or expected to rise", "A high-risk options trading strategy", "An agricultural futures exchange network"], correctAnswer: 1 },
@@ -188,9 +184,7 @@ window.bookQuestions = {
     { id: 150, difficulty: "difficult", question: "What is the ultimate goal of achieving financial independence?", options: ["Having a high credit card limit", "Possessing enough passive income and wealth to cover all personal living expenses without needing a traditional job", "Owning the biggest home in your local neighborhood", "Becoming an executive at a public corporation"], correctAnswer: 1 }
   ],
 
-  // ==========================================
-  // PHASE 4: E.G. WHITE CHRONICLES (50 Questions)
-  // ==========================================
+  // PHASE 4: E.G. WHITE CHRONICLES
   "EGW Writings": [
     { id: 151, difficulty: "easy", question: "Which foundational Ellen White volume details practical steps toward repentance, surrender, and growing in Christ?", options: ["The Great Controversy", "Steps to Christ", "Patriarchs and Prophets", "The Desire of Ages"], correctAnswer: 1 },
     { id: 152, difficulty: "easy", question: "Which book in the Conflict of the Ages series focuses specifically on the life, ministry, and sacrifice of Jesus Christ?", options: ["The Desire of Ages", "Prophets and Kings", "The Acts of the Apostles", "The Great Controversy"], correctAnswer: 0 },
@@ -244,9 +238,7 @@ window.bookQuestions = {
     { id: 200, difficulty: "difficult", question: "According to the final chapter of 'The Great Controversy', what is the eternal baseline theme of the universe once sin is eradicated?", options: ["The complete supremacy of cosmic power", "The unchangeable law of cause and effect", "God is love", "The structural metrics of universal governance"], correctAnswer: 2 }
   ],
 
-  // ==========================================
-  // PHASE 5: ADVENTIST TEACHINGS (50 Questions)
-  // ==========================================
+  // PHASE 5: ADVENTIST TEACHINGS
   "Fundamental Beliefs": [
     { id: 201, difficulty: "easy", question: "Which day is recognized as the biblical Sabbath according to the 4th Commandment and Adventist beliefs?", options: ["First Day (Sunday)", "Sixth Day (Friday)", "Seventh Day (Saturday)", "First day of the lunar month"], correctAnswer: 2 },
     { id: 202, difficulty: "easy", question: "How many Seventh-day Adventist Fundamental Beliefs are currently officially recognized?", options: ["10 Beliefs", "27 Beliefs", "28 Beliefs", "30 Beliefs"], correctAnswer: 2 },
@@ -308,3 +300,200 @@ window.bookQuestions = {
     { id: 250, difficulty: "difficult", question: "What title is given to the final global corporate administrative dynamic where representatives from every worldwide division meet every five years?", options: ["The Union Assembly", "The Conference Executive Committee", "The General Conference Session", "The Sanctuary Synod Council"], correctAnswer: 2 }
   ]
 };
+
+// ============================================================================
+// PART 2: RUNTIME PLAYER STATE ENGINE
+// ============================================================================
+window.gameState = {
+  coins: 500, // Starting default pool
+  inventory: {
+    freeze: 1,
+    blitz: 0,
+    shield: 1
+  },
+  activeEffects: {
+    shieldActive: false,
+    blitzMultiplier: false
+  }
+};
+
+// ============================================================================
+// PART 3: RE-ENGINEERED STORE ENGINE (Populates Shop Cards on View Trigger)
+// ============================================================================
+window.renderPowerUpShop = function() {
+  const shopContainer = document.getElementById("shop-items-container");
+  if (!shopContainer) {
+    console.warn("Target placeholder context link element '#shop-items-container' was missing from DOM structure.");
+    return;
+  }
+
+  // Pure clean layout generation loop
+  shopContainer.innerHTML = "";
+
+  const shopCatalog = [
+    { id: "freeze", name: "Time Freeze", cost: 150, desc: "Suspends the clock countdown for 15 seconds inside a cascading snowstorm overlay.", icon: "❄️" },
+    { id: "blitz", name: "Mastery Blitz", cost: 200, desc: "Triggers a cosmic double-points active window accompanied by screen lightning.", icon: "⚡" },
+    { id: "shield", name: "Divine Shield", cost: 100, desc: "Deploys a protective golden aura shielding your streak matrix from wrong answers.", icon: "🛡️" }
+  ];
+
+  shopCatalog.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-5 flex flex-col justify-between items-center text-center transition-all duration-300 hover:scale-[1.03] hover:bg-white/15 shadow-xl";
+    
+    card.innerHTML = `
+      <div class="text-5xl mb-3 transform transition-transform hover:scale-110 duration-300 select-none">${item.icon}</div>
+      <h3 class="text-xl font-bold text-white mb-2 tracking-wide">${item.name}</h3>
+      <p class="text-sm text-white/70 mb-5 leading-relaxed min-h-[48px] flex items-center justify-center">${item.desc}</p>
+      <button onclick="window.executePurchase('${item.id}', ${item.cost})" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg active:scale-95 transition-all flex justify-between items-center group">
+        <span class="group-hover:translate-x-0.5 transition-transform">Acquire Power</span>
+        <span class="bg-black/30 backdrop-blur-sm px-3 py-1 rounded-lg text-sm font-black">🪙 ${item.cost}</span>
+      </button>
+    `;
+    shopContainer.appendChild(card);
+  });
+};
+
+// Handle core purchasing ledger transactions safely
+window.executePurchase = function(id, cost) {
+  if (window.gameState.coins >= cost) {
+    window.gameState.coins -= cost;
+    window.gameState.inventory[id] = (window.gameState.inventory[id] || 0) + 1;
+    
+    // Update structural layout components globally
+    const balanceDisplay = document.getElementById("player-coin-balance");
+    if (balanceDisplay) balanceDisplay.innerText = window.gameState.coins;
+    
+    alert(`Success! Added 1 unit to your item cache.`);
+  } else {
+    alert(`Insufficient balance. Earn more tokens during review matches to clear this item card.`);
+  }
+};
+
+// ============================================================================
+// PART 4: KINETIC VISUAL POWER-UP ACTIONS (Snow Particles & FX Overlays)
+// ============================================================================
+window.activatePowerUp = function(type) {
+  const gameContainer = document.getElementById("game-play-container") || document.body;
+  
+  // Physical feedback trigger
+  gameContainer.classList.add("animate-shake");
+  setTimeout(() => gameContainer.classList.remove("animate-shake"), 400);
+
+  switch(type) {
+    case 'freeze':
+      triggerSnowstormEffect();
+      break;
+      
+    case 'blitz':
+      triggerLightningBlitz();
+      break;
+      
+    case 'shield':
+      triggerDivineShield();
+      break;
+  }
+};
+
+// 1. DYNAMIC SNOWSTORM ENGINE (Canvas Rendering System)
+function triggerSnowstormEffect() {
+  let canvas = document.getElementById("weather-canvas");
+  if (!canvas) {
+    canvas = document.createElement("canvas");
+    canvas.id = "weather-canvas";
+    // Overlay directly over gameplay cards without swallowing tap actions
+    canvas.className = "pointer-events-none absolute inset-0 z-40 rounded-2xl";
+    const parent = document.getElementById("game-play-container") || document.body;
+    parent.style.position = "relative";
+    parent.appendChild(canvas);
+  }
+
+  const ctx = canvas.getContext("2d");
+  canvas.width = canvas.parentElement.clientWidth;
+  canvas.height = canvas.parentElement.clientHeight;
+
+  const flakes = [];
+  for (let i = 0; i < 65; i++) {
+    flakes.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      radius: Math.random() * 3.5 + 1,
+      density: Math.random() * 1.2 + 0.4,
+      opacity: Math.random() * 0.5 + 0.4
+    });
+  }
+
+  let animationFrameReference;
+  function processRender() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Frost glaze backdrop
+    ctx.fillStyle = "rgba(186, 230, 253, 0.12)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Compute layout steps for each flake
+    ctx.fillStyle = "#ffffff";
+    flakes.forEach(f => {
+      ctx.beginPath();
+      ctx.globalAlpha = f.opacity;
+      ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2, true);
+      ctx.fill();
+
+      f.y += f.density;
+      f.x += Math.sin(f.y / 25) * 0.4;
+
+      if (f.y > canvas.height) {
+        f.y = -10;
+        f.x = Math.random() * canvas.width;
+      }
+    });
+    
+    ctx.globalAlpha = 1.0; // Reset canvas standard alpha loop
+    animationFrameReference = requestAnimationFrame(processRender);
+  }
+
+  processRender();
+
+  // Clear timeline execution gracefully after 15-second active countdown window
+  setTimeout(() => {
+    cancelAnimationFrame(animationFrameReference);
+    canvas.remove();
+  }, 15000);
+}
+
+// 2. SKY LIGHTNING FLASH (Double Multiplier Effect)
+function triggerLightningBlitz() {
+  window.gameState.activeEffects.blitzMultiplier = true;
+  
+  const lightningNode = document.createElement("div");
+  lightningNode.className = "pointer-events-none absolute inset-0 z-50 lightning-effect rounded-2xl";
+  
+  const arena = document.getElementById("game-play-container") || document.body;
+  arena.appendChild(lightningNode);
+  
+  setTimeout(() => {
+    lightningNode.remove();
+  }, 600);
+}
+
+// 3. GOLDEN DIVINE SHIELD (Streak Recovery Barrier Matrix)
+function triggerDivineShield() {
+  window.gameState.activeEffects.shieldActive = true;
+  const arena = document.getElementById("game-play-container");
+  if (!arena) return;
+
+  arena.classList.add("active-shield-overlay");
+  
+  const statusBadge = document.createElement("div");
+  statusBadge.id = "shield-runtime-badge";
+  statusBadge.className = "absolute top-4 left-1/2 -translate-x-1/2 bg-amber-500 text-white font-black px-5 py-1.5 rounded-full text-xs tracking-widest shadow-xl animate-bounce z-50 border border-white/30 select-none";
+  statusBadge.innerText = "🛡️ DIVINE SHIELD COAT ON";
+  arena.appendChild(statusBadge);
+
+  // Expose safety clean cleanup hook inside root architecture context
+  window.deactivateShieldAura = function() {
+    window.gameState.activeEffects.shieldActive = false;
+    arena.classList.remove("active-shield-overlay");
+    const badge = document.getElementById("shield-runtime-badge");
+    if (badge) badge.remove();
+  };
+}
