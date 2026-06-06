@@ -3,296 +3,217 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Revelators Pathfinders Quiz Quest</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Prophetic Quest Terminal</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    
     <style>
-        body { 
-            background-color: #030611; 
-            font-family: system-ui, -apple-system, sans-serif; 
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #020617;
+            color: #f8fafc;
             overflow-x: hidden;
-            position: relative;
         }
-
-        #ambient-particle-canvas, #snow-freeze-canvas {
-            position: fixed;
-            inset: 0;
-            z-index: 1;
-            pointer-events: none;
+        .heading-font {
+            font-family: 'Orbitron', sans-serif;
         }
-        #snow-freeze-canvas { z-index: 45; opacity: 0; transition: opacity 0.4s ease; }
-        
-        .game-bg-active {
-            background-image: url('https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?auto=format&fit=crop&w=800&q=80') !important;
-            background-size: cover !important;
-            background-position: center !important;
-            background-blend-mode: overlay !important;
-            background-color: rgba(3, 6, 17, 0.94) !important;
-        }
-
-        .glass-card { 
-            background: rgba(13, 18, 35, 0.78); 
-            backdrop-filter: blur(24px); 
-            -webkit-backdrop-filter: blur(24px); 
-            border: 1px solid rgba(255, 255, 255, 0.06); 
-            border-radius: 24px; 
-            color: white; 
-        }
-
-        .level-card-interactive {
-            background: rgba(15, 23, 42, 0.65);
+        .glass-card {
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
         }
-        .level-card-interactive:hover {
-            transform: translateY(-4px) scale(1.02);
-            background: rgba(23, 37, 84, 0.45);
-            border-color: rgba(99, 102, 241, 0.4);
-            box-shadow: 0 15px 30px rgba(99, 102, 241, 0.25);
+        .glass-modal {
+            background: rgba(2, 6, 23, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
-        .btn-choice { 
-            width: 100%; 
-            text-align: left; 
-            padding: 1.1rem 1.4rem; 
-            border-radius: 20px; 
-            border: 1px solid rgba(255,255,255,0.07); 
-            background: rgba(13, 18, 35, 0.85); 
-            font-weight: 600; 
-            color: #f1f5f9; 
-            transition: all 0.2s ease; 
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
         }
-        .btn-choice:hover { 
-            background: rgba(37, 99, 235, 0.15); 
-            border-color: rgba(37, 99, 235, 0.4); 
-            transform: translateY(-1px); 
+        ::-webkit-scrollbar-track {
+            background: #020617;
         }
-        
-        @keyframes titleShimmer {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        ::-webkit-scrollbar-thumb {
+            background: #1e1b4b;
+            border-radius: 999px;
         }
-        .shimmer-title {
-            background: linear-gradient(45deg, #60a5fa, #a78bfa, #f472b6, #34d399, #60a5fa);
-            background-size: 300% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: titleShimmer 6s linear infinite;
+        ::-webkit-scrollbar-thumb:hover {
+            background: #312e81;
         }
-
-        @keyframes auroraFlow {
-            0% { background-position: 0% 50%; filter: hue-rotate(0deg); }
-            50% { background-position: 100% 50%; filter: hue-rotate(180deg); }
-            100% { background-position: 0% 50%; filter: hue-rotate(360deg); }
-        }
-        .rainbow-correct { 
-            background: linear-gradient(45deg, #10b981, #2563eb, #8b5cf6, #059669) !important;
-            background-size: 300% 300% !important;
-            animation: auroraFlow 4s ease infinite !important;
-            border-color: transparent !important;
-            color: #ffffff !important;
-            font-weight: 900 !important;
-            box-shadow: 0 0 25px rgba(16, 185, 129, 0.6) !important;
-        }
-
-        @keyframes coinShock {
-            0%, 100% { transform: scale(1); }
-            20%, 60% { transform: scale(0.85) rotate(-6deg); filter: drop-shadow(0 0 15px #ef4444); }
-            40%, 80% { transform: scale(1.15) rotate(6deg); filter: drop-shadow(0 0 25px #ef4444); }
-        }
-        .vibrate-error-bag { animation: coinShock 0.5s ease-in-out 2; border-color: #ef4444 !important; }
-
-        .perk-flash-freeze { animation: huffmanPulse 0.6s ease-out; border-color: #38bdf8 !important; box-shadow: 0 0 30px #0ea5e9 !important; }
-        .perk-flash-half { animation: huffmanPulse 0.6s ease-out; border-color: #f43f5e !important; box-shadow: 0 0 30px #e11d48 !important; }
-        .perk-flash-skip { animation: huffmanPulse 0.6s ease-out; border-color: #a855f7 !important; box-shadow: 0 0 30px #9333ea !important; }
-        .perk-flash-shield { animation: huffmanPulse 0.6s ease-out; border-color: #f59e0b !important; box-shadow: 0 0 30px #d97706 !important; }
-
-        @keyframes huffmanPulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.08); opacity: 0.8; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .completed-glow { box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); border-color: rgba(16, 185, 129, 0.6); }
-
-        #frost-frame { position: fixed; inset: 0; border: 14px solid rgba(56, 189, 248, 0.45); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 80px rgba(14, 165, 233, 0.35); }
-        .frost-active { opacity: 1 !important; }
-        
-        #shield-frame { position: fixed; inset: 0; border: 12px solid rgba(245, 158, 11, 0.5); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 60px rgba(245, 158, 11, 0.25); }
-        .shield-active { opacity: 1 !important; }
-        
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="p-4 min-h-screen flex flex-col items-center justify-start text-white select-none">
+<body class="relative min-h-screen selection:bg-indigo-500 selection:text-white">
 
-    <canvas id="ambient-particle-canvas"></canvas>
-    <canvas id="snow-freeze-canvas"></canvas>
+    <div id="audio-pool-container" class="hidden"></div>
 
-    <div id="frost-frame"></div>
-    <div id="shield-frame"></div>
+    <canvas id="snow-freeze-canvas" class="fixed inset-0 pointer-events-none z-0 invisible"></canvas>
 
-    <div class="w-full max-w-md flex flex-col gap-2 z-50 relative">
-        <div class="flex justify-between items-center w-full px-1">
-            <button onclick="exitToMenu(event)" id="back-btn" class="hidden bg-slate-950/95 border border-white/15 text-white px-4 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-wider shadow-xl transition-all">
-                🚪 <span data-i18n="mapHub">Map Hub</span>
-            </button>
-            
-            <button id="audio-toggle-btn" onclick="toggleGlobalAudioSystem(event)" class="bg-slate-950/95 border border-emerald-500/30 text-emerald-400 px-3 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-xl ml-0">
+    <div class="relative min-h-screen z-10 flex flex-col justify-between max-w-md mx-auto bg-slate-950 border-x border-slate-900 shadow-2xl">
+        
+        <header class="p-4 flex items-center justify-between border-b border-indigo-950/40 bg-slate-950/60 sticky top-0 z-40 backdrop-blur-md">
+            <button onclick="toggleAudioAmbiance()" id="ambiance-toggle-btn" class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/30 text-emerald-400 text-xs font-black tracking-wider shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-all active:scale-95">
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span id="audio-label">AMBIANCE: ON</span>
+                <span>AMBIANCE: ON</span>
             </button>
 
-            <div class="flex gap-1.5 ml-auto">
-                <button onclick="toggleLanguage(event)" class="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white px-3 py-1.5 rounded-full font-bold text-[10px] uppercase shadow-lg transition-all">
-                    🌐 <span id="lang-label">English</span>
+            <div class="flex items-center gap-3">
+                <button onclick="toggleAppLanguageSelector()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-950/80 border border-indigo-500/30 text-indigo-300 font-bold text-xs tracking-wide shadow-md hover:border-indigo-400 transition-colors active:scale-95">
+                    <i class="fa-solid fa-globe text-[11px]"></i>
+                    <span id="active-language-label" class="uppercase">ENGLISH</span>
                 </button>
-                <div id="gold-container" class="bg-slate-950/95 border border-white/15 px-3 py-1.5 rounded-full shadow-2xl flex items-center gap-1.5 transition-all duration-300">
-                    <span class="text-xs">💰</span>
-                    <span id="gold-val" class="font-black text-amber-400 text-xs drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]">500</span>
+
+                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-950/40 border border-amber-500/30 text-amber-400 font-black text-sm shadow-inner">
+                    <i class="fa-solid fa-coins text-xs animate-spin-slow"></i>
+                    <span id="player-gold-display">500</span>
                 </div>
             </div>
-        </div>
+        </header>
 
-        <div id="lobby-activities-bar" class="relative w-full">
-            <button onclick="toggleActivitiesDropWindow(event)" class="w-full bg-slate-900/60 hover:bg-slate-900/90 border border-white/5 backdrop-blur-md px-4 py-2.5 rounded-xl text-xs font-bold text-indigo-300 flex justify-between items-center transition-all shadow-md">
-                <span class="flex items-center gap-2">📋 <span data-i18n="viewTasks">View Sectors Task Explorer</span></span>
-                <span id="activities-drop-arrow" class="transition-transform duration-200 text-[10px]">▼</span>
+        <main id="window-canvas" class="flex-1 p-4 space-y-4 overflow-y-auto pb-24">
+            </main>
+
+        <footer class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-slate-950/80 backdrop-blur-lg border-t border-slate-900 grid grid-cols-4 p-2 gap-1 z-40 shadow-[0_-10px_25px_rgba(0,0,0,0.5)]">
+            <button onclick="switchContextTerminalWindow('home')" class="flex flex-col items-center justify-center py-2 text-indigo-400 rounded-xl transition-all active:scale-95 hover:bg-slate-900/50">
+                <i class="fa-solid fa-house text-lg"></i>
+                <span class="text-[10px] font-bold tracking-wide mt-1 uppercase">Home</span>
             </button>
-            <div id="activities-drop-window" onclick="event.stopPropagation()" class="hidden absolute top-full left-0 right-0 mt-1.5 bg-slate-950/95 border border-white/10 rounded-2xl p-3 shadow-2xl space-y-2 z-50 max-h-60 overflow-y-auto no-scrollbar"></div>
-        </div>
-    </div>
-
-    <main id="window-canvas" class="w-full max-w-md mt-6 space-y-4 flex flex-col mb-28 relative z-10"></main>
-
-    <div id="game-alert-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div id="alert-box-card" class="glass-card w-full max-w-xs p-6 text-center space-y-4 border-indigo-500/40 bg-slate-950/95 shadow-2xl animate__animated">
-            <div id="alert-icon" class="text-5xl">⚠️</div>
-            <h3 id="alert-title" class="text-base font-black uppercase tracking-wider text-slate-100">Notification</h3>
-            <p id="alert-msg" class="text-xs text-slate-300 leading-relaxed font-medium"></p>
-            <button onclick="dismissSystemModal(event)" class="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold text-xs py-3 rounded-xl transition-all shadow-md transform active:scale-95" data-i18n="continueBtn">
-                CONTINUE PROCEEDING
+            <button onclick="switchContextTerminalWindow('tasks')" class="flex flex-col items-center justify-center py-2 text-slate-400 rounded-xl transition-all active:scale-95 hover:bg-slate-900/50">
+                <i class="fa-solid fa-list-check text-lg"></i>
+                <span class="text-[10px] font-bold tracking-wide mt-1 uppercase">Tasks</span>
             </button>
-        </div>
-    </div>
+            <button onclick="switchContextTerminalWindow('wheel')" class="flex flex-col items-center justify-center py-2 text-slate-400 rounded-xl transition-all active:scale-95 hover:bg-slate-900/50">
+                <i class="fa-solid fa-circle-radiation text-lg"></i>
+                <span class="text-[10px] font-bold tracking-wide mt-1 uppercase">Wheel</span>
+            </button>
+            <button onclick="switchContextTerminalWindow('copilot')" class="flex flex-col items-center justify-center py-2 text-slate-400 rounded-xl transition-all active:scale-95 hover:bg-slate-900/50">
+                <i class="fa-solid fa-robot text-lg"></i>
+                <span class="text-[10px] font-bold tracking-wide mt-1 uppercase">Copilot</span>
+            </button>
+        </footer>
 
-    <div id="shop-modal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="glass-card w-full max-w-sm p-6 space-y-4 border-indigo-500/30 bg-slate-950/90 shadow-2xl" onclick="event.stopPropagation()">
-            <div class="flex justify-between items-center border-b border-white/10 pb-3">
-                <div class="flex items-center gap-2"><span>🛒</span><h3 class="text-sm font-black uppercase tracking-wider text-indigo-300" data-i18n="armoryTitle">Armory Depot</h3></div>
-                <button onclick="closeShopModal(event)" class="text-slate-400 text-sm bg-white/5 w-7 h-7 rounded-full">✕</button>
-            </div>
-            <div id="modal-shop-grid" class="space-y-2"></div>
-        </div>
     </div>
-
-    <button id="lobby-bag-btn" onclick="openShopModal(event)" class="fixed bottom-6 right-6 z-40 bg-gradient-to-tr from-indigo-500 via-purple-600 to-pink-500 border border-white/20 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl text-xl hover:scale-110 active:scale-95 transition-all animate__animated animate__pulse animate__infinite">🎒</button>
 
     <script>
-        // Localization Storage Core Registry System
+        // System Localization Registry System Database Storage Block
         const i18nRegistry = {
             en: {
-                mapHub: "Map Hub", viewTasks: "View Sectors Task Explorer", armoryTitle: "Armory Depot", continueBtn: "CONTINUE PROCEEDING",
-                subtitle: "Tap a Phase Card to Explore", phase1Title: "Phase 1: New Testament", phase1Desc: "Explore the Gospels and Epistles",
-                phase2Title: "Phase 2: Old Testament", phase2Desc: "Continuous Covenant Law Pools", phase3Title: "Phase 3: Grand Mixture Pool",
-                phase3Desc: "Randomized Across All Scriptural Cards", phase4Title: "Phase 4: E.G. White Chronicles", phase4Desc: "Prophetic Heritage Insight Pools",
-                phase5Title: "Phase 5: Mastery Blitz Mode", phase5Desc: "Extreme High Speed Fire Clock Arena", phase6Title: "Phase 6: Adventist Teachings",
-                phase6Desc: "The 28 Fundamental Sanctuary & Prophetic Beliefs", task1: "Answer {target} questions across any stage",
-                task2: "Maintain a win streak of {target} choices", task3: "Activate Chrono Freeze {target} times",
-                task4: "Survive {target} extreme Mastery Blitz cards", task5: "Possess a volume balance of {target} gold",
-                shortageTitle: "Treasury Shortage", shortageMsg: "You do not have enough coins to complete this purchase transaction.",
-                clearTitle: "🎉 Activity Set Cleared!", clearMsg: "Superb effort! Completed all active goals. Tier increased to {tier}, reward loaded.",
-                walletTitle: "🚨 Wallet Depleted", walletMsg: "Your coin balance has hit zero. Returning to tactical menu map hub.",
-                continuousLoop: "Continuous Active Shuffle Loop", unlockSuccess: "🔓 Segment Unlocked!", unlockSuccessMsg: "You have spent the vault entry fee to unlock {name} permanently."
+                mapHub: "Map Hub", 
+                viewTasks: "View Sectors Task Explorer", 
+                launchWheel: "Launch Prophetic Reward Wheel",
+                startSpin: "START PROPHETIC SPIN", 
+                armoryTitle: "Armory Depot", 
+                continueBtn: "CONTINUE PROCEEDING",
+                subtitle: "Tap a Phase Card to Explore", 
+                phase1Title: "Phase 1: New Testament", 
+                phase1Desc: "Explore the Gospels and Epistles",
+                phase2Title: "Phase 2: Old Testament", 
+                phase2Desc: "Continuous Covenant Law Pools", 
+                phase3Title: "Phase 3: Grand Mixture Pool",
+                phase3Desc: "Randomized Across All Scriptural Cards", 
+                phase4Title: "Phase 4: E.G. White Chronicles", 
+                phase4Desc: "Prophetic Heritage Insight Pools",
+                phase5Title: "Phase 5: Mastery Blitz Mode", 
+                phase5Desc: "5-Second Extreme Rapid Fire Speed Clock", 
+                phase6Title: "Phase 6: Adventist Teachings",
+                phase6Desc: "The 28 Fundamental Sanctuary & Prophetic Beliefs", 
+                task1: "Answer {target} questions across any stage",
+                task2: "Maintain a win streak of {target} choices", 
+                task3: "Activate Chrono Freeze {target} times",
+                task4: "Survive {target} extreme Mastery Blitz cycles"
             },
-            tw: {
-                mapHub: "Kyerɛ Maap", viewTasks: "Hwɛ Dwumadi Ahodoɔ Yi", armoryTitle: "Akodeɛ Koraeɛ", continueBtn: "KƆ SO DWUMADI NO",
-                subtitle: "Mia Phase Kaade Biara So", phase1Title: "Phase 1: Apam Foforɔ", phase1Desc: "Hwɛ Asɛmpa Nnwuma Ahodoɔ No",
-                phase2Title: "Phase 2: Apam Dada", phase2Desc: "Mmara ne Ahyɛdeɛ Ahodoɔ", phase3Title: "Phase 3: Nneɛma Frafra Koraeɛ",
-                phase3Desc: "Nsɛmmisa Frafra afiri Twerɛnsɛm mu", phase4Title: "Phase 4: E.G. White Atwerɛeɛ", phase4Desc: "Nkɔmhyɛ ne Tete Sukuu Ahodoɔ",
-                phase5Title: "Phase 5: Mastery Blitz kwan", phase5Desc: "Nnarekodi Nsekene Denden Sukuu", phase6Title: "Phase 6: Adventist Nkyerɛkyerɛ",
-                phase6Desc: "Gyidie nnyinasoɔ 28 ne Ɔsoro Kronkronbea no", task1: "Bua nsɛmmisa {target} wɔ fa biara",
-                task2: "Kora nkɔsoɔ streak {target} so pɛpɛɛpɛ", task3: "Fa Chrono Freeze dwuma mpren {target}",
-                task4: "Tena Mastery Blitz kaade {target} mu", task5: "Kora sika botaeɔ {target} sika kɔkɔɔ so",
-                shortageTitle: "Sika Anni Mu", shortageMsg: "Wo sika kɔkɔɔ nnu sɛ wobɛtɔ saa akodeɛ dwumadie perk yi.",
-                clearTitle: "🎉 Dwumadi Ahodoɔ No Anyam!", clearMsg: "Mmɔdenbɔ pa! Woawie botaeɛ nketewa no nyinaa. Tier akɔ {tier}.",
-                walletTitle: "🚨 Sika Koraeɛ Ahwe Ase", walletMsg: "Wo sika kɔkɔɔ anya asa korakora. Yɛresan akɔ maap hub no mu.",
-                continuousLoop: "Kwan a Nsɛmmisa Resesa Berɛ Biara", unlockSuccess: "🔓 Woatumi Abue!", unlockSuccessMsg: "Woatua sika pɛpɛɛpɛ de abue fa foforɔ yi: {name}."
+            fr: {
+                mapHub: "Centre de Cartes", 
+                viewTasks: "Explorateur de Tâches de Secteur", 
+                launchWheel: "Lancer la Roue de Récompense Prophétique",
+                startSpin: "COMMENCER LE TOUR PROPHÉTIQUE", 
+                armoryTitle: "Dépôt d'Armurerie", 
+                continueBtn: "CONTINUER LA PROCÉDURE",
+                subtitle: "Appuyez sur une carte de phase pour explorer", 
+                phase1Title: "Phase 1: Nouveau Testament", 
+                phase1Desc: "Explorez les Évangiles et les Épîtres",
+                phase2Title: "Phase 2: Ancien Testament", 
+                phase2Desc: "Pools continus de lois de l'alliance", 
+                phase3Title: "Phase 3: Pool de Mélange Grand",
+                phase3Desc: "Randomisé sur toutes les cartes scripturaires", 
+                phase4Title: "Phase 4: Chroniques d'E.G. White", 
+                phase4Desc: "Pools d'idées sur le patrimoine prophétique",
+                phase5Title: "Phase 5: Mode Blitz Maîtrise", 
+                phase5Desc: "Horloge rapide extrême de 5 secondes", 
+                phase6Title: "Phase 6: Enseignements Adventistes",
+                phase6Desc: "Les 28 croyances fondamentales du sanctuaire et de la prophétie",
+                task1: "Répondez à {target} questions à n'importe quel stade", 
+                task2: "Maintenir une série de victoires de {target} choix",
+                task3: "Activer Chrono Freeze {target} fois", 
+                task4: "Survivre à {target} cycles extrêmes de Mastery Blitz"
             }
         };
 
-        // Generation Algorithm Engine containing dictionary elements blueprint scaling to 50 items internally per segment
-        function generateProceduralDatabaseItems() {
-            let baseData = [
-                { id: "nt", name: "Matthew", group: "NT", q: "Who was chosen to be the earthly mother of Jesus Christ?", choices: ["Elizabeth", "Mary", "Martha", "Salome"], correct: 1 },
-                { id: "nt", name: "Matthew", group: "NT", q: "Where was Jesus Christ born historically?", choices: ["Nazareth", "Jerusalem", "Bethlehem", "Capernaum"], correct: 2 },
-                { id: "ot", name: "Genesis", group: "OT", q: "What garden home was explicitly planted for Adam and Eve's habitation?", choices: ["Gethsemane", "Eden", "Sinai", "Ararat"], correct: 1 },
-                { id: "ot", name: "Genesis", group: "OT", q: "How many days did God take to create the universe in Genesis?", choices: ["5 Days", "6 Days", "7 Days", "10 Days"], correct: 1 },
-                { id: "egw", name: "EGW Chronicles", group: "EGW", q: "Which work traces the cosmic metanarrative between Christ and Satan?", choices: ["Steps to Christ", "The Great Controversy", "Education", "Ministry of Healing"], correct: 1 },
-                { id: "egw", name: "EGW Chronicles", group: "EGW", q: "Which book focuses heavily on daily salvation devotional steps?", choices: ["Steps to Christ", "The Desire of Ages", "Patriarchs and Prophets", "Prophets and Kings"], correct: 0 },
-                { id: "mastery", name: "Mastery Blitz", group: "MASTERY", q: "In what year did the Millerite great disappointment take place?", choices: ["1798", "1843", "1844", "1850"], correct: 2 },
-                { id: "mastery", name: "Mastery Blitz", group: "MASTERY", q: "How many kingdoms are represented by the metal body parts in Daniel 2?", choices: ["3 Kingdoms", "4 Kingdoms", "5 Kingdoms", "6 Kingdoms"], correct: 1 },
-                { id: "sda", name: "Adventist Sanctuary", group: "SDA", q: "In what year did the prophetic cleansing of the heavenly sanctuary commence?", choices: ["1798", "1844", "1888", "1931"], correct: 1 },
-                { id: "sda", name: "Adventist Sanctuary", group: "SDA", q: "Which compartment of the sanctuary contained the Ark of the Covenant?", choices: ["Courtyard", "Holy Place", "Most Holy Place", "Outer Altar"], correct: 2 }
-            ];
-
-            // Programmatically scales the database storage arrays out to 50 index rows per book variant dynamically
-            let collections = ["nt", "ot", "egw", "mastery", "sda"];
-            let compiledData = [];
-
-            collections.forEach(c => {
-                let filters = baseData.filter(b => b.id === c);
-                for(let i=1; i<=50; i++) {
-                    let sample = filters[(i - 1) % filters.length];
-                    compiledData.push({
-                        name: sample.name + ` Section [Item ${i}]`,
-                        group: sample.group,
-                        questions: [{
-                            q: sample.q + ` (Verification Crypt #${i})`,
-                            a: [...sample.choices],
-                            correct: sample.correct
-                        }]
-                    });
-                }
-            });
-            return compiledData;
-        }
-
-        window.quizDatabase = generateProceduralDatabaseItems();
-
-        // System Configuration Profile Storage Cache Structures
-        let state = JSON.parse(localStorage.getItem('revelatorsPathfinderV1')) || {
-            gold: 750, lang: 'en',
-            perks: { freeze: 3, half: 2, skip: 1, shield: 2 },
-            unlockedBooks: { nt: true, ot: true, mix: true, egw: false, mastery: false, sda: false },
-            stats: { currentStreak: 0, freezeUsed: 0, totalCoinsEarned: 750, blitzSurvivals: 0, overallAnswers: 0 },
-            activitySetTier: 1,
-            activityProgressCounters: [0, 0, 0, 0, 0]
+        // Core Global Reactive State Management Machine Engine Ledger Data Node
+        let state = {
+            lang: 'en',
+            gold: 500,
+            activeTab: 'home',
+            unlockedBooks: {
+                nt: true,
+                ot: true,
+                mix: true,
+                egw: false,
+                mastery: false,
+                sda: false
+            },
+            perks: {
+                shield: 2,
+                freeze: 1
+            },
+            dailyTasks: [
+                { id: "task_01", type: "answer", target: 15, progress: 4, goldReward: 150, completed: false, i18nKey: "task1" },
+                { id: "task_02", type: "streak", target: 8, progress: 3, goldReward: 200, completed: false, i18nKey: "task2" },
+                { id: "task_03", type: "freeze", target: 3, progress: 1, goldReward: 100, completed: false, i18nKey: "task3" },
+                { id: "task_04", type: "blitz", target: 5, progress: 0, goldReward: 300, completed: false, i18nKey: "task4" }
+            ]
         };
 
-        const bookVaultLockCosts = { mastery: 500, egw: 1000, sda: 1500 };
+        // Prophetic Reward Master Spin Configuration Registry Matrix Array
+        const wheelSegments = [
+            { icon: "💰", color: "#1e1b4b", action: () => { state.gold += 50; } },
+            { icon: "🛡️", color: "#312e81", action: () => { state.perks.shield += 1; } },
+            { icon: "💰", color: "#111827", action: () => { state.gold += 150; } },
+            { icon: "❄️", color: "#1e3a8a", action: () => { state.perks.freeze += 1; } },
+            { icon: "💰", color: "#1e1b4b", action: () => { state.gold += 100; } },
+            { icon: "🛡️", color: "#10b981", action: () => { state.perks.shield += 1; } }
+        ];
 
         let currentCampaignMode = "";
         let campaignActivePool = [];
         let currentActiveQuestion = null;
         let countdownTimerRef = null;
         let secondsRemaining = 0;
+        let initialSecondsAllowed = 15;
         let inputInteractionsBlocked = false;
         let isShieldActive = false;
-        
+        let isFreezeActive = false;
+
         let audioCtx = null;
         let globalAudioMuted = false;
         let activeBackgroundToneLoop = null;
-        let currentBackgroundMoodType = "lobby"; 
+        let currentBackgroundMoodType = "lobby";
 
+        let wheelAnimationId = null;
+        let wheelBaseRotation = 0;
+        let wheelPulseScaleDelta = 0;
+        let isWheelActivelySpinning = false;
         let activePostAlertCallback = null;
 
-        // Snow Freeze Multi-threaded Canvas System Arrays
+        // Snow Freeze Canvas System Engine Variables
         let snowAnimationId = null;
-        let snowFlakesArray = [];
+        let snowFlakes = [];
 
         function getString(key, variables = {}) {
             let txt = i18nRegistry[state.lang][key] || i18nRegistry['en'][key] || key;
@@ -302,402 +223,65 @@
             return txt;
         }
 
-        function saveState() {
-            localStorage.setItem('revelatorsPathfinderV1', JSON.stringify(state));
-            document.getElementById('gold-val').innerText = state.gold;
-            document.getElementById('lang-label').innerText = state.lang === 'en' ? "English" : "Twi";
-            document.getElementById('audio-label').innerText = globalAudioMuted ? "AMBIANCE: OFF" : "AMBIANCE: ON";
-            
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                let key = el.getAttribute('data-i18n');
-                el.innerText = getString(key);
-            });
-        }
-
-        function initStarfieldAmbientLayer() {
-            const canvas = document.getElementById('ambient-particle-canvas');
-            const ctx = canvas.getContext('2d');
-            let dots = [];
-            
-            function resize() {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-            }
-            window.addEventListener('resize', resize);
-            resize();
-
-            for(let i=0; i<35; i++) {
-                dots.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    r: Math.random() * 2 + 1,
-                    vY: Math.random() * 0.3 + 0.1,
-                    alpha: Math.random() * 0.4 + 0.1
-                });
-            }
-
-            function loop() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                dots.forEach(d => {
-                    d.y -= d.vY;
-                    if(d.y < -10) d.y = canvas.height + 10;
-                    ctx.fillStyle = `rgba(129, 140, 248, ${d.alpha})`;
-                    ctx.beginPath();
-                    ctx.arc(d.x, d.y, d.r, 0, Math.PI*2);
-                    ctx.fill();
-                });
-                requestAnimationFrame(loop);
-            }
-            loop();
-        }
-
-        // Snow Freeze Particle Pipeline Engine Execution Vector
-        function toggleSnowSystemPipeline(run) {
-            const canvas = document.getElementById('snow-freeze-canvas');
-            const ctx = canvas.getContext('2d');
-            
-            if (!run) {
-                canvas.style.opacity = "0";
-                cancelAnimationFrame(snowAnimationId);
-                return;
-            }
-
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            canvas.style.opacity = "1";
-            snowFlakesArray = [];
-
-            for (let i = 0; i < 65; i++) {
-                snowFlakesArray.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    r: Math.random() * 3 + 1.5,
-                    speed: Math.random() * 1.5 + 0.5,
-                    density: Math.random() * 30
-                });
-            }
-
-            function frame() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = "rgba(224, 242, 254, 0.85)";
-                ctx.beginPath();
-                for (let i = 0; i < 65; i++) {
-                    let p = snowFlakesArray[i];
-                    ctx.moveTo(p.x, p.y);
-                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, true);
-
-                    p.y += p.speed;
-                    p.x += Math.sin(p.density) * 0.6;
-
-                    if (p.y > canvas.height) {
-                        snowFlakesArray[i] = { x: Math.random() * canvas.width, y: -10, r: p.r, speed: p.speed, density: p.density };
-                    }
-                }
-                ctx.fill();
-                snowAnimationId = requestAnimationFrame(frame);
-            }
-            frame();
-        }
-
-        function initAudioContext() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                startProceduralAmbianceLoop();
-            }
-        }
-
-        function startProceduralAmbianceLoop() {
-            if (activeBackgroundToneLoop) clearInterval(activeBackgroundToneLoop);
-            runMoodSynthesizerTick();
-            activeBackgroundToneLoop = setInterval(runMoodSynthesizerTick, currentBackgroundMoodType === 'war' ? 850 : 3500);
-        }
-
-        function runMoodSynthesizerTick() {
-            if (globalAudioMuted || !audioCtx) return;
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const now = audioCtx.currentTime;
-
-            if (currentBackgroundMoodType === 'war') {
-                let drumOsc = audioCtx.createOscillator();
-                let drumGain = audioCtx.createGain();
-                drumOsc.type = 'triangle';
-                drumOsc.frequency.setValueAtTime(58, now);
-                drumOsc.frequency.exponentialRampToValueAtTime(0.01, now + 0.45);
-                drumGain.gain.setValueAtTime(0.4, now);
-                drumGain.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
-                drumOsc.connect(drumGain);
-                drumGain.connect(audioCtx.destination);
-                drumOsc.start(now); drumOsc.stop(now + 0.45);
-            } else {
-                let ambientFreqs = [146.83, 220.00, 293.66];
-                ambientFreqs.forEach((f) => {
-                    let osc = audioCtx.createOscillator();
-                    let gain = audioCtx.createGain();
-                    osc.type = 'triangle'; osc.frequency.setValueAtTime(f, now);
-                    gain.gain.setValueAtTime(0, now);
-                    gain.gain.linearRampToValueAtTime(0.02, now + 1.2);
-                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.3);
-                    osc.connect(gain); gain.connect(audioCtx.destination);
-                    osc.start(now); osc.stop(now + 3.4);
-                });
-            }
-        }
-
-        function switchBackgroundMoodSoundtrack(mood) {
-            initAudioContext();
-            if (currentBackgroundMoodType === mood) return;
-            currentBackgroundMoodType = mood;
-            startProceduralAmbianceLoop();
-        }
-
-        function toggleGlobalAudioSystem(e) {
-            if(e) e.stopPropagation();
-            initAudioContext();
-            globalAudioMuted = !globalAudioMuted;
-            const btn = document.getElementById('audio-toggle-btn');
-            if (globalAudioMuted) {
-                btn.className = "bg-slate-950/95 border border-white/10 text-slate-500 px-3 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-xl";
-                btn.innerHTML = `<span class="w-2 h-2 rounded-full bg-slate-600"></span><span id="audio-label">AMBIANCE: OFF</span>`;
-            } else {
-                btn.className = "bg-slate-950/95 border border-emerald-500/30 text-emerald-400 px-3 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-xl";
-                btn.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span id="audio-label">AMBIANCE: ON</span>`;
-                runMoodSynthesizerTick();
-            }
-            saveState();
-        }
-
-        function playInterfaceFeedbackChime(type) {
-            if (globalAudioMuted || !audioCtx) return;
-            let now = audioCtx.currentTime;
-            if (type === 'correct') {
-                [523.25, 659.25, 783.99].forEach((f, i) => {
-                    let osc = audioCtx.createOscillator();
-                    let gain = audioCtx.createGain();
-                    osc.frequency.setValueAtTime(f, now + (i * 0.03));
-                    gain.gain.setValueAtTime(0.1, now);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-                    osc.connect(gain); gain.connect(audioCtx.destination);
-                    osc.start(now); osc.stop(now + 0.45);
-                });
-            } else if (type === 'wrong') {
-                let osc = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(115, now);
-                gain.gain.setValueAtTime(0.25, now); gain.gain.linearRampToValueAtTime(0.001, now + 0.4);
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(now); osc.stop(now + 0.42);
-            } else {
-                let osc = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
-                osc.frequency.setValueAtTime(400, now);
-                gain.gain.setValueAtTime(0.03, now); gain.gain.linearRampToValueAtTime(0.001, now + 0.05);
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(now); osc.stop(now + 0.06);
-            }
-        }
-
-        function triggerInGameAlert(title, message, icon, completeCallback = null) {
-            document.getElementById('alert-title').innerText = title;
-            document.getElementById('alert-msg').innerText = message;
-            document.getElementById('alert-icon').innerText = icon || '⚠️';
-            activePostAlertCallback = completeCallback;
-            
-            const element = document.getElementById('game-alert-modal');
-            element.classList.remove('hidden');
-            document.getElementById('alert-box-card').className = "glass-card w-full max-w-xs p-6 text-center space-y-4 border-indigo-500/40 bg-slate-950/90 animate__animated animate__zoomIn";
-        }
-
-        function dismissSystemModal(e) {
-            if(e) e.stopPropagation();
-            playInterfaceFeedbackChime('tap');
-            document.getElementById('game-alert-modal').classList.add('hidden');
-            if (activePostAlertCallback) {
-                const cb = activePostAlertCallback;
-                activePostAlertCallback = null;
-                cb();
-            }
-        }
-
-        function getProceduralActiveSet() {
-            let t = state.activitySetTier;
-            return [
-                { text: getString('task1', {target: 3+t}), target: 3 + t, current: state.activityProgressCounters[0] },
-                { text: getString('task2', {target: 2+t}), target: 2 + t, current: state.stats.currentStreak },
-                { text: getString('task3', {target: 1 + Math.floor(t/2)}), target: 1 + Math.floor(t/2), current: state.activityProgressCounters[2] },
-                { text: getString('task4', {target: t}), target: t, current: state.stats.blitzSurvivals },
-                { text: getString('task5', {target: 400 + (t * 100)}), target: 400 + (t * 100), current: state.gold }
-            ];
-        }
-
-        function evaluateActivityIncrements(type, amount = 1) {
-            if(type === 'answer') state.activityProgressCounters[0] += amount;
-            if(type === 'freeze') state.activityProgressCounters[2] += amount;
-            saveState();
-
-            let activeSet = getProceduralActiveSet();
-            let completedCount = 0;
-            activeSet.forEach(act => { if(act.current >= act.target) completedCount++; });
-
-            if (completedCount >= 5) {
-                let milestonePayout = 100 + (state.activitySetTier * 50);
-                state.gold += milestonePayout;
-                state.activitySetTier++;
-                state.activityProgressCounters = [0, 0, 0, 0, 0];
-                saveState();
-                
-                triggerInGameAlert(getString('clearTitle'), getString('clearMsg', {tier: state.activitySetTier}), "🏆");
-            }
-        }
-
-        function toggleActivitiesDropWindow(e) {
-            if(e) e.stopPropagation();
-            initAudioContext();
-            playInterfaceFeedbackChime('tap');
-            
-            const win = document.getElementById('activities-drop-window');
-            const arrow = document.getElementById('activities-drop-arrow');
-            
-            if (win.classList.contains('hidden')) {
-                win.classList.remove('hidden');
-                arrow.innerText = "▲";
-                renderDropActivitiesList();
-            } else {
-                win.classList.add('hidden');
-                arrow.innerText = "▼";
-            }
-        }
-
-        function renderDropActivitiesList() {
-            const container = document.getElementById('activities-drop-window');
-            container.innerHTML = "";
-            let activeSet = getProceduralActiveSet();
-            
-            activeSet.forEach(act => {
-                let currentProgress = Math.min(act.target, act.current);
-                let isCompleted = currentProgress >= act.target;
-                let pct = Math.floor((currentProgress / act.target) * 100);
-
-                let statusText = `<span class="text-[10px] text-indigo-400 font-mono font-bold">${currentProgress}/${act.target}</span>`;
-                let borderStyle = "border-white/5 bg-slate-900/40";
-                if(isCompleted) {
-                    statusText = `<span class="text-[9px] text-emerald-400 font-black animate-pulse">✓ READY</span>`;
-                    borderStyle = "border-emerald-500/30 bg-emerald-950/10 completed-glow";
-                }
-
-                const div = document.createElement('div');
-                div.className = `p-2.5 rounded-xl border flex flex-col gap-1 ${borderStyle}`;
-                div.innerHTML = `
-                    <div class="flex justify-between items-center text-xs">
-                        <span class="text-slate-200 font-medium">${act.text}</span>
-                        ${statusText}
-                    </div>
-                    <div class="w-full bg-slate-950 h-1 rounded-full overflow-hidden">
-                        <div class="bg-gradient-to-r from-indigo-500 to-purple-500 h-full" style="width: ${pct}%"></div>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        function openShopModal(e) {
-            if(e) e.stopPropagation();
-            initAudioContext();
-            const catalog = [
-                { id: 'freeze', name: 'Chrono Freeze', cost: 50, icon: '❄️' },
-                { id: 'half', name: 'Divine 50:50', cost: 75, icon: '⚖️' },
-                { id: 'skip', name: 'Prophetic Skip', cost: 100, icon: '🔮' },
-                { id: 'shield', name: 'Aegis Shield', cost: 60, icon: '🛡️' }
-            ];
-            const grid = document.getElementById('modal-shop-grid'); grid.innerHTML = "";
-            catalog.forEach(item => {
-                const block = document.createElement('div');
-                block.className = "flex items-center justify-between p-3 bg-slate-900/90 rounded-xl border border-white/5";
-                block.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <span class="text-xl bg-slate-950 p-2 rounded-lg">${item.icon}</span>
-                        <div>
-                            <h4 class="text-xs font-black text-slate-200">${item.name}</h4>
-                            <p class="text-[9px] text-indigo-400 font-bold">In Bag: ${state.perks[item.id] || 0}</p>
-                        </div>
-                    </div>
-                    <button onclick="purchaseInventoryPerk(event, '${item.id}', ${item.cost})" class="bg-indigo-600 hover:bg-indigo-500 font-bold text-xs px-3 py-1.5 rounded-lg text-white shadow-md">${item.cost} 💰</button>
-                `;
-                grid.appendChild(block);
-            });
-            document.getElementById('shop-modal').classList.remove('hidden');
-        }
-        function closeShopModal(e) { 
-            if(e) e.stopPropagation();
-            document.getElementById('shop-modal').classList.add('hidden'); 
-        }
-
-        function purchaseInventoryPerk(e, id, cost) {
-            if(e) e.stopPropagation();
-            if (state.gold >= cost) {
-                state.gold -= cost; state.perks[id] = (state.perks[id] || 0) + 1;
-                saveState(); playInterfaceFeedbackChime('tap'); openShopModal();
-            } else { triggerInGameAlert(getString('shortageTitle'), getString('shortageMsg'), "🪙"); }
-        }
-
-        // Vault Lock Economy Purchasing Matrix Router Engine
-        function requestSegmentVaultUnlock(e, key, cost, name) {
-            if(e) e.stopPropagation();
-            if (state.gold >= cost) {
-                state.gold -= cost;
-                state.unlockedBooks[key] = true;
-                saveState();
-                playInterfaceFeedbackChime('correct');
-                triggerInGameAlert(getString('unlockSuccess'), getString('unlockSuccessMsg', {name: name}), "🔓", () => {
-                    renderMenuMap();
-                });
-            } else {
-                triggerInGameAlert(getString('shortageTitle'), getString('shortageMsg'), "🪙");
-            }
-        }
-
+        // --- ALL CORE TERMINAL INTERFACE RENDERING HUB ---
         function renderMenuMap() {
-            currentCampaignMode = "";
-            document.body.classList.remove('game-bg-active');
-            document.getElementById('back-btn').classList.add('hidden');
-            document.getElementById('lobby-bag-btn').classList.remove('hidden');
-            document.getElementById('lobby-activities-bar').classList.remove('hidden');
-            toggleSnowSystemPipeline(false);
-            
-            switchBackgroundMoodSoundtrack('lobby');
+            const canvasNode = document.getElementById('window-canvas');
+            if (state.activeTab !== 'home') return;
 
-            const canvas = document.getElementById('window-canvas');
-            canvas.innerHTML = `
-                <div class="text-center space-y-1 py-2 animate__animated animate__fadeInDown">
-                    <h1 class="text-3xl font-black tracking-tighter shimmer-title filter drop-shadow-[0_5px_15px_rgba(99,102,241,0.35)]">REVELATORS PATHFINDERS</h1>
-                    <p class="text-[10px] text-slate-400 font-black tracking-widest uppercase">QUIZ QUEST MODULES</p>
+            canvasNode.innerHTML = `
+                <div class="space-y-1 animate__animated animate__fadeIn">
+                    <h1 class="text-2xl font-black tracking-wider heading-font text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 uppercase" data-i18n="mapHub">${getString('mapHub')}</h1>
+                    <p class="text-xs text-slate-400 font-medium tracking-wide uppercase" data-i18n="subtitle">${getString('subtitle')}</p>
                 </div>
 
-                <div class="space-y-3 animate__animated animate__fadeInUp">
-                    <div onclick="startArcadePipeline(event, 'nt')" class="level-card-interactive w-full p-5 glass-card text-left cursor-pointer relative group overflow-hidden">
-                        <div class="absolute inset-y-0 left-0 w-1 bg-blue-500"></div>
-                        <h3 class="text-base font-black text-blue-400 uppercase tracking-wide group-hover:text-blue-300 transition-colors" data-i18n="phase1Title">${getString('phase1Title')}</h3>
+                <div class="grid grid-cols-2 gap-2 animate__animated animate__fadeIn">
+                    <button onclick="switchContextTerminalWindow('tasks')" class="p-3 rounded-2xl glass-card text-left border border-indigo-500/20 hover:border-indigo-500/40 transition-all flex items-center gap-3 group active:scale-95">
+                        <div class="w-8 h-8 rounded-xl bg-indigo-950/80 border border-indigo-500/40 flex items-center justify-center text-indigo-400 shadow-md group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-route text-xs"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-black text-indigo-200 uppercase tracking-wide" data-i18n="viewTasks">${getString('viewTasks')}</p>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Daily Sector Status</p>
+                        </div>
+                    </button>
+                    <button onclick="switchContextTerminalWindow('wheel')" class="p-3 rounded-2xl glass-card text-left border border-amber-500/20 hover:border-amber-500/40 transition-all flex items-center gap-3 group active:scale-95">
+                        <div class="w-8 h-8 rounded-xl bg-amber-950/80 border border-amber-500/40 flex items-center justify-center text-amber-400 shadow-md group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-circle-radiation text-xs animate-spin-slow"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-black text-amber-200 uppercase tracking-wide" data-i18n="launchWheel">${getString('launchWheel')}</p>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Free Daily Prize Draw</p>
+                        </div>
+                    </button>
+                </div>
+
+                <div class="space-y-2 pt-2">
+                    
+                    <div onclick="startArcadePipeline(event, 'nt')" class="level-card-interactive w-full p-5 glass-card text-left cursor-pointer relative group overflow-hidden transition-all duration-300 hover:scale-[1.01]">
+                        <div class="absolute inset-y-0 left-0 w-1 bg-indigo-500"></div>
+                        <h3 class="text-base font-black text-indigo-400 uppercase tracking-wide group-hover:text-indigo-300 transition-colors" data-i18n="phase1Title">${getString('phase1Title')}</h3>
                         <p class="text-xs text-slate-400 mt-1 font-medium" data-i18n="phase1Desc">${getString('phase1Desc')}</p>
                     </div>
-                    
-                    <div onclick="startArcadePipeline(event, 'ot')" class="level-card-interactive w-full p-5 glass-card text-left cursor-pointer relative group overflow-hidden">
-                        <div class="absolute inset-y-0 left-0 w-1 bg-emerald-500"></div>
-                        <h3 class="text-base font-black text-emerald-400 uppercase tracking-wide group-hover:text-emerald-300 transition-colors" data-i18n="phase2Title">${getString('phase2Title')}</h3>
+
+                    <div onclick="startArcadePipeline(event, 'ot')" class="level-card-interactive w-full p-5 glass-card text-left cursor-pointer relative group overflow-hidden transition-all duration-300 hover:scale-[1.01]">
+                        <div class="absolute inset-y-0 left-0 w-1 bg-purple-500"></div>
+                        <h3 class="text-base font-black text-purple-400 uppercase tracking-wide group-hover:text-purple-300 transition-colors" data-i18n="phase2Title">${getString('phase2Title')}</h3>
                         <p class="text-xs text-slate-400 mt-1 font-medium" data-i18n="phase2Desc">${getString('phase2Desc')}</p>
                     </div>
-                    
-                    <div onclick="startArcadePipeline(event, 'mix')" class="level-card-interactive w-full p-5 glass-card text-left cursor-pointer relative group overflow-hidden">
-                        <div class="absolute inset-y-0 left-0 w-1 bg-purple-500"></div>
-                        <h3 class="text-base font-black text-purple-400 uppercase tracking-wide group-hover:text-purple-300 transition-colors" data-i18n="phase3Title">${getString('phase3Title')}</h3>
+
+                    <div onclick="startArcadePipeline(event, 'mix')" class="level-card-interactive w-full p-5 glass-card text-left cursor-pointer relative group overflow-hidden transition-all duration-300 hover:scale-[1.01]">
+                        <div class="absolute inset-y-0 left-0 w-1 bg-pink-500"></div>
+                        <h3 class="text-base font-black text-pink-400 uppercase tracking-wide group-hover:text-pink-300 transition-colors" data-i18n="phase3Title">${getString('phase3Title')}</h3>
                         <p class="text-xs text-slate-400 mt-1 font-medium" data-i18n="phase3Desc">${getString('phase3Desc')}</p>
                     </div>
-                    
-                    ${state.unlockedBooks.egw ? `
-                        <div onclick="startArcadePipeline(event, 'egw')" class="level-card-interactive w-full p-5 glass-card text-left cursor-pointer relative group overflow-hidden">
+
+                    \${state.unlockedBooks.egw ? \`
+                        <div onclick="startArcadePipeline(event, 'egw')" class="level-card-interactive w-full p-5 glass-card text-left cursor-pointer relative group overflow-hidden transition-all duration-300 hover:scale-[1.01]">
                             <div class="absolute inset-y-0 left-0 w-1 bg-amber-500"></div>
-                            <h3 class="text-base font-black text-amber-400 uppercase tracking-wide group-hover:text-amber-300 transition-colors" data-i18n="phase4Title">${getString('phase4Title')}</h3>
-                            <p class="text-xs text-slate-400 mt-1 font-medium" data-i18n="phase4Desc">${getString('phase4Desc')}</p>
+                            <h3 class="text-base font-black text-amber-400 uppercase tracking-wide group-hover:text-amber-300 transition-colors" data-i18n="phase4Title">\${getString('phase4Title')}</h3>
+                            <p class="text-xs text-slate-400 mt-1 font-medium" data-i18n="phase4Desc">\frac{\${getString('phase4Desc')}}{1}</p>
                         </div>
-                    ` : `
+                    \` : \`
                         <div onclick="requestSegmentVaultUnlock(event, 'egw', 1000, 'Phase 4: E.G. White Chronicles')" class="w-full p-5 glass-card border border-amber-500/20 bg-slate-950/40 text-left cursor-pointer relative group flex justify-between items-center opacity-75 hover:opacity-100 transition-opacity">
                             <div>
                                 <h3 class="text-sm font-black text-amber-500/70 uppercase tracking-wide">🔒 PHASE 4: E.G. WHITE CHRONICLES</h3>
@@ -705,18 +289,18 @@
                             </div>
                             <span class="bg-amber-600/20 border border-amber-500/40 px-3 py-1.5 rounded-xl font-black text-xs text-amber-400 tracking-wider shrink-0">1000 💰</span>
                         </div>
-                    `}
-                    
-                    ${state.unlockedBooks.mastery ? `
+                    \`}
+
+                    \${state.unlockedBooks.mastery ? \`
                         <div onclick="startArcadePipeline(event, 'mastery')" class="w-full p-5 glass-card text-left cursor-pointer relative overflow-hidden border border-red-500/30 bg-gradient-to-br from-red-950/20 to-slate-950 hover:scale-[1.02] transition-transform duration-300 group shadow-[0_0_20px_rgba(239,68,68,0.05)]">
                             <div class="absolute inset-y-0 left-0 w-1 bg-red-600 shadow-[0_0_10px_rgba(239,68,68,0.8)]"></div>
                             <div class="flex items-center justify-between">
-                                <h3 class="text-base font-black text-red-500 uppercase tracking-wide group-hover:text-red-400 transition-colors" data-i18n="phase5Title">${getString('phase5Title')}</h3>
+                                <h3 class="text-base font-black text-red-500 uppercase tracking-wide group-hover:text-red-400 transition-colors" data-i18n="phase5Title">\${getString('phase5Title')}</h3>
                                 <span class="text-[9px] font-black text-red-400 bg-red-950/80 border border-red-500/40 px-2 py-0.5 rounded-full animate-pulse tracking-wider">WAR ZONE</span>
                             </div>
-                            <p class="text-xs text-red-300/70 mt-1 font-medium" data-i18n="phase5Desc">${getString('phase5Desc')}</p>
+                            <p class="text-xs text-red-300/70 mt-1 font-medium" data-i18n="phase5Desc">\${getString('phase5Desc')}</p>
                         </div>
-                    ` : `
+                    \` : \`
                         <div onclick="requestSegmentVaultUnlock(event, 'mastery', 500, 'Phase 5: Mastery Blitz Mode')" class="w-full p-5 glass-card border border-red-500/20 bg-slate-950/40 text-left cursor-pointer relative group flex justify-between items-center opacity-75 hover:opacity-100 transition-opacity">
                             <div>
                                 <h3 class="text-sm font-black text-red-500/70 uppercase tracking-wide">🔒 PHASE 5: MASTERY BLITZ MODE</h3>
@@ -724,15 +308,15 @@
                             </div>
                             <span class="bg-red-600/20 border border-red-500/40 px-3 py-1.5 rounded-xl font-black text-xs text-red-400 tracking-wider shrink-0">500 💰</span>
                         </div>
-                    `}
-                    
-                    ${state.unlockedBooks.sda ? `
-                        <div onclick="startArcadePipeline(event, 'sda')" class="level-card-interactive w-full p-5 glass-card text-left cursor-pointer relative group overflow-hidden">
+                    \`}
+
+                    \${state.unlockedBooks.sda ? \`
+                        <div onclick="startArcadePipeline(event, 'sda')" class="level-card-interactive w-full p-5 glass-card text-left cursor-pointer relative group overflow-hidden transition-all duration-300 hover:scale-[1.01]">
                             <div class="absolute inset-y-0 left-0 w-1 bg-indigo-500"></div>
-                            <h3 class="text-base font-black text-indigo-400 uppercase tracking-wide group-hover:text-indigo-300 transition-colors" data-i18n="phase6Title">${getString('phase6Title')}</h3>
-                            <p class="text-xs text-slate-400 mt-1 font-medium" data-i18n="phase6Desc">${getString('phase6Desc')}</p>
+                            <h3 class="text-base font-black text-indigo-400 uppercase tracking-wide group-hover:text-indigo-300 transition-colors" data-i18n="phase6Title">\frac{\${getString('phase6Title')}}{1}</h3>
+                            <p class="text-xs text-slate-400 mt-1 font-medium" data-i18n="phase6Desc">\${getString('phase6Desc')}</p>
                         </div>
-                    ` : `
+                    \` : \`
                         <div onclick="requestSegmentVaultUnlock(event, 'sda', 1500, 'Phase 6: Adventist Teachings')" class="w-full p-5 glass-card border border-indigo-500/20 bg-slate-950/40 text-left cursor-pointer relative group flex justify-between items-center opacity-75 hover:opacity-100 transition-opacity">
                             <div>
                                 <h3 class="text-sm font-black text-indigo-500/70 uppercase tracking-wide">🔒 PHASE 6: ADVENTIST TEACHINGS</h3>
@@ -740,250 +324,759 @@
                             </div>
                             <span class="bg-indigo-600/20 border border-indigo-500/40 px-3 py-1.5 rounded-xl font-black text-xs text-indigo-400 tracking-wider shrink-0">1500 💰</span>
                         </div>
-                    `}
+                    \`}
+
                 </div>
-            `;
-            saveState();
-        }
 
-        function startArcadePipeline(e, mode) {
-            if(e) e.stopPropagation();
-            playInterfaceFeedbackChime('tap');
-            currentCampaignMode = mode;
-            
-            if (mode === 'mastery') {
-                switchBackgroundMoodSoundtrack('war');
-            } else {
-                switchBackgroundMoodSoundtrack('holy');
-            }
-
-            document.getElementById('back-btn').classList.remove('hidden');
-            compileQuestionsPoolForMode(mode);
-            launchNextActiveQuestionEngine();
-        }
-
-        function compileQuestionsPoolForMode(mode) {
-            campaignActivePool = [];
-            let targetGroup = "";
-            if (mode === 'nt') targetGroup = "NT";
-            else if (mode === 'ot') targetGroup = "OT";
-            else if (mode === 'egw') targetGroup = "EGW";
-            else if (mode === 'sda') targetGroup = "SDA";
-            else if (mode === 'mastery') targetGroup = "MASTERY";
-
-            if(targetGroup) {
-                campaignActivePool = window.quizDatabase.filter(q => q.group === targetGroup);
-            } else {
-                campaignActivePool = [...window.quizDatabase];
-            }
-            if(campaignActivePool.length === 0) campaignActivePool = [...window.quizDatabase];
-        }
-
-        function launchNextActiveQuestionEngine() {
-            document.getElementById('lobby-bag-btn').classList.add('hidden');
-            document.getElementById('lobby-activities-bar').classList.add('hidden');
-            document.body.classList.add('game-bg-active');
-            
-            inputInteractionsBlocked = false; isShieldActive = false;
-            document.getElementById('shield-frame').className = "";
-            document.getElementById('frost-frame').className = "";
-            toggleSnowSystemPipeline(false);
-
-            evaluateActivityIncrements('check_only', 0);
-
-            const activeNode = campaignActivePool[Math.floor(Math.random() * campaignActivePool.length)];
-            currentActiveQuestion = activeNode.questions[Math.floor(Math.random() * activeNode.questions.length)];
-            currentActiveQuestion._sourceBookContext = activeNode.name;
-
-            // Tiered Difficulty Matrix Allocation Engine
-            let calculatedDifficultyTier = "EASY";
-            if(state.stats.overallAnswers >= 30) {
-                secondsRemaining = 10;
-                calculatedDifficultyTier = "HARD";
-            } else if(state.stats.overallAnswers >= 15) {
-                secondsRemaining = 15;
-                calculatedDifficultyTier = "MODERATE";
-            } else {
-                secondsRemaining = 20;
-                calculatedDifficultyTier = "EASY";
-            }
-
-            // Universal override enforcement parameters for high-intensity battle segments
-            if(currentCampaignMode === 'mastery') {
-                secondsRemaining = 5;
-                calculatedDifficultyTier = "BLITZ OVERDRIVE";
-            }
-
-            const canvas = document.getElementById('window-canvas');
-            canvas.innerHTML = `
-                <div class="glass-card p-4 space-y-3 flex flex-col bg-slate-900/90 shadow-2xl animate__animated animate__fadeInDown">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h2 class="text-xs font-black text-indigo-400 uppercase tracking-wider">${currentActiveQuestion._sourceBookContext}</h2>
-                            <div class="text-[9px] font-black tracking-widest text-emerald-400 mt-0.5 bg-emerald-950/80 border border-emerald-500/20 px-2 py-0.5 rounded-full inline-block">DIFFICULTY: ${calculatedDifficultyTier}</div>
+                <div class="glass-card p-4 rounded-3xl border border-slate-900 space-y-3">
+                    <div class="flex items-center justify-between border-b border-slate-900 pb-2">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-indigo-400 text-sm"></i>
+                            <h4 class="text-sm font-black tracking-wider uppercase text-slate-200" data-i18n="armoryTitle">${getString('armoryTitle')}</h4>
                         </div>
-                        <div id="clock-wrapper" class="text-xl font-black tracking-tighter tabular-nums text-amber-400 bg-slate-950/80 px-3 py-1 rounded-2xl border border-white/10 shadow-inner">
-                            ⏰ <span id="clock-digit">${secondsRemaining}</span>s
+                        <span class="text-[10px] font-bold bg-indigo-950 text-indigo-300 border border-indigo-500/20 px-2 py-0.5 rounded-md uppercase tracking-widest">Store Equipment</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="p-3 rounded-2xl bg-slate-950/40 border border-slate-900 flex flex-col justify-between items-start gap-3 relative overflow-hidden group">
+                            <div class="flex items-center justify-between w-full">
+                                <span class="text-2xl group-hover:animate-bounce">🛡️</span>
+                                <span class="text-xs font-black px-2 py-0.5 bg-indigo-950 border border-indigo-500/30 text-indigo-400 rounded-lg">Owned: ${state.perks.shield}</span>
+                            </div>
+                            <div>
+                                <h5 class="text-xs font-black text-slate-200 uppercase tracking-wide">Divine Aegis Shield</h5>
+                                <p class="text-[10px] text-slate-500 font-medium mt-0.5">Absorbs 1 strike penance</p>
+                            </div>
+                            <button onclick="purchaseConsumablePerkItem(event, 'shield', 120)" class="w-full mt-1 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 border border-indigo-400/20 text-white text-xs font-black tracking-wider shadow-md transition-all active:scale-95 flex items-center justify-center gap-1">
+                                <span>BUY</span> <span class="text-indigo-200 font-bold">120 💰</span>
+                            </button>
+                        </div>
+
+                        <div class="p-3 rounded-2xl bg-slate-950/40 border border-slate-900 flex flex-col justify-between items-start gap-3 relative overflow-hidden group">
+                            <div class="flex items-center justify-between w-full">
+                                <span class="text-2xl group-hover:animate-pulse">❄️</span>
+                                <span class="text-xs font-black px-2 py-0.5 bg-sky-950 border border-sky-500/30 text-sky-400 rounded-lg">Owned: ${state.perks.freeze}</span>
+                            </div>
+                            <div>
+                                <h5 class="text-xs font-black text-slate-200 uppercase tracking-wide">Chrono Freeze</h5>
+                                <p class="text-[10px] text-slate-500 font-medium mt-0.5">Locks matrix countdown clock</p>
+                            </div>
+                            <button onclick="purchaseConsumablePerkItem(event, 'freeze', 180)" class="w-full mt-1 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 border border-sky-400/20 text-white text-xs font-black tracking-wider shadow-md transition-all active:scale-95 flex items-center justify-center gap-1">
+                                <span>BUY</span> <span class="text-sky-200 font-bold">180 💰</span>
+                            </button>
                         </div>
                     </div>
                 </div>
-
-                <div class="glass-card p-6 min-h-[100px] flex items-center justify-center text-center animate__animated animate__zoomIn bg-slate-900/95 shadow-2xl border-white/10">
-                    <h3 class="text-sm font-bold leading-snug text-slate-100">${currentActiveQuestion.q}</h3>
-                </div>
-
-                <div id="choice-matrix" class="space-y-2.5 animate__animated animate__fadeInUp"></div>
-
-                <div class="fixed bottom-0 left-0 right-0 p-3 bg-slate-950/95 border-t border-white/10 z-40 flex justify-center gap-2 shadow-2xl" onclick="event.stopPropagation()">
-                    <button id="perk-btn-freeze" onclick="applyInGameUtility('freeze')" class="flex-1 bg-slate-900 border border-sky-500/30 p-2 rounded-xl flex flex-col items-center transition-all"><span>❄️</span><span class="text-[9px] text-slate-400 font-bold">Freeze: ${state.perks.freeze}</span></button>
-                    <button id="perk-btn-half" onclick="applyInGameUtility('half')" class="flex-1 bg-slate-900 border border-rose-500/30 p-2 rounded-xl flex flex-col items-center transition-all"><span>⚖️</span><span class="text-[9px] text-slate-400 font-bold">50/50: ${state.perks.half}</span></button>
-                    <button id="perk-btn-skip" onclick="applyInGameUtility('skip')" class="flex-1 bg-slate-900 border border-purple-500/30 p-2 rounded-xl flex flex-col items-center transition-all"><span>🔮</span><span class="text-[9px] text-slate-400 font-bold">Skip: ${state.perks.skip}</span></button>
-                    <button id="perk-btn-shield" onclick="applyInGameUtility('shield')" class="flex-1 bg-slate-900 border border-amber-500/30 p-2 rounded-xl flex flex-col items-center transition-all"><span>🛡️</span><span class="text-[9px] text-slate-400 font-bold">Shield: ${state.perks.shield}</span></button>
-                </div>
             `;
-
-            const matrix = document.getElementById('choice-matrix');
-            currentActiveQuestion.a.forEach((opt, idx) => {
-                const btn = document.createElement('button');
-                btn.className = "btn-choice bg-slate-900/90 text-xs font-semibold shadow-md";
-                btn.innerText = opt;
-                btn.onclick = () => challengeAnswerSubmitted(idx, btn);
-                matrix.appendChild(btn);
-            });
-
-            beginCountdownTicker();
         }
 
-        function beginCountdownTicker() {
-            clearInterval(countdownTimerRef);
+        function renderTasksExplorer() {
+            const canvasNode = document.getElementById('window-canvas');
+            if (state.activeTab !== 'tasks') return;
+
+            let systemTaskRows = "";
+            state.dailyTasks.forEach(t => {
+                let currentPercentage = Math.min(100, Math.floor((t.progress / t.target) * 100));
+                systemTaskRows += `
+                    <div class="p-4 rounded-2xl glass-card border border-slate-900 relative overflow-hidden flex flex-col gap-3 ${t.completed ? 'opacity-60' : ''}">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="text-lg">${t.type==='answer'?'📚':t.type==='streak'?'🔥':t.type==='freeze'?'❄️':'⚡'}</span>
+                                <p class="text-xs font-black text-slate-200 uppercase tracking-wide">${getString(t.i18nKey, {target: t.target})}</p>
+                            </div>
+                            <span class="text-xs font-black text-amber-400 bg-amber-950/40 border border-amber-500/30 px-2 py-0.5 rounded-lg">+${t.goldReward} 💰</span>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                <span>Metrics Processing Pipeline</span>
+                                <span>${t.progress} / ${t.target} (${currentPercentage}%)</span>
+                            </div>
+                            <div class="w-full h-1.5 rounded-full bg-slate-950 overflow-hidden border border-slate-900">
+                                <div class="h-full bg-indigo-500 rounded-full transition-all duration-500" style="width: ${currentPercentage}%"></div>
+                            </div>
+                        </div>
+                        ${t.progress >= t.target && !t.completed ? `
+                            <button onclick="claimCompletedTaskReward(event, '${t.id}')" class="w-full py-1.5 rounded-xl bg-emerald-600 text-white font-black text-xs tracking-wider uppercase shadow-md active:scale-95 transition-transform animate__animated animate__pulse animate__infinite">CLAIM REWARD DIRECTLY</button>
+                        ` : t.completed ? `
+                            <div class="w-full py-1 rounded-xl bg-slate-900 border border-slate-800 text-slate-500 font-black text-xs tracking-wider uppercase text-center">TRANSACTION LEDGER FINALIZED</div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+
+            canvasNode.innerHTML = `
+                <div class="space-y-1 animate__animated animate__fadeIn">
+                    <h1 class="text-2xl font-black tracking-wider heading-font text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400 uppercase">Sector Tasks Registry</h1>
+                    <p class="text-xs text-slate-400 font-medium tracking-wide uppercase">Fulfill parameters to secure daily gold ledger balances</p>
+                </div>
+                <div class="space-y-2 pt-2 animate__animated animate__fadeIn">
+                    ${systemTaskRows}
+                </div>
+            `;
+        }
+
+        function renderWheelTerminal() {
+            const canvasNode = document.getElementById('window-canvas');
+            if (state.activeTab !== 'wheel') return;
+
+            canvasNode.innerHTML = `
+                <div class="space-y-1 text-center animate__animated animate__fadeIn">
+                    <h1 class="text-2xl font-black tracking-wider heading-font text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-400 uppercase">Prophetic Reward Wheel</h1>
+                    <p class="text-xs text-slate-400 font-medium tracking-wide uppercase">Trigger matrix validation draw for baseline resource allocation</p>
+                </div>
+
+                <div class="flex flex-col items-center justify-center py-6 gap-6 animate__animated animate__fadeIn">
+                    <div class="relative w-64 h-64 rounded-full border-4 border-slate-900 shadow-[0_0_40px_rgba(99,102,241,0.15)] bg-slate-950 flex items-center justify-center overflow-hidden" id="wheel-graphic-container">
+                        <canvas id="wheel-canvas-render-port" width="256" height="256" class="w-full h-full transition-transform duration-[4000ms] cubic-bezier(0.1, 0.8, 0.1, 1)"></canvas>
+                        <div class="absolute w-12 h-12 rounded-full bg-slate-950 border-4 border-indigo-500 shadow-xl flex items-center justify-center z-10">
+                            <span class="text-xs animate-pulse">🎯</span>
+                        </div>
+                        <div class="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[18px] border-t-amber-400 z-20 dropped-shadow-md"></div>
+                    </div>
+
+                    <button onclick="triggerWheelSpinExecutionSequence()" id="wheel-spin-trigger-btn" class="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-black text-sm tracking-widest uppercase shadow-[0_4px_20px_rgba(245,158,11,0.3)] transition-all active:scale-95 animate__animated animate__pulse animate__infinite" data-i18n="startSpin">
+                        ${getString('startSpin')}
+                    </button>
+                </div>
+            `;
+            setTimeout(() => { drawWheelGraphicsOnPort(); }, 50);
+        }
+
+        function renderCopilotHub() {
+            const canvasNode = document.getElementById('window-canvas');
+            if (state.activeTab !== 'copilot') return;
+
+            canvasNode.innerHTML = `
+                <div class="space-y-1 animate__animated animate__fadeIn">
+                    <h1 class="text-2xl font-black tracking-wider heading-font text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400 uppercase">Copilot Core Forum</h1>
+                    <p class="text-xs text-slate-400 font-medium tracking-wide uppercase">Stakeholder alignment interface and interactive assistance</p>
+                </div>
+
+                <div class="flex-1 min-h-[250px] p-4 rounded-3xl glass-card border border-slate-900 flex flex-col justify-between gap-4 animate__animated animate__fadeIn">
+                    <div class="space-y-3 flex-1 overflow-y-auto max-h-[280px] p-1">
+                        <div class="flex gap-2.5 items-start">
+                            <div class="w-7 h-7 rounded-lg bg-cyan-950 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-xs shrink-0 mt-0.5">
+                                <i class="fa-solid fa-robot"></i>
+                            </div>
+                            <div class="p-3 rounded-2xl rounded-tl-none bg-slate-900/60 border border-slate-900 text-xs text-slate-300 font-medium leading-relaxed max-w-[85%]">
+                                System Initialization Operational. Terminal logs indicate high integrity status frameworks across all narrative and gameplay segments. What vector coordinates require optimization?
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 items-center border-t border-slate-900/60 pt-3">
+                        <input type="text" placeholder="Transmit query parameters to terminal copilot..." class="flex-1 bg-slate-950 border border-slate-900 rounded-xl px-3 py-2 text-xs font-medium text-slate-300 focus:outline-none focus:border-cyan-500/50 transition-colors">
+                        <button class="w-8 h-8 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white flex items-center justify-center text-xs transition-transform active:scale-95 shrink-0 shadow-md">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- SUB-SYSTEM WINDOW MANAGER NAVIGATION BAR SWITCHER ---
+        function switchContextTerminalWindow(tabTargetId) {
+            if (inputInteractionsBlocked) return;
+            state.activeTab = tabTargetId;
+            
+            // Adjust footer navigation tabs visuals highlighting anchor states elements
+            const buttons = document.querySelectorAll('footer button');
+            const icons = ['fa-house', 'fa-list-check', 'fa-circle-radiation', 'fa-robot'];
+            
+            buttons.forEach((btn, index) => {
+                if ((tabTargetId === 'home' && index === 0) || 
+                    (tabTargetId === 'tasks' && index === 1) || 
+                    (tabTargetId === 'wheel' && index === 2) || 
+                    (tabTargetId === 'copilot' && index === 3)) {
+                    btn.className = "flex flex-col items-center justify-center py-2 text-indigo-400 rounded-xl transition-all active:scale-95 bg-indigo-950/20";
+                } else {
+                    btn.className = "flex flex-col items-center justify-center py-2 text-slate-400 rounded-xl transition-all active:scale-95 hover:bg-slate-900/50";
+                }
+            });
+
+            triggerAudioFeedbackTone(140, 0.05, 'triangle');
+
+            if (tabTargetId === 'home') renderMenuMap();
+            else if (tabTargetId === 'tasks') renderTasksExplorer();
+            else if (tabTargetId === 'wheel') renderWheelTerminal();
+            else if (tabTargetId === 'copilot') renderCopilotHub();
+        }
+
+        // --- GAME PLAY REGISTRY PIPELINE SYSTEM ACTIONS LAYER ---
+        function startArcadePipeline(evt, campaignId) {
+            evt.preventDefault();
+            if (inputInteractionsBlocked) return;
+
+            triggerAudioFeedbackTone(220, 0.1, 'sine');
+            currentCampaignMode = campaignId;
+
+            // Sample mock questions engine data pipeline construction array matrix
+            campaignActivePool = [
+                {
+                    q: "Which Gospel explicitly details the narrative tracking parameter tracking the Genealogy of Christ back to Abraham?",
+                    a: ["Gospel of Matthew", "Gospel of Mark", "Gospel of Luke", "Gospel of John"],
+                    correct: 0
+                },
+                {
+                    q: "What parameter matrix structure governs the length of the prophecy cycle tracking epoch metrics in Daniel Chapter 9?",
+                    a: ["70 Weeks", "1260 Days", "2300 Evenings", "1335 Days"],
+                    correct: 0
+                }
+            ];
+
+            executeNextQuestionCycle();
+        }
+
+        function executeNextQuestionCycle() {
+            if (campaignActivePool.length === 0) {
+                displayGlobalAlertOverlay("CAMPAIGN COMPLETE", "All scriptural processing vectors passed with validation clearances.", () => {
+                    switchContextTerminalWindow('home');
+                });
+                return;
+            }
+
+            currentActiveQuestion = campaignActivePool.shift();
+            isShieldActive = false;
+            isFreezeActive = false;
+            
+            // Setup countdown clock structure parameters
+            initialSecondsAllowed = (currentCampaignMode === 'mastery') ? 5 : 15;
+            secondsRemaining = initialSecondsAllowed;
+
+            renderActiveQuestionPort();
+            initiateQuestionCountdownTimer();
+        }
+
+        function renderActiveQuestionPort() {
+            const canvasNode = document.getElementById('window-canvas');
+            
+            let answersHtml = "";
+            currentActiveQuestion.a.forEach((ans, idx) => {
+                answersHtml += `
+                    <button onclick="submitSelectedAnswerChoice(event, ${idx})" class="answer-selection-btn w-full p-4 rounded-2xl glass-card border border-slate-900 text-left text-xs font-bold text-slate-300 hover:border-indigo-500/40 hover:bg-slate-900/30 transition-all active:scale-[0.99] flex items-center justify-between group">
+                        <span>${ans}</span>
+                        <i class="fa-solid fa-chevron-right text-[10px] text-slate-600 group-hover:text-indigo-400 transition-colors"></i>
+                    </button>
+                `;
+            });
+
+            canvasNode.innerHTML = `
+                <div class="flex items-center justify-between border-b border-slate-900 pb-2 animate__animated animate__fadeIn">
+                    <div class="flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping"></span>
+                        <span class="text-[10px] font-black tracking-widest text-indigo-400 uppercase">Mode: Active Evaluation Engine</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <button onclick="triggerInGamePerkActivation('freeze')" id="perk-freeze-trigger" class="w-7 h-7 rounded-lg bg-sky-950/40 border border-sky-500/30 text-sky-400 flex items-center justify-center text-xs shadow transition-all active:scale-95 ${state.perks.freeze<=0?'opacity-40':''}">❄️</button>
+                        <button onclick="triggerInGamePerkActivation('shield')" id="perk-shield-trigger" class="w-7 h-7 rounded-lg bg-indigo-950/40 border border-indigo-500/30 text-indigo-400 flex items-center justify-center text-xs shadow transition-all active:scale-95 ${state.perks.shield<=0?'opacity-40':''}">🛡️</button>
+                    </div>
+                </div>
+
+                <div class="w-full h-1 bg-slate-950 border border-slate-900 overflow-hidden rounded-full shadow-inner animate__animated animate__fadeIn">
+                    <div id="countdown-progress-bar" class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 w-full transition-all duration-1000 ease-linear"></div>
+                </div>
+
+                <div class="py-4 space-y-4 animate__animated animate__fadeIn">
+                    <div class="p-5 rounded-3xl glass-card border border-slate-900 shadow-md relative overflow-hidden bg-gradient-to-br from-slate-900/40 to-indigo-950/10">
+                        <p class="text-sm font-black text-slate-100 tracking-wide leading-relaxed">${currentActiveQuestion.q}</p>
+                    </div>
+
+                    <div class="space-y-2 pt-2">
+                        ${answersHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        function initiateQuestionCountdownTimer() {
+            if (countdownTimerRef) clearInterval(countdownTimerRef);
+            
+            const progressBar = document.getElementById('countdown-progress-bar');
+            
             countdownTimerRef = setInterval(() => {
-                if(inputInteractionsBlocked) return;
+                if (isFreezeActive) return; // Chrono Freeze active - block temporal degradation mechanics
+
                 secondsRemaining--;
-                const elem = document.getElementById('clock-digit'); if(elem) elem.innerText = secondsRemaining;
+                let percentageLeft = Math.max(0, Math.floor((secondsRemaining / initialSecondsAllowed) * 100));
                 
-                if(secondsRemaining <= 0) {
+                if (progressBar) {
+                    progressBar.style.width = `${percentageLeft}%`;
+                    if (percentageLeft <= 30) {
+                        progressBar.className = "h-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]";
+                        triggerAudioFeedbackTone(80, 0.02, 'sawtooth');
+                    }
+                }
+
+                if (secondsRemaining <= 0) {
                     clearInterval(countdownTimerRef);
-                    executeFailureSequence();
+                    processPenanceStrikeResolution("Temporal Exhaustion Event. Evaluation matrix sequence exceeded window allowances.");
                 }
             }, 1000);
         }
 
-        function challengeAnswerSubmitted(index, clickTarget) {
+        function submitSelectedAnswerChoice(evt, choiceIndex) {
+            evt.preventDefault();
             if (inputInteractionsBlocked) return;
-            inputInteractionsBlocked = true;
-            clearInterval(countdownTimerRef);
-
-            if (index === currentActiveQuestion.correct) {
-                clickTarget.className = "btn-choice rainbow-correct text-white text-xs shadow-2xl transform scale-[1.01]";
-                playInterfaceFeedbackChime('correct');
-                
-                state.stats.currentStreak++;
-                state.stats.overallAnswers++;
-                state.gold += 15;
-                if(currentCampaignMode === 'mastery') state.stats.blitzSurvivals++;
-                saveState();
-                evaluateActivityIncrements('answer', 1);
-
-                setTimeout(() => { launchNextActiveQuestionEngine(); }, 1400);
-            } else {
-                clickTarget.className = "btn-choice bg-gradient-to-r from-red-600 to-rose-700 border-rose-400 text-white text-xs animate__animated animate__shakeX font-bold shadow-2xl";
-                state.stats.currentStreak = 0; 
-                saveState();
-                setTimeout(() => { executeFailureSequence(); }, 400);
-            }
-        }
-
-        // Fluid Coin Penalty Execution Matrix WITHOUT Native Modals
-        function executeFailureSequence() {
-            clearInterval(countdownTimerRef);
-            playInterfaceFeedbackChime('wrong');
             
-            if(!isShieldActive) {
-                state.gold = Math.max(0, state.gold - 20);
-                saveState();
-                
-                // Triggers an unbuffered custom kinetic shock feedback animation loop directly against economy ledger counters
-                const containerNode = document.getElementById('gold-container');
-                if(containerNode) {
-                    containerNode.classList.add('vibrate-error-bag');
-                    setTimeout(() => { containerNode.classList.remove('vibrate-error-bag'); }, 1000);
-                }
-            }
+            clearInterval(countdownTimerRef);
+            inputInteractionsBlocked = true;
 
-            if(state.gold <= 0) {
-                triggerInGameAlert(getString('walletTitle'), getString('walletMsg'), "💀", () => { exitToMenu(); });
+            const selectedBtn = document.getElementsByClassName('answer-selection-btn')[choiceIndex];
+            
+            if (choiceIndex === currentActiveQuestion.correct) {
+                // Correct verification validation sequence matching path parameters
+                triggerAudioFeedbackTone(440, 0.15, 'sine');
+                setTimeout(() => { triggerAudioFeedbackTone(554.37, 0.12, 'sine'); }, 100);
+                setTimeout(() => { triggerAudioFeedbackTone(659.25, 0.2, 'sine'); }, 200);
+
+                if (selectedBtn) {
+                    selectedBtn.className = "w-full p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/60 text-left text-xs font-black text-emerald-400 flex items-center justify-between shadow-[0_0_20px_rgba(16,185,129,0.15)] animate__animated animate__pulse";
+                }
+
+                // Increment task trackers registers dynamically
+                state.dailyTasks.forEach(t => {
+                    if (t.type === 'answer') t.progress++;
+                    if (t.type === 'streak') t.progress++;
+                });
+
+                state.gold += 15;
+                document.getElementById('player-gold-display').innerText = state.gold;
+
+                setTimeout(() => {
+                    inputInteractionsBlocked = false;
+                    executeNextQuestionCycle();
+                }, 1500);
+
             } else {
-                setTimeout(() => { launchNextActiveQuestionEngine(); }, 1100);
-            }
-        }
-
-        function applyInGameUtility(type) {
-            if (state.perks[type] <= 0 || inputInteractionsBlocked) return;
-            state.perks[type]--; 
-            if(type === 'freeze') evaluateActivityIncrements('freeze', 1);
-            saveState(); 
-            playInterfaceFeedbackChime('perk');
-
-            // Kinetic animation flashing handlers linked to specific operational assets
-            const nodeLookupTable = {
-                freeze: 'perk-btn-freeze', half: 'perk-btn-half',
-                skip: 'perk-btn-skip', shield: 'perk-btn-shield'
-            };
-            const targetButtonNode = document.getElementById(nodeLookupTable[type]);
-            if(targetButtonNode) {
-                let flashClass = `perk-flash-${type}`;
-                targetButtonNode.classList.add(flashClass);
-                setTimeout(() => { targetButtonNode.classList.remove(flashClass); }, 600);
-            }
-
-            if (type === 'freeze') {
-                clearInterval(countdownTimerRef);
-                document.getElementById('frost-frame').classList.add('frost-active');
-                toggleSnowSystemPipeline(true);
-            } else if (type === 'half') {
-                const elements = document.getElementById('choice-matrix').getElementsByTagName('button');
-                let removed = 0;
-                for(let i=0; i<elements.length; i++) {
-                    if(i !== currentActiveQuestion.correct && removed < 2) {
-                        elements[i].style.opacity = "0.12";
-                        elements[i].disabled = true;
-                        removed++;
-                    }
+                // Erroneous path verification evaluation failure
+                if (selectedBtn) {
+                    selectedBtn.className = "w-full p-4 rounded-2xl bg-red-950/40 border border-red-500/60 text-left text-xs font-black text-red-400 flex items-center justify-between shadow-[0_0_20px_rgba(239,68,68,0.15)] animate__animated animate__shakeX";
                 }
-            } else if (type === 'skip') {
-                clearInterval(countdownTimerRef);
-                launchNextActiveQuestionEngine();
-            } else if (type === 'shield') {
-                isShieldActive = true;
-                document.getElementById('shield-frame').classList.add('shield-active');
+                setTimeout(() => {
+                    processPenanceStrikeResolution("Erroneous selection data transmitted to core verification terminal.");
+                }, 1000);
             }
         }
 
-        function toggleLanguage(e) { 
-            if(e) e.stopPropagation();
-            playInterfaceFeedbackChime('tap'); 
-            state.lang = state.lang === 'en' ? 'tw' : 'en'; 
-            saveState(); 
-            renderMenuMap(); 
-        }
-        
-        function exitToMenu(e) { 
-            if(e) e.stopPropagation();
-            playInterfaceFeedbackChime('tap'); 
-            clearInterval(countdownTimerRef); 
-            renderMenuMap(); 
-        }
-        
-        window.addEventListener('click', () => {
-            document.getElementById('activities-drop-window').classList.add('hidden');
-            document.getElementById('activities-drop-arrow').innerText = "▼";
-        });
+        function processPenanceStrikeResolution(failureLogsSummary) {
+            if (isShieldActive) {
+                // Aegis Shield handles absorption sequence safely without breakage penances
+                isShieldActive = false;
+                displayGlobalAlertOverlay("SHIELD ABSORBED STRIKE", "Your Divine Aegis shield absorbed the impact of this penalty strike. Evaluation pipeline preserved.", () => {
+                    inputInteractionsBlocked = false;
+                    executeNextQuestionCycle();
+                });
+                return;
+            }
 
-        window.onload = () => { 
-            saveState(); 
-            initStarfieldAmbientLayer();
-            renderMenuMap(); 
-        };
+            triggerAudioFeedbackTone(110, 0.4, 'sawtooth');
+            
+            // Break point execution - Reset task registers
+            state.dailyTasks.forEach(t => {
+                if (t.type === 'streak') t.progress = 0;
+            });
+
+            displayGlobalAlertOverlay("EVALUATION STRIKE PENANCE", `${failureLogsSummary} Sequence terminated. Core metrics have been recalibrated.`, () => {
+                inputInteractionsBlocked = false;
+                switchContextTerminalWindow('home');
+            });
+        }
+
+        function triggerInGamePerkActivation(perkType) {
+            if (perkType === 'freeze' && state.perks.freeze > 0 && !isFreezeActive) {
+                state.perks.freeze--;
+                isFreezeActive = true;
+                triggerAudioFeedbackTone(330, 0.3, 'sine');
+                document.getElementById('perk-freeze-trigger').className += " opacity-40 bg-sky-500 text-white animate-pulse";
+                
+                // Track metric task
+                state.dailyTasks.forEach(t => { if (t.type==='freeze') t.progress++; });
+                
+                initiateSnowFlakeCanvasBackgroundAnimationEngine();
+            } else if (perkType === 'shield' && state.perks.shield > 0 && !isShieldActive) {
+                state.perks.shield--;
+                isShieldActive = true;
+                triggerAudioFeedbackTone(261.63, 0.25, 'triangle');
+                document.getElementById('perk-shield-trigger').className += " opacity-40 bg-indigo-500 text-white animate-pulse";
+            }
+        }
+
+        // --- SEGMENT AUTH PROCESSING VAULT SECURITY ACTIONS OVERLAY ---
+        function requestSegmentVaultUnlock(evt, phaseTargetId, standardFeeValue, descriptiveLabelText) {
+            evt.preventDefault();
+            if (inputInteractionsBlocked) return;
+
+            if (state.gold < standardFeeValue) {
+                triggerAudioFeedbackTone(90, 0.2, 'square');
+                displayGlobalAlertOverlay("INSUFFICIENT RESERVES", "Your application ledger balance holds insufficient gold metrics to complete this unlocking operational phase.");
+                return;
+            }
+
+            triggerAudioFeedbackTone(293.66, 0.1, 'sine');
+            
+            // Deduct from storage structure metrics
+            state.gold -= standardFeeValue;
+            state.unlockedBooks[phaseTargetId] = true;
+            document.getElementById('player-gold-display').innerText = state.gold;
+
+            displayGlobalAlertOverlay("AUTHORIZATION GRANTED", `Successfully integrated authorization matrix clearances for ${descriptiveLabelText}. Sector pipelines operational.`, () => {
+                renderMenuMap();
+            });
+        }
+
+        function purchaseConsumablePerkItem(evt, itemKey, costMetricValue) {
+            evt.preventDefault();
+            if (inputInteractionsBlocked) return;
+
+            if (state.gold < costMetricValue) {
+                triggerAudioFeedbackTone(90, 0.2, 'square');
+                displayGlobalAlertOverlay("TRANSACTION REJECTED", "Core ledger records confirm insufficient point balance metrics.");
+                return;
+            }
+
+            state.gold -= costMetricValue;
+            state.perks[itemKey]++;
+            document.getElementById('player-gold-display').innerText = state.gold;
+            triggerAudioFeedbackTone(392, 0.15, 'sine');
+
+            renderMenuMap();
+        }
+
+        function claimCompletedTaskReward(evt, taskId) {
+            evt.preventDefault();
+            
+            let matchedTaskNode = state.dailyTasks.find(t => t.id === taskId);
+            if (!matchedTaskNode || matchedTaskNode.completed) return;
+
+            matchedTaskNode.completed = true;
+            state.gold += matchedTaskNode.goldReward;
+            document.getElementById('player-gold-display').innerText = state.gold;
+
+            triggerAudioFeedbackTone(523.25, 0.15, 'sine');
+            setTimeout(() => { triggerAudioFeedbackTone(659.25, 0.15, 'sine'); }, 80);
+            setTimeout(() => { triggerAudioFeedbackTone(783.99, 0.3, 'sine'); }, 160);
+
+            renderTasksExplorer();
+        }
+
+        // --- GLOBAL DISCRETE MODAL NOTIFICATION HANDLERS ENGINE ---
+        function displayGlobalAlertOverlay(alertTitle, alertMessageBody, confirmationCallback = null) {
+            activePostAlertCallback = confirmationCallback;
+            
+            const existingOverlay = document.getElementById('global-alert-modal-overlay');
+            if (existingOverlay) existingOverlay.remove();
+
+            const alertOverlayMarkup = document.createElement('div');
+            alertOverlayMarkup.id = "global-alert-modal-overlay";
+            alertOverlayMarkup.className = "fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate__animated animate__fadeIn animate__faster";
+            
+            alertOverlayMarkup.innerHTML = `
+                <div class="w-full max-w-xs p-5 rounded-3xl glass-modal border border-slate-800 shadow-2xl text-center flex flex-col gap-4 animate__animated animate__zoomIn animate__faster">
+                    <div class="space-y-1">
+                        <h2 class="text-base font-black heading-font tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 uppercase">${alertTitle}</h2>
+                        <div class="w-12 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 mx-auto rounded-full"></div>
+                    </div>
+                    <p class="text-xs font-medium text-slate-300 leading-relaxed uppercase tracking-wide">${alertMessageBody}</p>
+                    <button onclick="dismissGlobalAlertOverlayInterface(event)" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 border border-indigo-400/20 font-black text-xs text-white tracking-widest uppercase shadow-md transition-transform active:scale-95" data-i18n="continueBtn">
+                        ${getString('continueBtn')}
+                    </button>
+                </div>
+            `;
+
+            document.body.appendChild(alertOverlayMarkup);
+        }
+
+        function dismissGlobalAlertOverlayInterface(evt) {
+            evt.preventDefault();
+            triggerAudioFeedbackTone(180, 0.05, 'sine');
+            
+            const overlayNodeElement = document.getElementById('global-alert-modal-overlay');
+            if (overlayNodeElement) overlayNodeElement.remove();
+
+            if (activePostAlertCallback) {
+                const legacyCallbackRef = activePostAlertCallback;
+                activePostAlertCallback = null;
+                legacyCallbackRef();
+            }
+        }
+
+        function toggleAppLanguageSelector() {
+            state.lang = (state.lang === 'en') ? 'fr' : 'en';
+            document.getElementById('active-language-label').innerText = (state.lang === 'en') ? 'ENGLISH' : 'FRANÇAIS';
+            
+            triggerAudioFeedbackTone(200, 0.05, 'triangle');
+
+            // Force evaluation across active modules viewport layouts structures dynamically
+            if (state.activeTab === 'home') renderMenuMap();
+            else if (state.activeTab === 'tasks') renderTasksExplorer();
+            else if (state.activeTab === 'wheel') renderWheelTerminal();
+            else if (state.activeTab === 'copilot') renderCopilotHub();
+        }
+
+        // --- WHEEL RENDERING GRAPHICS CONTROLLER FUNCTIONS ---
+        function drawWheelGraphicsOnPort() {
+            const canvas = document.getElementById('wheel-canvas-render-port');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const numSegs = wheelSegments.length;
+            const radiusArc = canvas.width / 2;
+            const segmentAngleSize = (2 * Math.PI) / numSegs;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < numSegs; i++) {
+                let currentAngleOffset = i * segmentAngleSize;
+                ctx.beginPath();
+                ctx.fillStyle = wheelSegments[i].color;
+                ctx.moveTo(radiusArc, radiusArc);
+                ctx.arc(radiusArc, radiusArc, radiusArc - 4, currentAngleOffset, currentAngleOffset + segmentAngleSize);
+                ctx.closePath();
+                ctx.fill();
+
+                // Add inner dividing lines accents borders
+                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = "rgba(255,255,255,0.04)";
+                ctx.stroke();
+
+                // Render functional graphics icons within geometric spatial coordinates
+                ctx.save();
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "16px Arial";
+                ctx.translate(radiusArc, radiusArc);
+                ctx.rotate(currentAngleOffset + segmentAngleSize / 2);
+                ctx.fillText(wheelSegments[i].icon, radiusArc / 1.6, 6);
+                ctx.restore();
+            }
+        }
+
+        function triggerWheelSpinExecutionSequence() {
+            if (isWheelActivelySpinning || inputInteractionsBlocked) return;
+
+            if (state.gold < 50) {
+                triggerAudioFeedbackTone(90, 0.2, 'square');
+                displayGlobalAlertOverlay("LOCKED VALIDATION MATRIX", "A standard operation registration fee of 50 gold metrics is required to manually override this reward terminal axis draw.");
+                return;
+            }
+
+            state.gold -= 50;
+            document.getElementById('player-gold-display').innerText = state.gold;
+
+            isWheelActivelySpinning = true;
+            inputInteractionsBlocked = true;
+
+            const targetCanvasElement = document.getElementById('wheel-canvas-render-port');
+            const randomlySelectedSegmentIndex = Math.floor(Math.random() * wheelSegments.length);
+            
+            // Calculations for terminal rotations targeting exact radial slices
+            const anglePerSegment = 360 / wheelSegments.length;
+            const reverseOffsetAngleTarget = 360 - (randomlySelectedSegmentIndex * anglePerSegment + anglePerSegment / 2);
+            const totalDegreesRotationTarget = 1440 + reverseOffsetAngleTarget; 
+
+            if (targetCanvasElement) {
+                targetCanvasElement.style.transform = `rotate(${totalDegreesRotationTarget}deg)`;
+                
+                // Play rhythmic rolling structural clicking ticks audios during deceleration
+                let internalTickTrack = 0;
+                let tickTimerRef = setInterval(() => {
+                    internalTickTrack += 45;
+                    if (internalTickTrack < totalDegreesRotationTarget) {
+                        triggerAudioFeedbackTone(400 + (internalTickTrack % 100), 0.01, 'sine');
+                    } else {
+                        clearInterval(tickTimerRef);
+                    }
+                }, 90);
+            }
+
+            setTimeout(() => {
+                // Execute state transformation logic matches targeting
+                wheelSegments[randomlySelectedSegmentIndex].action();
+                document.getElementById('player-gold-display').innerText = state.gold;
+
+                triggerAudioFeedbackTone(587.33, 0.15, 'sine');
+                setTimeout(() => { triggerAudioFeedbackTone(880, 0.3, 'sine'); }, 120);
+
+                displayGlobalAlertOverlay(
+                    "DRAW RECONCILED", 
+                    `The processing hub matrix generated allocation index adjustments tracking reward sector item: ${wheelSegments[randomlySelectedSegmentIndex].icon}`, 
+                    () => {
+                        isWheelActivelySpinning = false;
+                        inputInteractionsBlocked = false;
+                        if (targetCanvasElement) {
+                            targetCanvasElement.style.transition = "none";
+                            targetCanvasElement.style.transform = "rotate(0deg)";
+                        }
+                        renderWheelTerminal();
+                    }
+                );
+            }, 4100);
+        }
+
+        // --- AMBIENCE TEXTURE SYNTHESIZER SOUND ENGINE STAGE ---
+        function initializeAudioInfrastructureEngine() {
+            if (audioCtx) return;
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContextClass) return;
+            audioCtx = new AudioContextClass();
+            initiateBackgroundMoodAmbianceTrackEngine();
+        }
+
+        function triggerAudioFeedbackTone(frequencyHz, durationSec, typeWaveformStr = 'sine') {
+            if (!audioCtx || globalAudioMuted) return;
+            try {
+                let oscNode = audioCtx.createOscillator();
+                let gainNode = audioCtx.createGain();
+
+                oscNode.type = typeWaveformStr;
+                oscNode.frequency.setValueAtTime(frequencyHz, audioCtx.currentTime);
+
+                gainNode.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + durationSec);
+
+                oscNode.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                oscNode.start();
+                oscNode.stop(audioCtx.currentTime + durationSec);
+            } catch (err) {
+                console.warn("Audio node routing exception caught safely: ", err);
+            }
+        }
+
+        function initiateBackgroundMoodAmbianceTrackEngine() {
+            if (!audioCtx || globalAudioMuted) return;
+            try {
+                if (activeBackgroundToneLoop) {
+                    activeBackgroundToneLoop.stop();
+                    activeBackgroundToneLoop = null;
+                }
+
+                let carrierOsc = audioCtx.createOscillator();
+                let modulatorOsc = audioCtx.createOscillator();
+                let modulationGain = audioCtx.createGain();
+                let mainFilter = audioCtx.createBiquadFilter();
+                let outputVolumeGain = audioCtx.createGain();
+
+                // Low baseline structural dark drones
+                carrierOsc.type = 'triangle';
+                carrierOsc.frequency.setValueAtTime(55, audioCtx.currentTime);
+
+                modulatorOsc.type = 'sine';
+                modulatorOsc.frequency.setValueAtTime(0.25, audioCtx.currentTime); // Low speed modulation tracking parameters
+                modulationGain.gain.setValueAtTime(4, audioCtx.currentTime);
+
+                mainFilter.type = 'lowpass';
+                mainFilter.frequency.setValueAtTime(180, audioCtx.currentTime);
+
+                outputVolumeGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+
+                // Modulator connections routing path maps
+                modulatorOsc.connect(modulationGain);
+                modulationGain.connect(carrierOsc.frequency);
+
+                carrierOsc.connect(mainFilter);
+                mainFilter.connect(outputVolumeGain);
+                outputVolumeGain.connect(audioCtx.destination);
+
+                carrierOsc.start();
+                modulatorOsc.start();
+
+                activeBackgroundToneLoop = carrierOsc;
+            } catch (err) {
+                console.error("Ambiance sound initialization bypassed runtime block: ", err);
+            }
+        }
+
+        function toggleAudioAmbiance() {
+            const targetBtn = document.getElementById('ambiance-toggle-btn');
+            
+            if (!audioCtx) {
+                initializeAudioInfrastructureEngine();
+                globalAudioMuted = false;
+                if (targetBtn) {
+                    targetBtn.className = "flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/30 text-emerald-400 text-xs font-black tracking-wider shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-all active:scale-95";
+                    targetBtn.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span>AMBIANCE: ON</span>`;
+                }
+                return;
+            }
+
+            globalAudioMuted = !globalAudioMuted;
+
+            if (globalAudioMuted) {
+                if (activeBackgroundToneLoop) {
+                    try { activeBackgroundToneLoop.stop(); } catch(e){}
+                    activeBackgroundToneLoop = null;
+                }
+                if (targetBtn) {
+                    targetBtn.className = "flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-700 bg-slate-900/40 text-slate-400 text-xs font-black tracking-wider transition-all active:scale-95";
+                    targetBtn.innerHTML = `<span class="w-2 h-2 rounded-full bg-slate-500"></span><span>AMBIANCE: MUTED</span>`;
+                }
+            } else {
+                initiateBackgroundMoodAmbianceTrackEngine();
+                if (targetBtn) {
+                    targetBtn.className = "flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/30 text-emerald-400 text-xs font-black tracking-wider shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-all active:scale-95";
+                    targetBtn.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span>AMBIANCE: ON</span>`;
+                }
+            }
+        }
+
+        // --- CHRONO FREEZE CANVAS PARTICLE SYSTEM ENGINE ---
+        function initiateSnowFlakeCanvasBackgroundAnimationEngine() {
+            const canvas = document.getElementById('snow-freeze-canvas');
+            if (!canvas) return;
+
+            canvas.className = "fixed inset-0 pointer-events-none z-0"; // Force layout mapping visibility conversion
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const ctx = canvas.getContext('2d');
+            snowFlakes = [];
+
+            for (let i = 0; i < 45; i++) {
+                snowFlakes.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    r: Math.random() * 2.5 + 1,
+                    d: Math.random() * 20 + 5,
+                    v: Math.random() * 0.5 + 0.2
+                });
+            }
+
+            if (snowAnimationId) cancelAnimationFrame(snowAnimationId);
+            executeSnowParticleTickFrame(ctx, canvas);
+        }
+
+        function executeSnowParticleTickFrame(ctx, canvas) {
+            if (!isFreezeActive) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                canvas.className = "fixed inset-0 pointer-events-none z-0 invisible";
+                return;
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "rgba(14, 165, 233, 0.15)";
+            ctx.beginPath();
+
+            for (let i = 0; i < snowFlakes.length; i++) {
+                let f = snowFlakes[i];
+                ctx.moveTo(f.x, f.y);
+                ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2, true);
+
+                // Update displacement parameters
+                f.y += f.v;
+                f.x += Math.sin(f.y / 30) * 0.2;
+
+                if (f.y > canvas.height) {
+                    snowFlakes[i] = { x: Math.random() * canvas.width, y: 0, r: f.r, d: f.d, v: f.v };
+                }
+            }
+            ctx.fill();
+            snowAnimationId = requestAnimationFrame(() => { executeSnowParticleTickFrame(ctx, canvas); });
+        }
+
+        // --- LIFECYCLE PARSING ENTRY BOOTSTRAP INITIALIZATION STAGE ---
+        window.addEventListener('DOMContentLoaded', () => {
+            renderMenuMap();
+        });
     </script>
 </body>
 </html>
