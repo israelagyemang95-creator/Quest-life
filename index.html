@@ -3,16 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prophetic Quest Terminal</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- FontAwesome for Icons -->
+    <title>Revelators Pathfinders Quiz Quest</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-    <!-- Animate.css -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     
     <style>
@@ -21,1091 +15,122 @@
             background-color: #020617;
             color: #f8fafc;
             overflow-x: hidden;
+            user-select: none;
         }
-        .heading-font {
-            font-family: 'Orbitron', sans-serif;
+        .heading-font { font-family: 'Orbitron', sans-serif; }
+        
+        #ambient-particle-canvas, #snow-freeze-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
         }
-        .glass-card {
-            background: rgba(15, 23, 42, 0.45);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+        #snow-freeze-canvas { z-index: 45; opacity: 0; transition: opacity 0.4s ease; }
+        
+        .game-bg-active {
+            background-image: url('https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?auto=format&fit=crop&w=800&q=80') !important;
+            background-size: cover !important;
+            background-position: center !important;
+            background-blend-mode: overlay !important;
+            background-color: rgba(3, 6, 17, 0.94) !important;
         }
+
+        .glass-card { 
+            background: rgba(15, 23, 42, 0.45); 
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px); 
+            border: 1px solid rgba(255, 255, 255, 0.06); 
+            border-radius: 24px; 
+            color: white; 
+        }
+
         .glass-modal {
             background: rgba(2, 6, 23, 0.85);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
+
+        .level-card-interactive {
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
         }
-        ::-webkit-scrollbar-track {
-            background: #020617;
+        .level-card-interactive:hover {
+            transform: translateY(-4px) scale(1.02);
+            background: rgba(23, 37, 84, 0.45);
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 15px 30px rgba(99, 102, 241, 0.25);
         }
-        ::-webkit-scrollbar-thumb {
-            background: #1e1b4b;
-            border-radius: 999px;
+        
+        .btn-choice { 
+            width: 100%; 
+            text-align: left; 
+            padding: 1.1rem 1.4rem; 
+            border-radius: 20px; 
+            border: 1px solid rgba(255,255,255,0.07); 
+            background: rgba(13, 18, 35, 0.85); 
+            font-weight: 600; 
+            transition: all 0.2s ease; 
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #312e81;
+        .btn-choice:hover { 
+            background: rgba(37, 99, 235, 0.15); 
+            border-color: rgba(37, 99, 235, 0.4); 
+            transform: translateY(-1px); 
         }
+
+        @keyframes auroraFlow {
+            0% { background-position: 0% 50%; filter: hue-rotate(0deg); }
+            50% { background-position: 100% 50%; filter: hue-rotate(180deg); }
+            100% { background-position: 0% 50%; filter: hue-rotate(360deg); }
+        }
+        .rainbow-correct { 
+            background: linear-gradient(45deg, #10b981, #2563eb, #8b5cf6, #059669) !important;
+            background-size: 300% 300% !important;
+            animation: auroraFlow 4s ease infinite !important;
+            border-color: transparent !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.6) !important;
+        }
+
+        @keyframes coinShock {
+            0%, 100% { transform: scale(1); }
+            20%, 60% { transform: scale(0.85) rotate(-6deg); filter: drop-shadow(0 0 15px #ef4444); }
+            40%, 80% { transform: scale(1.15) rotate(6deg); filter: drop-shadow(0 0 25px #ef4444); }
+        }
+        .vibrate-error-bag { animation: coinShock 0.5s ease-in-out; border-color: #ef4444 !important; background-color: rgba(153, 27, 27, 0.4) !important;}
+        .vibrate-error-bag span { color: #ef4444 !important; }
+
+        @keyframes huffmanPulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.08); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .perk-flash-freeze { animation: huffmanPulse 0.6s ease-out; border-color: #38bdf8 !important; box-shadow: 0 0 30px #0ea5e9 !important; }
+        .perk-flash-half { animation: huffmanPulse 0.6s ease-out; border-color: #f43f5e !important; box-shadow: 0 0 30px #e11d48 !important; }
+        .perk-flash-skip { animation: huffmanPulse 0.6s ease-out; border-color: #a855f7 !important; box-shadow: 0 0 30px #9333ea !important; }
+        .perk-flash-shield { animation: huffmanPulse 0.6s ease-out; border-color: #f59e0b !important; box-shadow: 0 0 30px #d97706 !important; }
+
+        #frost-frame { position: fixed; inset: 0; border: 14px solid rgba(56, 189, 248, 0.45); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 80px rgba(14, 165, 233, 0.35); }
+        .frost-active { opacity: 1 !important; }
+        
+        #shield-frame { position: fixed; inset: 0; border: 12px solid rgba(245, 158, 11, 0.5); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 60px rgba(245, 158, 11, 0.25); }
+        .shield-active { opacity: 1 !important; }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #1e1b4b; border-radius: 999px; }
     </style>
 </head>
-<body class="relative min-h-screen selection:bg-indigo-500 selection:text-white">
+<body class="relative min-h-screen">
 
-    <!-- Global Sound Reference Element -->
-    <div id="audio-pool-container" class="hidden"></div>
+    <canvas id="ambient-particle-canvas"></canvas>
+    <canvas id="snow-freeze-canvas"></canvas>
+    <div id="frost-frame"></div>
+    <div id="shield-frame"></div>
 
-    <!-- Active Ambient Canvas Engine Background -->
-    <canvas id="snow-freeze-canvas" class="fixed inset-0 pointer-events-none z-0 invisible"></canvas>
-
-    <!-- MAIN INTERACTIVE WRAPPER -->
     <div class="relative min-h-screen z-10 flex flex-col justify-between max-w-md mx-auto bg-slate-950 border-x border-slate-900 shadow-2xl">
         
-        <!-- TOP NAVIGATION STATUS HEADER BAR -->
         <header class="p-4 flex items-center justify-between border-b border-indigo-950/40 bg-slate-950/60 sticky top-0 z-40 backdrop-blur-md">
-            <!-- Ambiance Tone Switcher Toggle Toggle Button Trigger -->
-            <button onclick="toggleAudioAmbiance()" id="ambiance-toggle-btn" class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/30 text-emerald-400 text-xs font-black tracking-wider shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-all active:scale-95">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>AMBIANCE: ON</span>
-            </button>
-
-            <div class="flex items-center gap-3">
-                <!-- Internationalization Dynamic Control Language Interface Menu Switcher Button Selector -->
-                <button onclick="toggleAppLanguageSelector()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-950/80 border border-indigo-500/30 text-indigo-300 font-bold text-xs tracking-wide shadow-md hover:border-indigo-400 transition-colors active:scale-95">
-                    <i class="fa-solid fa-globe text-[11px]"></i>
-                    <span id="active-language-label" class="uppercase">ENGLISH</span>
-                </button>
-
-                <!-- Core App Inventory Points Balance Ledger Counter Indicator Tracker Display -->
-                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-950/40 border border-amber-500/30 text-amber-400 font-black text-sm shadow-inner">
-                    <i class="fa-solid fa-coins text-xs animate-spin-slow"></i>
-                    <span id="player-gold-display">500</span>
-                </div>
-            </div>
-        </header>
-
-        <!-- APP CONTENT ROOT WINDOW GRID STAGE CORE DISPLAY LAYOUT BOX PORT CONTAINER -->
-        <main id="window-canvas" class="flex-1 p-4 space-y-4 overflow-y-auto pb-24">
-            <!-- Dynamic Content gets injected here via renderMenuMap() -->
-        </main>
-
-        <!-- APP FOOTER ACCESSIBILITY CONTROL BUTTON REGISTRY DOCK NAVIGATION TAB BAR STRIP PANEL -->
-        <footer class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-slate-950/80 backdrop-blur-lg border-t border-slate-900 grid grid-cols-4 p-2 gap-1 z-40 shadow-[0_-10px_25px_rgba(0,0,0,0.5)]">
-            <button onclick="switchContextTerminalWindow('home')" class="flex flex-col items-center justify-center py-2 text-indigo-400 rounded-xl transition-all active:scale-95 hover:bg-slate-900/50">
-                <i class="fa-solid fa-house text-lg"></i>
-                <span class="text-[10px] font-bold tracking-wide mt-1 uppercase">Home</span>
-            </button>
-            <button onclick="switchContextTerminalWindow('tasks')" class="flex flex-col items-center justify-center py-2 text-slate-400 rounded-xl transition-all active:scale-95 hover:bg-slate-900/50">
-                <i class="fa-solid fa-list-check text-lg"></i>
-                <span class="text-[10px] font-bold tracking-wide mt-1 uppercase">Tasks</span>
-            </button>
-            <button onclick="switchContextTerminalWindow('wheel')" class="flex flex-col items-center justify-center py-2 text-slate-400 rounded-xl transition-all active:scale-95 hover:bg-slate-900/50">
-                <i class="fa-solid fa-circle-radiation text-lg"></i>
-                <span class="text-[10px] font-bold tracking-wide mt-1 uppercase">Wheel</span>
-            </button>
-            <button onclick="switchContextTerminalWindow('copilot')" class="flex flex-col items-center justify-center py-2 text-slate-400 rounded-xl transition-all active:scale-95 hover:bg-slate-900/50">
-                <i class="fa-solid fa-robot text-lg"></i>
-                <span class="text-[10px] font-bold tracking-wide mt-1 uppercase">Copilot</span>
-            </button>
-        </footer>
-
-    </div>
-
-    <!-- SCRIPT APPLICATION CONTROLLER CONFIGURATION SYSTEM LOGIC ENGINE -->
-    <script>
-        // System Localization Registry System Database Storage Block
-        const i18nRegistry = {
-            en: {
-                mapHub: "Map Hub", 
-                viewTasks: "View Sectors Task Explorer", 
-                launchWheel: "Launch Prophetic Reward Wheel",
-                startSpin: "START PROPHETIC SPIN", 
-                armoryTitle: "Armory Depot", 
-                continueBtn: "CONTINUE PROCEEDING",
-                subtitle: "Tap a Phase Card to Explore", 
-                phase1Title: "Phase 1: New Testament", 
-                phase1Desc: "Explore the Gospels and Epistles",
-                phase2Title: "Phase 2: Old Testament", 
-                phase2Desc: "Continuous Covenant Law Pools", 
-                phase3Title: "Phase 3: Grand Mixture Pool",
-                phase3Desc: "Randomized Across All Scriptural Cards", 
-                phase4Title: "Phase 4: E.G. White Chronicles", 
-                phase4Desc: "Prophetic Heritage Insight Pools",
-                phase5Title: "Phase 5: Mastery Blitz Mode", 
-                phase5Desc: "5-Second Extreme Rapid Fire Speed Clock", 
-                phase6Title: "Phase 6: Adventist Teachings",
-                phase6Desc: "The 28 Fundamental Sanctuary & Prophetic Beliefs", 
-                task1: "Answer {target} questions across any stage",
-                task2: "Maintain a win streak of {target} choices", 
-                task3: "Activate Chrono Freeze {target} times",
-                task4: "Survive {target} extreme Mastery Blitz cycles"
-            },
-            fr: {
-                mapHub: "Centre de Cartes", 
-                viewTasks: "Explorateur de Tâches de Secteur", 
-                launchWheel: "Lancer la Roue de Récompense Prophétique",
-                startSpin: "COMMENCER LE TOUR PROPHÉTIQUE", 
-                armoryTitle: "Dépôt d'Armurerie", 
-                continueBtn: "CONTINUER LA PROCÉDURE",
-                subtitle: "Appuyez sur une carte de phase pour explorer", 
-                phase1Title: "Phase 1: Nouveau Testament", 
-                phase1Desc: "Explorez les Évangiles et les Épîtres",
-                phase2Title: "Phase 2: Ancien Testament", 
-                phase2Desc: "Pools continus de lois de l'alliance", 
-                phase3Title: "Phase 3: Pool de Mélange Grand",
-                phase3Desc: "Randomisé sur toutes les cartes scripturaires", 
-                phase4Title: "Phase 4: Chroniques d'E.G. White", 
-                phase4Desc: "Pools d'idées sur le patrimoine prophétique",
-                phase5Title: "Phase 5: Mode Blitz Maîtrise", 
-                phase5Desc: "Horloge rapide extrême de 5 secondes", 
-                phase6Title: "Phase 6: Enseignements Adventistes",
-                phase6Desc: "Les 28 croyances fondamentales du sanctuaire et de la prophétie",
-                task1: "Répondez à {target} questions à n'importe quel stade", 
-                task2: "Maintenir une série de victoires de {target} choix",
-                task3: "Activer Chrono Freeze {target} fois", 
-                task4: "Survivre à {target} cycles extrêmes de Mastery Blitz"
-            }
-        };
-
-        // Core Global Reactive State Management Machine Engine Ledger Data Node
-        let state = {
-            lang: 'en',
-            gold: 500,
-            activeTab: 'home',
-            unlockedBooks: {
-                nt: true,
-                ot: true,
-                mix: true,
-                egw: false,
-                mastery: false,
-                sda: false
-            },
-            perks: {
-                shield: 2,
-                freeze: 1
-            },
-            dailyTasks: [
-                { id: "task_01", type: "answer", target: 15, progress: 4, goldReward: 150, completed: false, i18nKey: "task1" },
-                { id: "task_02", type: "streak", target: 8, progress: 3, goldReward: 200, completed: false, i18nKey: "task2" },
-                { id: "task_03", type: "freeze", target: 3, progress: 1, goldReward: 100, completed: false, i18nKey: "task3" },
-                { id: "task_04", type: "blitz", target: 5, progress: 0, goldReward: 300, completed: false, i18nKey: "task4" }
-            ]
-        };
-
-        // Prophetic Reward Master Spin Configuration Registry Matrix Array
-        const wheelSegments = [
-            { icon: "💰", color: "#1e1b4b", action: () => { state.gold += 50; } },
-            { icon: "🛡️", color: "#312e81", action: () => { state.perks.shield += 1; } },
-            { icon: "💰", color: "#111827", action: () => { state.gold += 150; } },
-            { icon: "❄️", color: "#1e3a8a", action: () => { state.perks.freeze += 1; } },
-            { icon: "💰", color: "#1e1b4b", action: () => { state.gold += 100; } },
-            { icon: "🛡️", color: "#10b981", action: () => { state.perks.shield += 1; } }
-        ];
-
-        let currentCampaignMode = "";
-        let campaignActivePool = [];
-        let currentActiveQuestion = null;
-        let countdownTimerRef = null;
-        let secondsRemaining = 0;
-        let initialSecondsAllowed = 15;
-        let inputInteractionsBlocked = false;
-        let isShieldActive = false;
-        let isFreezeActive = false;
-
-        let audioCtx = null;
-        let globalAudioMuted = false;
-        let activeBackgroundToneLoop = null;
-        let currentBackgroundMoodType = "lobby";
-
-        let wheelAnimationId = null;
-        let wheelBaseRotation = 0;
-        let wheelPulseScaleDelta = 0;
-        let isWheelActivelySpinning = false;
-        let activePostAlertCallback = null;
-
-        // Snow Freeze Canvas System Engine Variables
-        let snowAnimationId = null;
-        let snowFlakes = [];
-
-        function getString(key, variables = {}) {
-            let txt = i18nRegistry[state.lang][key] || i18nRegistry['en'][key] || key;
-            for (let v in variables) {
-                txt = txt.replace(`{${v}}`, variables[v]);
-            }
-            return txt;
-        }
-
-        // --- ALL CORE TERMINAL INTERFACE RENDERING HUB ---
-        function renderMenuMap() {
-            const canvasNode = document.getElementById('window-canvas');
-            if (state.activeTab !== 'home') return;
-
-            canvasNode.innerHTML = `
-                <div class="space-y-1 animate__animated animate__fadeIn">
-                    <h1 class="text-2xl font-black tracking-wider heading-font text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 uppercase" data-i18n="mapHub">${getString('mapHub')}</h1>
-                    <p class="text-xs text-slate-400 font-medium tracking-wide uppercase" data-i18n="subtitle">${getString('subtitle')}</p>
-                </div>
-
-                <!-- Navigation Quick Actions Sector Links Matrix Grid -->
-                <div class="grid grid-cols-2 gap-2 animate__animated animate__fadeIn">
-                    <button onclick="switchContextTerminalWindow('tasks')" class="p-3 rounded-2xl glass-card text-left border border-indigo-500/20 hover:border-indigo-500/40 transition-all flex items-center gap-3 group active:scale-95">
-                        <div class="w-8 h-8 rounded-xl bg-indigo-950/80 border border-indigo-500/40 flex items-center justify-center text-indigo-400 shadow-md group-hover:scale-110 transition-transform">
-                            <i class="fa-solid fa-route text-xs"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs font-black text-indigo-200 uppercase tracking-wide" data-i18n="viewTasks">${getString('viewTasks')}</p>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Daily Sector Status</p>
-                        </div>
-                    </button>
-                    <button onclick="switchContextTerminalWindow('wheel')" class="p-3 rounded-2xl glass-card text-left border border-amber-500/20 hover:border-amber-500/40 transition-all flex items-center gap-3 group active:scale-95">
-                        <div class="w-8 h-8 rounded-xl bg-amber-950/80 border border-amber-500/40 flex items-center justify-center text-amber-400 shadow-md group-hover:scale-110 transition-transform">
-                            <i class="fa-solid fa-circle-radiation text-xs animate-spin-slow"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs font-black text-amber-200 uppercase tracking-wide" data-i18n="launchWheel">${getString('launchWheel')}</p>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Free Daily Prize Draw</p>
-                        </div>
-                    </button>
-                </div>
-
-                <!-- CAMPAIGN PHASES MASTER TIMELINE LISTING PANEL CONTAINER -->
-                <div class="space-y-2 pt-2">
-                    
-                    <!-- Phase 1 Layout Block -->
-                    <div onclick="startArcadePipeline(event, 'nt')" class="level-card-interactive w-full p-5 glass-card text-left cursor-pointer relative group overflow-hidden transition-all duration-300 hover:scale-[1.01]">
-                        <div class="absolute inset-y-0 left-0 w-1 bg-indigo-500"></div>
-                        <h3 class="text-base font-black text-indigo-400 uppercase tracking-wide group-hover:text-indigo-300 transition-colors" data-i18n="phase1Title">${getString('phase1Title')}</h3>
-                        <p class="text-xs text-slate-400 mt-1 font-medium" data-i18n="phase1Desc">${getString('phase1Desc')}</p>
-                    </div>
-
-                    <!-- Phase 2 Layout Block -->
-                    <div onclick="startArcadePipeline(event, 'ot')" class="level-card-interactive w-full p-5 glass-card text-left cursor-pointer relative group overflow-hidden transition-all duration-300 hover:scale-[1.01]">
-                        <div class="absolute inset-y-0 left-0 w-1 bg-purple-500"></div>
-                        <h3 class="text-base font-black text-purple-400 uppercase tracking-wide group-hover:text-purple-300 transition-colors" data-i18n="phase2Title">${getString('phase2Title')}</h3>
-                        <p class="text-xs text-slate-400 mt-1 font-medium" data-i18n="phase2Desc">${getString('phase2Desc')}</p>
-                    </div>
-
-                    <!-- Phase 3 Layout Block -->
-                    <div onclick="startArcadePipeline(event, 'mix')" class="level-card-interactive w-full p-5 glass-card text-left cursor-pointer relative group overflow-hidden transition-all duration-300 hover:scale-[1.01]">
-                        <div class="absolute inset-y-0 left-0 w-1 bg-pink-500"></div>
-                        <h3 class="text-base font-black text-pink-400 uppercase tracking-wide group-hover:text-pink-300 transition-colors" data-i18n="phase3Title">${getString('phase3Title')}</h3>
-                        <p class="text-xs text-slate-400 mt-1 font-medium" data-i18n="phase3Desc">${getString('phase3Desc')}</p>
-                    </div>
-
-                    <!-- Phase 4 Layout Block -->
-                    ${state.unlockedBooks.egw ? `
-                        <div onclick="startArcadePipeline(event, 'egw')" class="level-card-interactive w-full p-5 glass-card text-left cursor-pointer relative group overflow-hidden transition-all duration-300 hover:scale-[1.01]">
-                            <div class="absolute inset-y-0 left-0 w-1 bg-amber-500"></div>
-                            <h3 class="text-base font-black text-amber-400 uppercase tracking-wide group-hover:text-amber-300 transition-colors" data-i18n="phase4Title">${getString('phase4Title')}</h3>
-                            <p class="text-xs text-slate-400 mt-1 font-medium" data-i18n="phase4Desc">${getString('phase4Desc')}</p>
-                        </div>
-                    ` : `
-                        <div onclick="requestSegmentVaultUnlock(event, 'egw', 1000, 'Phase 4: E.G. White Chronicles')" class="w-full p-5 glass-card border border-amber-500/20 bg-slate-950/40 text-left cursor-pointer relative group flex justify-between items-center opacity-75 hover:opacity-100 transition-opacity">
-                            <div>
-                                <h3 class="text-sm font-black text-amber-500/70 uppercase tracking-wide">🔒 PHASE 4: E.G. WHITE CHRONICLES</h3>
-                                <p class="text-[11px] text-slate-500 mt-0.5">Requires specialized unlocking processing authorization</p>
-                            </div>
-                            <span class="bg-amber-600/20 border border-amber-500/40 px-3 py-1.5 rounded-xl font-black text-xs text-amber-400 tracking-wider shrink-0">1000 💰</span>
-                        </div>
-                    `}
-
-                    <!-- Phase 5 Layout Block -->
-                    ${state.unlockedBooks.mastery ? `
-                        <div onclick="startArcadePipeline(event, 'mastery')" class="w-full p-5 glass-card text-left cursor-pointer relative overflow-hidden border border-red-500/30 bg-gradient-to-br from-red-950/20 to-slate-950 hover:scale-[1.02] transition-transform duration-300 group shadow-[0_0_20px_rgba(239,68,68,0.05)]">
-                            <div class="absolute inset-y-0 left-0 w-1 bg-red-600 shadow-[0_0_10px_rgba(239,68,68,0.8)]"></div>
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-base font-black text-red-500 uppercase tracking-wide group-hover:text-red-400 transition-colors" data-i18n="phase5Title">${getString('phase5Title')}</h3>
-                                <span class="text-[9px] font-black text-red-400 bg-red-950/80 border border-red-500/40 px-2 py-0.5 rounded-full animate-pulse tracking-wider">WAR ZONE</span>
-                            </div>
-                            <p class="text-xs text-red-300/70 mt-1 font-medium" data-i18n="phase5Desc">${getString('phase5Desc')}</p>
-                        </div>
-                    ` : `
-                        <div onclick="requestSegmentVaultUnlock(event, 'mastery', 500, 'Phase 5: Mastery Blitz Mode')" class="w-full p-5 glass-card border border-red-500/20 bg-slate-950/40 text-left cursor-pointer relative group flex justify-between items-center opacity-75 hover:opacity-100 transition-opacity">
-                            <div>
-                                <h3 class="text-sm font-black text-red-500/70 uppercase tracking-wide">🔒 PHASE 5: MASTERY BLITZ MODE</h3>
-                                <p class="text-[11px] text-slate-500 mt-0.5">Ultra rapid clock evaluation structure terminal</p>
-                            </div>
-                            <span class="bg-red-600/20 border border-red-500/40 px-3 py-1.5 rounded-xl font-black text-xs text-red-400 tracking-wider shrink-0">500 💰</span>
-                        </div>
-                    `}
-
-                    <!-- Phase 6 Layout Block -->
-                    ${state.unlockedBooks.sda ? `
-                        <div onclick="startArcadePipeline(event, 'sda')" class="level-card-interactive w-full p-5 glass-card text-left cursor-pointer relative group overflow-hidden transition-all duration-300 hover:scale-[1.01]">
-                            <div class="absolute inset-y-0 left-0 w-1 bg-indigo-500"></div>
-                            <h3 class="text-base font-black text-indigo-400 uppercase tracking-wide group-hover:text-indigo-300 transition-colors" data-i18n="phase6Title">${getString('phase6Title')}</h3>
-                            <p class="text-xs text-slate-400 mt-1 font-medium" data-i18n="phase6Desc">${getString('phase6Desc')}</p>
-                        </div>
-                    ` : `
-                        <div onclick="requestSegmentVaultUnlock(event, 'sda', 1500, 'Phase 6: Adventist Teachings')" class="w-full p-5 glass-card border border-indigo-500/20 bg-slate-950/40 text-left cursor-pointer relative group flex justify-between items-center opacity-75 hover:opacity-100 transition-opacity">
-                            <div>
-                                <h3 class="text-sm font-black text-indigo-500/70 uppercase tracking-wide">🔒 PHASE 6: ADVENTIST TEACHINGS</h3>
-                                <p class="text-[11px] text-slate-500 mt-0.5">Sanctuary frameworks and theological milestones</p>
-                            </div>
-                            <span class="bg-indigo-600/20 border border-indigo-500/40 px-3 py-1.5 rounded-xl font-black text-xs text-indigo-400 tracking-wider shrink-0">1500 💰</span>
-                        </div>
-                    `}
-
-                </div>
-
-                <!-- PERKS AND CONSUMABLES STORE MODAL SYSTEM ACCESS DECK -->
-                <div class="glass-card p-4 rounded-3xl border border-slate-900 space-y-3">
-                    <div class="flex items-center justify-between border-b border-slate-900 pb-2">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-shield-halved text-indigo-400 text-sm"></i>
-                            <h4 class="text-sm font-black tracking-wider uppercase text-slate-200" data-i18n="armoryTitle">${getString('armoryTitle')}</h4>
-                        </div>
-                        <span class="text-[10px] font-bold bg-indigo-950 text-indigo-300 border border-indigo-500/20 px-2 py-0.5 rounded-md uppercase tracking-widest">Store Equipment</span>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2">
-                        <div class="p-3 rounded-2xl bg-slate-950/40 border border-slate-900 flex flex-col justify-between items-start gap-3 relative overflow-hidden group">
-                            <div class="flex items-center justify-between w-full">
-                                <span class="text-2xl group-hover:animate-bounce">🛡️</span>
-                                <span class="text-xs font-black px-2 py-0.5 bg-indigo-950 border border-indigo-500/30 text-indigo-400 rounded-lg">Owned: ${state.perks.shield}</span>
-                            </div>
-                            <div>
-                                <h5 class="text-xs font-black text-slate-200 uppercase tracking-wide">Divine Aegis Shield</h5>
-                                <p class="text-[10px] text-slate-500 font-medium mt-0.5">Absorbs 1 strike penance</p>
-                            </div>
-                            <button onclick="purchaseConsumablePerkItem(event, 'shield', 120)" class="w-full mt-1 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 border border-indigo-400/20 text-white text-xs font-black tracking-wider shadow-md transition-all active:scale-95 flex items-center justify-center gap-1">
-                                <span>BUY</span> <span class="text-indigo-200 font-bold">120 💰</span>
-                            </button>
-                        </div>
-
-                        <div class="p-3 rounded-2xl bg-slate-950/40 border border-slate-900 flex flex-col justify-between items-start gap-3 relative overflow-hidden group">
-                            <div class="flex items-center justify-between w-full">
-                                <span class="text-2xl group-hover:animate-pulse">❄️</span>
-                                <span class="text-xs font-black px-2 py-0.5 bg-sky-950 border border-sky-500/30 text-sky-400 rounded-lg">Owned: ${state.perks.freeze}</span>
-                            </div>
-                            <div>
-                                <h5 class="text-xs font-black text-slate-200 uppercase tracking-wide">Chrono Freeze</h5>
-                                <p class="text-[10px] text-slate-500 font-medium mt-0.5">Locks matrix countdown clock</p>
-                            </div>
-                            <button onclick="purchaseConsumablePerkItem(event, 'freeze', 180)" class="w-full mt-1 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 border border-sky-400/20 text-white text-xs font-black tracking-wider shadow-md transition-all active:scale-95 flex items-center justify-center gap-1">
-                                <span>BUY</span> <span class="text-sky-200 font-bold">180 💰</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderTasksExplorer() {
-            const canvasNode = document.getElementById('window-canvas');
-            if (state.activeTab !== 'tasks') return;
-
-            let systemTaskRows = "";
-            state.dailyTasks.forEach(t => {
-                let currentPercentage = Math.min(100, Math.floor((t.progress / t.target) * 100));
-                systemTaskRows += `
-                    <div class="p-4 rounded-2xl glass-card border border-slate-900 relative overflow-hidden flex flex-col gap-3 ${t.completed ? 'opacity-60' : ''}">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <span class="text-lg">${t.type==='answer'?'📚':t.type==='streak'?'🔥':t.type==='freeze'?'❄️':'⚡'}</span>
-                                <p class="text-xs font-black text-slate-200 uppercase tracking-wide">${getString(t.i18nKey, {target: t.target})}</p>
-                            </div>
-                            <span class="text-xs font-black text-amber-400 bg-amber-950/40 border border-amber-500/30 px-2 py-0.5 rounded-lg">+${t.goldReward} 💰</span>
-                        </div>
-                        <div class="space-y-1">
-                            <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                <span>Metrics Processing Pipeline</span>
-                                <span>${t.progress} / ${t.target} (${currentPercentage}%)</span>
-                            </div>
-                            <div class="w-full h-1.5 rounded-full bg-slate-950 overflow-hidden border border-slate-900">
-                                <div class="h-full bg-indigo-500 rounded-full transition-all duration-500" style="width: ${currentPercentage}%"></div>
-                            </div>
-                        </div>
-                        ${t.progress >= t.target && !t.completed ? `
-                            <button onclick="claimCompletedTaskReward(event, '${t.id}')" class="w-full py-1.5 rounded-xl bg-emerald-600 text-white font-black text-xs tracking-wider uppercase shadow-md active:scale-95 transition-transform animate__animated animate__pulse animate__infinite">CLAIM REWARD DIRECTLY</button>
-                        ` : t.completed ? `
-                            <div class="w-full py-1 rounded-xl bg-slate-900 border border-slate-800 text-slate-500 font-black text-xs tracking-wider uppercase text-center">TRANSACTION LEDGER FINALIZED</div>
-                        ` : ''}
-                    </div>
-                `;
-            });
-
-            canvasNode.innerHTML = `
-                <div class="space-y-1 animate__animated animate__fadeIn">
-                    <h1 class="text-2xl font-black tracking-wider heading-font text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400 uppercase">Sector Tasks Registry</h1>
-                    <p class="text-xs text-slate-400 font-medium tracking-wide uppercase">Fulfill parameters to secure daily gold ledger balances</p>
-                </div>
-                <div class="space-y-2 pt-2 animate__animated animate__fadeIn">
-                    ${systemTaskRows}
-                </div>
-            `;
-        }
-
-        function renderWheelTerminal() {
-            const canvasNode = document.getElementById('window-canvas');
-            if (state.activeTab !== 'wheel') return;
-
-            canvasNode.innerHTML = `
-                <div class="space-y-1 text-center animate__animated animate__fadeIn">
-                    <h1 class="text-2xl font-black tracking-wider heading-font text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-400 uppercase">Prophetic Reward Wheel</h1>
-                    <p class="text-xs text-slate-400 font-medium tracking-wide uppercase">Trigger matrix validation draw for baseline resource allocation</p>
-                </div>
-
-                <div class="flex flex-col items-center justify-center py-6 gap-6 animate__animated animate__fadeIn">
-                    <!-- CIRCULAR VECTOR SEGMENT WHEEL GRAPHIC ELEMENT WRAPPER -->
-                    <div class="relative w-64 h-64 rounded-full border-4 border-slate-900 shadow-[0_0_40px_rgba(99,102,241,0.15)] bg-slate-950 flex items-center justify-center overflow-hidden" id="wheel-graphic-container">
-                        <canvas id="wheel-canvas-render-port" width="256" height="256" class="w-full h-full transition-transform duration-[4000ms] cubic-bezier(0.1, 0.8, 0.1, 1)"></canvas>
-                        <!-- Center Core Anchor Hub Pin -->
-                        <div class="absolute w-12 h-12 rounded-full bg-slate-950 border-4 border-indigo-500 shadow-xl flex items-center justify-center z-10">
-                            <span class="text-xs animate-pulse">🎯</span>
-                        </div>
-                        <!-- Top Absolute Position Pointer Marker indicator -->
-                        <div class="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[18px] border-t-amber-400 z-20 dropped-shadow-md"></div>
-                    </div>
-
-                    <button onclick="triggerWheelSpinExecutionSequence()" id="wheel-spin-trigger-btn" class="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-black text-sm tracking-widest uppercase shadow-[0_4px_20px_rgba(245,158,11,0.3)] transition-all active:scale-95 animate__animated animate__pulse animate__infinite" data-i18n="startSpin">
-                        ${getString('startSpin')}
-                    </button>
-                </div>
-            `;
-            setTimeout(() => { drawWheelGraphicsOnPort(); }, 50);
-        }
-
-        function renderCopilotHub() {
-            const canvasNode = document.getElementById('window-canvas');
-            if (state.activeTab !== 'copilot') return;
-
-            canvasNode.innerHTML = `
-                <div class="space-y-1 animate__animated animate__fadeIn">
-                    <h1 class="text-2xl font-black tracking-wider heading-font text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400 uppercase">Copilot Core Forum</h1>
-                    <p class="text-xs text-slate-400 font-medium tracking-wide uppercase">Stakeholder alignment interface and interactive assistance</p>
-                </div>
-
-                <div class="flex-1 min-h-[250px] p-4 rounded-3xl glass-card border border-slate-900 flex flex-col justify-between gap-4 animate__animated animate__fadeIn">
-                    <div class="space-y-3 flex-1 overflow-y-auto max-h-[280px] p-1">
-                        <div class="flex gap-2.5 items-start">
-                            <div class="w-7 h-7 rounded-lg bg-cyan-950 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-xs shrink-0 mt-0.5">
-                                <i class="fa-solid fa-robot"></i>
-                            </div>
-                            <div class="p-3 rounded-2xl rounded-tl-none bg-slate-900/60 border border-slate-900 text-xs text-slate-300 font-medium leading-relaxed max-w-[85%]">
-                                System Initialization Operational. Terminal logs indicate high integrity status frameworks across all narrative and gameplay segments. What vector coordinates require optimization?
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex gap-2 items-center border-t border-slate-900/60 pt-3">
-                        <input type="text" placeholder="Transmit query parameters to terminal copilot..." class="flex-1 bg-slate-950 border border-slate-900 rounded-xl px-3 py-2 text-xs font-medium text-slate-300 focus:outline-none focus:border-cyan-500/50 transition-colors">
-                        <button class="w-8 h-8 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white flex items-center justify-center text-xs transition-transform active:scale-95 shrink-0 shadow-md">
-                            <i class="fa-solid fa-paper-plane"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-
-        // --- SUB-SYSTEM WINDOW MANAGER NAVIGATION BAR SWITCHER ---
-        function switchContextTerminalWindow(tabTargetId) {
-            if (inputInteractionsBlocked) return;
-            state.activeTab = tabTargetId;
-            
-            // Adjust footer navigation tabs visuals highlighting anchor states elements
-            const buttons = document.querySelectorAll('footer button');
-            
-            buttons.forEach((btn, index) => {
-                if ((tabTargetId === 'home' && index === 0) || 
-                    (tabTargetId === 'tasks' && index === 1) || 
-                    (tabTargetId === 'wheel' && index === 2) || 
-                    (tabTargetId === 'copilot' && index === 3)) {
-                    btn.className = "flex flex-col items-center justify-center py-2 text-indigo-400 rounded-xl transition-all active:scale-95 bg-indigo-950/20";
-                } else {
-                    btn.className = "flex flex-col items-center justify-center py-2 text-slate-400 rounded-xl transition-all active:scale-95 hover:bg-slate-900/50";
-                }
-            });
-
-            triggerAudioFeedbackTone(140, 0.05, 'triangle');
-
-            if (tabTargetId === 'home') renderMenuMap();
-            else if (tabTargetId === 'tasks') renderTasksExplorer();
-            else if (tabTargetId === 'wheel') renderWheelTerminal();
-            else if (tabTargetId === 'copilot') renderCopilotHub();
-        }
-
-        // --- GAME PLAY REGISTRY PIPELINE SYSTEM ACTIONS LAYER ---
-        function startArcadePipeline(evt, campaignId) {
-            evt.preventDefault();
-            if (inputInteractionsBlocked) return;
-
-            triggerAudioFeedbackTone(220, 0.1, 'sine');
-            currentCampaignMode = campaignId;
-
-            // Sample mock questions engine data pipeline construction array matrix
-            campaignActivePool = [
-                {
-                    q: "Which Gospel explicitly details the narrative tracking parameter tracking the Genealogy of Christ back to Abraham?",
-                    a: ["Gospel of Matthew", "Gospel of Mark", "Gospel of Luke", "Gospel of John"],
-                    correct: 0
-                },
-                {
-                    q: "What parameter matrix structure governs the length of the prophecy cycle tracking epoch metrics in Daniel Chapter 9?",
-                    a: ["70 Weeks", "1260 Days", "2300 Evenings", "1335 Days"],
-                    correct: 0
-                }
-            ];
-
-            executeNextQuestionCycle();
-        }
-
-        function executeNextQuestionCycle() {
-            if (campaignActivePool.length === 0) {
-                displayGlobalAlertOverlay("CAMPAIGN COMPLETE", "All scriptural processing vectors passed with validation clearances.", () => {
-                    switchContextTerminalWindow('home');
-                });
-                return;
-            }
-
-            currentActiveQuestion = campaignActivePool.shift();
-            isShieldActive = false;
-            isFreezeActive = false;
-            
-            // Setup countdown clock structure parameters
-            initialSecondsAllowed = (currentCampaignMode === 'mastery') ? 5 : 15;
-            secondsRemaining = initialSecondsAllowed;
-
-            renderActiveQuestionPort();
-            initiateQuestionCountdownTimer();
-        }
-
-        function renderActiveQuestionPort() {
-            const canvasNode = document.getElementById('window-canvas');
-            
-            let answersHtml = "";
-            currentActiveQuestion.a.forEach((ans, idx) => {
-                answersHtml += `
-                    <button onclick="submitSelectedAnswerChoice(event, ${idx})" class="answer-selection-btn w-full p-4 rounded-2xl glass-card border border-slate-900 text-left text-xs font-bold text-slate-300 hover:border-indigo-500/40 hover:bg-slate-900/30 transition-all active:scale-[0.99] flex items-center justify-between group">
-                        <span>${ans}</span>
-                        <i class="fa-solid fa-chevron-right text-[10px] text-slate-600 group-hover:text-indigo-400 transition-colors"></i>
-                    </button>
-                `;
-            });
-
-            canvasNode.innerHTML = `
-                <!-- Top Status tracking context path metrics header panel strip -->
-                <div class="flex items-center justify-between border-b border-slate-900 pb-2 animate__animated animate__fadeIn">
-                    <div class="flex items-center gap-2">
-                        <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping"></span>
-                        <span class="text-[10px] font-black tracking-widest text-indigo-400 uppercase">Mode: Active Evaluation Engine</span>
-                    </div>
-                    <div class="flex items-center gap-1.5">
-                        <button onclick="triggerInGamePerkActivation('freeze')" id="perk-freeze-trigger" class="w-7 h-7 rounded-lg bg-sky-950/40 border border-sky-500/30 text-sky-400 flex items-center justify-center text-xs shadow transition-all active:scale-95 ${state.perks.freeze<=0?'opacity-40':''}">❄️</button>
-                        <button onclick="triggerInGamePerkActivation('shield')" id="perk-shield-trigger" class="w-7 h-7 rounded-lg bg-indigo-950/40 border border-indigo-500/30 text-indigo-400 flex items-center justify-center text-xs shadow transition-all active:scale-95 ${state.perks.shield<=0?'opacity-40':''}">🛡️</button>
-                    </div>
-                </div>
-
-                <!-- Clock countdown meter status visualization timeline progress track element -->
-                <div class="w-full h-1 bg-slate-950 border border-slate-900 overflow-hidden rounded-full shadow-inner animate__animated animate__fadeIn">
-                    <div id="countdown-progress-bar" class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 w-full transition-all duration-1000 ease-linear"></div>
-                </div>
-
-                <div class="py-4 space-y-4 animate__animated animate__fadeIn">
-                    <div class="p-5 rounded-3xl glass-card border border-slate-900 shadow-md relative overflow-hidden bg-gradient-to-br from-slate-900/40 to-indigo-950/10">
-                        <p class="text-sm font-black text-slate-100 tracking-wide leading-relaxed">${currentActiveQuestion.q}</p>
-                    </div>
-
-                    <div class="space-y-2 pt-2">
-                        ${answersHtml}
-                    </div>
-                </div>
-            `;
-        }
-
-        function initiateQuestionCountdownTimer() {
-            if (countdownTimerRef) clearInterval(countdownTimerRef);
-            
-            const progressBar = document.getElementById('countdown-progress-bar');
-            
-            countdownTimerRef = setInterval(() => {
-                if (isFreezeActive) return; // Chrono Freeze active - block temporal degradation mechanics
-
-                secondsRemaining--;
-                let percentageLeft = Math.max(0, Math.floor((secondsRemaining / initialSecondsAllowed) * 100));
-                
-                if (progressBar) {
-                    progressBar.style.width = `${percentageLeft}%`;
-                    if (percentageLeft <= 30) {
-                        progressBar.className = "h-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]";
-                        triggerAudioFeedbackTone(80, 0.02, 'sawtooth');
-                    }
-                }
-
-                if (secondsRemaining <= 0) {
-                    clearInterval(countdownTimerRef);
-                    processPenanceStrikeResolution("Temporal Exhaustion Event. Evaluation matrix sequence exceeded window allowances.");
-                }
-            }, 1000);
-        }
-
-        function submitSelectedAnswerChoice(evt, choiceIndex) {
-            evt.preventDefault();
-            if (inputInteractionsBlocked) return;
-            
-            clearInterval(countdownTimerRef);
-            inputInteractionsBlocked = true;
-
-            const selectedBtn = document.getElementsByClassName('answer-selection-btn')[choiceIndex];
-            
-            if (choiceIndex === currentActiveQuestion.correct) {
-                // Correct verification validation sequence matching path parameters
-                triggerAudioFeedbackTone(440, 0.15, 'sine');
-                setTimeout(() => { triggerAudioFeedbackTone(554.37, 0.12, 'sine'); }, 100);
-                setTimeout(() => { triggerAudioFeedbackTone(659.25, 0.2, 'sine'); }, 200);
-
-                if (selectedBtn) {
-                    selectedBtn.className = "w-full p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/60 text-left text-xs font-black text-emerald-400 flex items-center justify-between shadow-[0_0_20px_rgba(16,185,129,0.15)] animate__animated animate__pulse";
-                }
-
-                // Increment task trackers registers dynamically
-                state.dailyTasks.forEach(t => {
-                    if (t.type === 'answer') t.progress++;
-                    if (t.type === 'streak') t.progress++;
-                });
-
-                state.gold += 15;
-                document.getElementById('player-gold-display').innerText = state.gold;
-
-                setTimeout(() => {
-                    inputInteractionsBlocked = false;
-                    executeNextQuestionCycle();
-                }, 1500);
-
-            } else {
-                // Erroneous path verification evaluation failure
-                if (selectedBtn) {
-                    selectedBtn.className = "w-full p-4 rounded-2xl bg-red-950/40 border border-red-500/60 text-left text-xs font-black text-red-400 flex items-center justify-between shadow-[0_0_20px_rgba(239,68,68,0.15)] animate__animated animate__shakeX";
-                }
-                setTimeout(() => {
-                    processPenanceStrikeResolution("Erroneous selection data transmitted to core verification terminal.");
-                }, 1000);
-            }
-        }
-
-        function processPenanceStrikeResolution(failureLogsSummary) {
-            if (isShieldActive) {
-                // Aegis Shield handles absorption sequence safely without breakage penances
-                isShieldActive = false;
-                displayGlobalAlertOverlay("SHIELD ABSORBED STRIKE", "Your Divine Aegis shield absorbed the impact of this penalty strike. Evaluation pipeline preserved.", () => {
-                    inputInteractionsBlocked = false;
-                    executeNextQuestionCycle();
-                });
-                return;
-            }
-
-            triggerAudioFeedbackTone(110, 0.4, 'sawtooth');
-            
-            // Break point execution - Reset task registers
-            state.dailyTasks.forEach(t => {
-                if (t.type === 'streak') t.progress = 0;
-            });
-
-            displayGlobalAlertOverlay("EVALUATION STRIKE PENANCE", `${failureLogsSummary} Sequence terminated. Core metrics have been recalibrated.`, () => {
-                inputInteractionsBlocked = false;
-                switchContextTerminalWindow('home');
-            });
-        }
-
-        function triggerInGamePerkActivation(perkType) {
-            if (perkType === 'freeze' && state.perks.freeze > 0 && !isFreezeActive) {
-                state.perks.freeze--;
-                isFreezeActive = true;
-                triggerAudioFeedbackTone(330, 0.3, 'sine');
-                document.getElementById('perk-freeze-trigger').className += " opacity-40 bg-sky-500 text-white animate-pulse";
-                
-                // Track metric task
-                state.dailyTasks.forEach(t => { if (t.type==='freeze') t.progress++; });
-                
-                initiateSnowFlakeCanvasBackgroundAnimationEngine();
-            } else if (perkType === 'shield' && state.perks.shield > 0 && !isShieldActive) {
-                state.perks.shield--;
-                isShieldActive = true;
-                triggerAudioFeedbackTone(261.63, 0.25, 'triangle');
-                document.getElementById('perk-shield-trigger').className += " opacity-40 bg-indigo-500 text-white animate-pulse";
-            }
-        }
-
-        // --- SEGMENT AUTH PROCESSING VAULT SECURITY ACTIONS OVERLAY ---
-        function requestSegmentVaultUnlock(evt, phaseTargetId, standardFeeValue, descriptiveLabelText) {
-            evt.preventDefault();
-            if (inputInteractionsBlocked) return;
-
-            if (state.gold < standardFeeValue) {
-                triggerAudioFeedbackTone(90, 0.2, 'square');
-                displayGlobalAlertOverlay("INSUFFICIENT RESERVES", "Your application ledger balance holds insufficient gold metrics to complete this unlocking operational phase.");
-                return;
-            }
-
-            triggerAudioFeedbackTone(293.66, 0.1, 'sine');
-            
-            // Deduct from storage structure metrics
-            state.gold -= standardFeeValue;
-            state.unlockedBooks[phaseTargetId] = true;
-            document.getElementById('player-gold-display').innerText = state.gold;
-
-            displayGlobalAlertOverlay("AUTHORIZATION GRANTED", `Successfully integrated authorization matrix clearances for ${descriptiveLabelText}. Sector pipelines operational.`, () => {
-                renderMenuMap();
-            });
-        }
-
-        function purchaseConsumablePerkItem(evt, itemKey, costMetricValue) {
-            evt.preventDefault();
-            if (inputInteractionsBlocked) return;
-
-            if (state.gold < costMetricValue) {
-                triggerAudioFeedbackTone(90, 0.2, 'square');
-                displayGlobalAlertOverlay("TRANSACTION REJECTED", "Core ledger records confirm insufficient point balance metrics.");
-                return;
-            }
-
-            state.gold -= costMetricValue;
-            state.perks[itemKey]++;
-            document.getElementById('player-gold-display').innerText = state.gold;
-            triggerAudioFeedbackTone(392, 0.15, 'sine');
-
-            renderMenuMap();
-        }
-
-        function claimCompletedTaskReward(evt, taskId) {
-            evt.preventDefault();
-            
-            let matchedTaskNode = state.dailyTasks.find(t => t.id === taskId);
-            if (!matchedTaskNode || matchedTaskNode.completed) return;
-
-            matchedTaskNode.completed = true;
-            state.gold += matchedTaskNode.goldReward;
-            document.getElementById('player-gold-display').innerText = state.gold;
-
-            triggerAudioFeedbackTone(523.25, 0.15, 'sine');
-            setTimeout(() => { triggerAudioFeedbackTone(659.25, 0.15, 'sine'); }, 80);
-            setTimeout(() => { triggerAudioFeedbackTone(783.99, 0.3, 'sine'); }, 160);
-
-            renderTasksExplorer();
-        }
-
-        // --- GLOBAL DISCRETE MODAL NOTIFICATION HANDLERS ENGINE ---
-        function displayGlobalAlertOverlay(alertTitle, alertMessageBody, confirmationCallback = null) {
-            activePostAlertCallback = confirmationCallback;
-            
-            const existingOverlay = document.getElementById('global-alert-modal-overlay');
-            if (existingOverlay) existingOverlay.remove();
-
-            const alertOverlayMarkup = document.createElement('div');
-            alertOverlayMarkup.id = "global-alert-modal-overlay";
-            alertOverlayMarkup.className = "fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate__animated animate__fadeIn animate__faster";
-            
-            alertOverlayMarkup.innerHTML = `
-                <div class="w-full max-w-xs p-5 rounded-3xl glass-modal border border-slate-800 shadow-2xl text-center flex flex-col gap-4 animate__animated animate__zoomIn animate__faster">
-                    <div class="space-y-1">
-                        <h2 class="text-base font-black heading-font tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 uppercase">${alertTitle}</h2>
-                        <div class="w-12 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 mx-auto rounded-full"></div>
-                    </div>
-                    <p class="text-xs font-medium text-slate-300 leading-relaxed uppercase tracking-wide">${alertMessageBody}</p>
-                    <button onclick="dismissGlobalAlertOverlayInterface(event)" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 border border-indigo-400/20 font-black text-xs text-white tracking-widest uppercase shadow-md transition-transform active:scale-95" data-i18n="continueBtn">
-                        ${getString('continueBtn')}
-                    </button>
-                </div>
-            `;
-
-            document.body.appendChild(alertOverlayMarkup);
-        }
-
-        function dismissGlobalAlertOverlayInterface(evt) {
-            evt.preventDefault();
-            triggerAudioFeedbackTone(180, 0.05, 'sine');
-            
-            const overlayNodeElement = document.getElementById('global-alert-modal-overlay');
-            if (overlayNodeElement) overlayNodeElement.remove();
-
-            if (activePostAlertCallback) {
-                const legacyCallbackRef = activePostAlertCallback;
-                activePostAlertCallback = null;
-                legacyCallbackRef();
-            }
-        }
-
-        function toggleAppLanguageSelector() {
-            state.lang = (state.lang === 'en') ? 'fr' : 'en';
-            document.getElementById('active-language-label').innerText = (state.lang === 'en') ? 'ENGLISH' : 'FRANÇAIS';
-            
-            triggerAudioFeedbackTone(200, 0.05, 'triangle');
-
-            // Force evaluation across active modules viewport layouts structures dynamically
-            if (state.activeTab === 'home') renderMenuMap();
-            else if (state.activeTab === 'tasks') renderTasksExplorer();
-            else if (state.activeTab === 'wheel') renderWheelTerminal();
-            else if (state.activeTab === 'copilot') renderCopilotHub();
-        }
-
-        // --- WHEEL RENDERING GRAPHICS CONTROLLER FUNCTIONS ---
-        function drawWheelGraphicsOnPort() {
-            const canvas = document.getElementById('wheel-canvas-render-port');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            const numSegs = wheelSegments.length;
-            const radiusArc = canvas.width / 2;
-            const segmentAngleSize = (2 * Math.PI) / numSegs;
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            for (let i = 0; i < numSegs; i++) {
-                let currentAngleOffset = i * segmentAngleSize;
-                ctx.beginPath();
-                ctx.fillStyle = wheelSegments[i].color;
-                ctx.moveTo(radiusArc, radiusArc);
-                ctx.arc(radiusArc, radiusArc, radiusArc - 4, currentAngleOffset, currentAngleOffset + segmentAngleSize);
-                ctx.closePath();
-                ctx.fill();
-
-                // Add inner dividing lines accents borders
-                ctx.lineWidth = 1.5;
-                ctx.strokeStyle = "rgba(255,255,255,0.04)";
-                ctx.stroke();
-
-                // Render functional graphics icons within geometric spatial coordinates
-                ctx.save();
-                ctx.fillStyle = "#ffffff";
-                ctx.font = "16px Arial";
-                ctx.translate(radiusArc, radiusArc);
-                ctx.rotate(currentAngleOffset + segmentAngleSize / 2);
-                ctx.fillText(wheelSegments[i].icon, radiusArc / 1.6, 6);
-                ctx.restore();
-            }
-        }
-
-        function triggerWheelSpinExecutionSequence() {
-            if (isWheelActivelySpinning || inputInteractionsBlocked) return;
-
-            if (state.gold < 50) {
-                triggerAudioFeedbackTone(90, 0.2, 'square');
-                displayGlobalAlertOverlay("LOCKED VALIDATION MATRIX", "A standard operation registration fee of 50 gold metrics is required to manually override this reward terminal axis draw.");
-                return;
-            }
-
-            state.gold -= 50;
-            document.getElementById('player-gold-display').innerText = state.gold;
-
-            isWheelActivelySpinning = true;
-            inputInteractionsBlocked = true;
-
-            const targetCanvasElement = document.getElementById('wheel-canvas-render-port');
-            const randomlySelectedSegmentIndex = Math.floor(Math.random() * wheelSegments.length);
-            
-            // Calculations for terminal rotations targeting exact radial slices
-            const anglePerSegment = 360 / wheelSegments.length;
-            const reverseOffsetAngleTarget = 360 - (randomlySelectedSegmentIndex * anglePerSegment + anglePerSegment / 2);
-            const totalDegreesRotationTarget = 1440 + reverseOffsetAngleTarget; 
-
-            if (targetCanvasElement) {
-                targetCanvasElement.style.transition = "transform 4000ms cubic-bezier(0.1, 0.8, 0.1, 1)";
-                targetCanvasElement.style.transform = `rotate(${totalDegreesRotationTarget}deg)`;
-                
-                // Play rhythmic rolling structural clicking ticks audios during deceleration
-                let internalTickTrack = 0;
-                let tickTimerRef = setInterval(() => {
-                    internalTickTrack += 45;
-                    if (internalTickTrack < totalDegreesRotationTarget) {
-                        triggerAudioFeedbackTone(400 + (internalTickTrack % 100), 0.01, 'sine');
-                    } else {
-                        clearInterval(tickTimerRef);
-                    }
-                }, 90);
-            }
-
-            setTimeout(() => {
-                // Execute state transformation logic matches targeting
-                wheelSegments[randomlySelectedSegmentIndex].action();
-                document.getElementById('player-gold-display').innerText = state.gold;
-
-                triggerAudioFeedbackTone(587.33, 0.15, 'sine');
-                setTimeout(() => { triggerAudioFeedbackTone(880, 0.3, 'sine'); }, 120);
-
-                displayGlobalAlertOverlay(
-                    "DRAW RECONCILED", 
-                    `The processing hub matrix generated allocation index adjustments tracking reward sector item: ${wheelSegments[randomlySelectedSegmentIndex].icon}`, 
-                    () => {
-                        isWheelActivelySpinning = false;
-                        inputInteractionsBlocked = false;
-                        if (targetCanvasElement) {
-                            targetCanvasElement.style.transition = "none";
-                            targetCanvasElement.style.transform = "rotate(0deg)";
-                        }
-                        renderWheelTerminal();
-                    }
-                );
-            }, 4100);
-        }
-
-        // --- AMBIENCE TEXTURE SYNTHESIZER SOUND ENGINE STAGE ---
-        function initializeAudioInfrastructureEngine() {
-            if (audioCtx) return;
-            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-            if (!AudioContextClass) return;
-            audioCtx = new AudioContextClass();
-            initiateBackgroundMoodAmbianceTrackEngine();
-        }
-
-        function triggerAudioFeedbackTone(frequencyHz, durationSec, typeWaveformStr = 'sine') {
-            if (!audioCtx || globalAudioMuted) return;
-            try {
-                let oscNode = audioCtx.createOscillator();
-                let gainNode = audioCtx.createGain();
-
-                oscNode.type = typeWaveformStr;
-                oscNode.frequency.setValueAtTime(frequencyHz, audioCtx.currentTime);
-
-                gainNode.gain.setValueAtTime(0.12, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + durationSec);
-
-                oscNode.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-
-                oscNode.start();
-                oscNode.stop(audioCtx.currentTime + durationSec);
-            } catch (err) {
-                console.warn("Audio node routing exception caught safely: ", err);
-            }
-        }
-
-        function initiateBackgroundMoodAmbianceTrackEngine() {
-            if (!audioCtx || globalAudioMuted) return;
-            try {
-                if (activeBackgroundToneLoop) {
-                    activeBackgroundToneLoop.stop();
-                    activeBackgroundToneLoop = null;
-                }
-
-                let carrierOsc = audioCtx.createOscillator();
-                let modulatorOsc = audioCtx.createOscillator();
-                let modulationGain = audioCtx.createGain();
-                let mainFilter = audioCtx.createBiquadFilter();
-                let outputVolumeGain = audioCtx.createGain();
-
-                // Low baseline structural dark drones
-                carrierOsc.type = 'triangle';
-                carrierOsc.frequency.setValueAtTime(55, audioCtx.currentTime);
-
-                modulatorOsc.type = 'sine';
-                modulatorOsc.frequency.setValueAtTime(0.25, audioCtx.currentTime); // Low speed modulation tracking parameters
-                modulationGain.gain.setValueAtTime(4, audioCtx.currentTime);
-
-                mainFilter.type = 'lowpass';
-                mainFilter.frequency.setValueAtTime(180, audioCtx.currentTime);
-
-                outputVolumeGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-
-                // Modulator connections routing path maps
-                modulatorOsc.connect(modulationGain);
-                modulationGain.connect(carrierOsc.frequency);
-
-                carrierOsc.connect(mainFilter);
-                mainFilter.connect(outputVolumeGain);
-                outputVolumeGain.connect(audioCtx.destination);
-
-                carrierOsc.start();
-                modulatorOsc.start();
-
-                activeBackgroundToneLoop = carrierOsc;
-            } catch (err) {
-                console.error("Ambiance sound initialization bypassed runtime block: ", err);
-            }
-        }
-
-        function toggleAudioAmbiance() {
-            const targetBtn = document.getElementById('ambiance-toggle-btn');
-            
-            if (!audioCtx) {
-                initializeAudioInfrastructureEngine();
-                globalAudioMuted = false;
-                if (targetBtn) {
-                    targetBtn.className = "flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/30 text-emerald-400 text-xs font-black tracking-wider shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-all active:scale-95";
-                    targetBtn.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span>AMBIANCE: ON</span>`;
-                }
-                return;
-            }
-
-            globalAudioMuted = !globalAudioMuted;
-
-            if (globalAudioMuted) {
-                if (activeBackgroundToneLoop) {
-                    try { activeBackgroundToneLoop.stop(); } catch(e){}
-                    activeBackgroundToneLoop = null;
-                }
-                if (targetBtn) {
-                    targetBtn.className = "flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-700 bg-slate-900/40 text-slate-400 text-xs font-black tracking-wider transition-all active:scale-95";
-                    targetBtn.innerHTML = `<span class="w-2 h-2 rounded-full bg-slate-500"></span><span>AMBIANCE: MUTED</span>`;
-                }
-            } else {
-                initiateBackgroundMoodAmbianceTrackEngine();
-                if (targetBtn) {
-                    targetBtn.className = "flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/30 text-emerald-400 text-xs font-black tracking-wider shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-all active:scale-95";
-                    targetBtn.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span>AMBIANCE: ON</span>`;
-                }
-            }
-        }
-
-        // --- CHRONO FREEZE CANVAS PARTICLE SYSTEM ENGINE ---
-        function initiateSnowFlakeCanvasBackgroundAnimationEngine() {
-            const canvas = document.getElementById('snow-freeze-canvas');
-            if (!canvas) return;
-
-            canvas.className = "fixed inset-0 pointer-events-none z-0"; // Force layout mapping visibility conversion
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-
-            const ctx = canvas.getContext('2d');
-            snowFlakes = [];
-
-            for (let i = 0; i < 45; i++) {
-                snowFlakes.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    r: Math.random() * 2.5 + 1,
-                    d: Math.random() * 20 + 5,
-                    v: Math.random() * 0.5 + 0.2
-                });
-            }
-
-            if (snowAnimationId) cancelAnimationFrame(snowAnimationId);
-            executeSnowParticleTickFrame(ctx, canvas);
-        }
-
-        function executeSnowParticleTickFrame(ctx, canvas) {
-            if (!isFreezeActive) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                canvas.className = "fixed inset-0 pointer-events-none z-0 invisible";
-                return;
-            }
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "rgba(14, 165, 233, 0.15)";
-            ctx.beginPath();
-
-            for (let i = 0; i < snowFlakes.length; i++) {
-                let f = snowFlakes[i];
-                ctx.moveTo(f.x, f.y);
-                ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2, true);
-
-                // Update displacement parameters
-                f.y += f.v;
-                f.x += Math.sin(f.y / 30) * 0.2;
-
-                if (f.y > canvas.height) {
-                    snowFlakes[i] = { x: Math.random() * canvas.width, y: 0, r: f.r, d: f.d, v: f.v };
-                }
-            }
-            ctx.fill();
-            snowAnimationId = requestAnimationFrame(() => { executeSnowParticleTickFrame(ctx, canvas); });
-        }
-
-        // --- LIFECYCLE PARSING ENTRY BOOTSTRAP INITIALIZATION STAGE ---
-        window.addEventListener('DOMContentLoaded', () => {
-            renderMenuMap();
-        });
-    </script>
-</body>
-</html>
+            <button onclick="toggleAudioAmbiance()" id="ambiance-toggle-btn" class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-
