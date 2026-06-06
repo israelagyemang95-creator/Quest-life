@@ -1,4 +1,3 @@
-<!-- REFACTORED MASTER CODEBASE -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,135 +10,996 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     
     <style>
-        body { font-family: 'Rajdhani', sans-serif; background-color: #020617; color: #f8fafc; }
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #020617;
+            color: #f8fafc;
+            overflow-x: hidden;
+            user-select: none;
+        }
         .heading-font { font-family: 'Orbitron', sans-serif; }
         
+        #ambient-particle-canvas, #snow-freeze-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+        #snow-freeze-canvas { z-index: 45; opacity: 0; transition: opacity 0.4s ease; }
+        
         .game-bg-active {
-            background-image: url('https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?auto=format&fit=crop&w=800&q=80');
-            background-size: cover; background-position: center;
-            background-blend-mode: overlay; background-color: rgba(3, 6, 17, 0.94);
+            background-image: url('https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?auto=format&fit=crop&w=800&q=80') !important;
+            background-size: cover !important;
+            background-position: center !important;
+            background-blend-mode: overlay !important;
+            background-color: rgba(3, 6, 17, 0.94) !important;
         }
 
-        .glass-card { background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 24px; }
+        .glass-card { 
+            background: rgba(15, 23, 42, 0.45); 
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px); 
+            border: 1px solid rgba(255, 255, 255, 0.06); 
+            border-radius: 24px; 
+            color: white; 
+        }
+
+        .glass-modal {
+            background: rgba(2, 6, 23, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .level-card-interactive {
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        .level-card-interactive:hover {
+            transform: translateY(-4px) scale(1.02);
+            background: rgba(23, 37, 84, 0.45);
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 15px 30px rgba(99, 102, 241, 0.25);
+        }
         
+        .btn-choice { 
+            width: 100%; 
+            text-align: left; 
+            padding: 1.1rem 1.4rem; 
+            border-radius: 20px; 
+            border: 1px solid rgba(255,255,255,0.07); 
+            background: rgba(13, 18, 35, 0.85); 
+            font-weight: 600; 
+            transition: all 0.2s ease; 
+        }
+        .btn-choice:hover { 
+            background: rgba(37, 99, 235, 0.15); 
+            border-color: rgba(37, 99, 235, 0.4); 
+            transform: translateY(-1px); 
+        }
+
         @keyframes auroraFlow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            0% { background-position: 0% 50%; filter: hue-rotate(0deg); }
+            50% { background-position: 100% 50%; filter: hue-rotate(180deg); }
+            100% { background-position: 0% 50%; filter: hue-rotate(360deg); }
         }
         .rainbow-correct { 
-            background: linear-gradient(45deg, #10b981, #2563eb, #8b5cf6, #059669);
-            background-size: 300% 300%;
-            animation: auroraFlow 3s ease infinite;
+            background: linear-gradient(45deg, #10b981, #2563eb, #8b5cf6, #059669) !important;
+            background-size: 300% 300% !important;
+            animation: auroraFlow 4s ease infinite !important;
             border-color: transparent !important;
             color: #ffffff !important;
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.6) !important;
         }
+
+        @keyframes coinShock {
+            0%, 100% { transform: scale(1); }
+            20%, 60% { transform: scale(0.85) rotate(-6deg); filter: drop-shadow(0 0 15px #ef4444); }
+            40%, 80% { transform: scale(1.15) rotate(6deg); filter: drop-shadow(0 0 25px #ef4444); }
+        }
+        .vibrate-error-bag { animation: coinShock 0.5s ease-in-out; border-color: #ef4444 !important; background-color: rgba(153, 27, 27, 0.4) !important;}
+        .vibrate-error-bag span { color: #ef4444 !important; }
+
+        @keyframes huffmanPulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.08); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .perk-flash-freeze { animation: huffmanPulse 0.6s ease-out; border-color: #38bdf8 !important; box-shadow: 0 0 30px #0ea5e9 !important; }
+        .perk-flash-half { animation: huffmanPulse 0.6s ease-out; border-color: #f43f5e !important; box-shadow: 0 0 30px #e11d48 !important; }
+        .perk-flash-skip { animation: huffmanPulse 0.6s ease-out; border-color: #a855f7 !important; box-shadow: 0 0 30px #9333ea !important; }
+        .perk-flash-shield { animation: huffmanPulse 0.6s ease-out; border-color: #f59e0b !important; box-shadow: 0 0 30px #d97706 !important; }
+
+        #frost-frame { position: fixed; inset: 0; border: 14px solid rgba(56, 189, 248, 0.45); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 80px rgba(14, 165, 233, 0.35); }
+        .frost-active { opacity: 1 !important; }
+        
+        #shield-frame { position: fixed; inset: 0; border: 12px solid rgba(245, 158, 11, 0.5); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 60px rgba(245, 158, 11, 0.25); }
+        .shield-active { opacity: 1 !important; }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #1e1b4b; border-radius: 999px; }
     </style>
 </head>
-<body>
-    <div id="app" class="max-w-md mx-auto min-h-screen bg-slate-950 flex flex-col">
-        <header class="p-4 flex justify-between items-center border-b border-white/5">
-            <button onclick="toggleAudio()" class="text-emerald-400 text-[10px] font-bold">AMBIANCE: <span id="audio-status">OFF</span></button>
-            <div id="gold-display" class="text-amber-400 font-black text-sm">500 💰</div>
+<body class="relative min-h-screen">
+
+    <canvas id="ambient-particle-canvas"></canvas>
+    <canvas id="snow-freeze-canvas"></canvas>
+    <div id="frost-frame"></div>
+    <div id="shield-frame"></div>
+
+    <div class="relative min-h-screen z-10 flex flex-col justify-between max-w-md mx-auto bg-slate-950 border-x border-slate-900 shadow-2xl">
+        
+        <header class="p-4 flex items-center justify-between border-b border-indigo-950/40 bg-slate-950/60 sticky top-0 z-40 backdrop-blur-md">
+            <button onclick="toggleAudioAmbiance()" id="ambiance-toggle-btn" class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/30 text-emerald-400 text-xs font-black tracking-wider transition-all active:scale-95">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>AMBIANCE: ON</span>
+            </button>
+
+            <div class="flex items-center gap-2">
+                <button onclick="toggleAppLanguageSelector()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-950/80 border border-indigo-500/30 text-indigo-300 font-bold text-xs shadow-md active:scale-95 transition-colors">
+                    <i class="fa-solid fa-globe text-[11px]"></i>
+                    <span id="active-language-label">ENGLISH</span>
+                </button>
+                <div id="gold-container" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-950/40 border border-amber-500/30 text-amber-400 font-black text-sm transition-all duration-300">
+                    <i class="fa-solid fa-coins text-xs"></i>
+                    <span id="player-gold-display">500</span>
+                </div>
+            </div>
         </header>
 
-        <main id="window-canvas" class="flex-1 p-4"></main>
+        <main id="window-canvas" class="flex-1 p-4 space-y-4 overflow-y-auto pb-24"></main>
 
-        <footer class="grid grid-cols-3 p-4 border-t border-white/5 bg-slate-950">
-            <button onclick="renderMenu()" class="text-indigo-400"><i class="fa-solid fa-house"></i></button>
-            <button onclick="renderTasks()" class="text-slate-500"><i class="fa-solid fa-list-check"></i></button>
-            <button onclick="renderCopilot()" class="text-slate-500"><i class="fa-solid fa-robot"></i></button>
+        <footer class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-slate-950/80 backdrop-blur-lg border-t border-slate-900 grid grid-cols-3 p-2 gap-2 z-40 shadow-[0_-10px_25px_rgba(0,0,0,0.5)]">
+            <button onclick="switchContextTerminalWindow('home')" class="flex flex-col items-center justify-center py-2 text-indigo-400 rounded-xl transition-all active:scale-95 hover:bg-slate-900/50">
+                <i class="fa-solid fa-house text-lg"></i><span class="text-[10px] font-bold mt-1 uppercase">Home</span>
+            </button>
+            <button onclick="switchContextTerminalWindow('tasks')" class="flex flex-col items-center justify-center py-2 text-slate-400 rounded-xl transition-all active:scale-95 hover:bg-slate-900/50">
+                <i class="fa-solid fa-list-check text-lg"></i><span class="text-[10px] font-bold mt-1 uppercase">Tasks</span>
+            </button>
+            <button onclick="switchContextTerminalWindow('copilot')" class="flex flex-col items-center justify-center py-2 text-slate-400 rounded-xl transition-all active:scale-95 hover:bg-slate-900/50">
+                <i class="fa-solid fa-robot text-lg"></i><span class="text-[10px] font-bold mt-1 uppercase">Copilot</span>
+            </button>
         </footer>
     </div>
 
-    <script>
-        // State management
-        let state = { gold: 500, activeTab: 'home', music: false };
+    <div id="game-alert-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-modal w-full max-w-xs p-6 text-center space-y-4 rounded-3xl animate__animated animate__zoomIn animate__faster border border-indigo-500/30">
+            <div id="alert-icon" class="text-4xl drop-shadow-lg">⚠️</div>
+            <h3 id="alert-title" class="text-sm font-black heading-font text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 uppercase tracking-wider">Notification</h3>
+            <p id="alert-msg" class="text-xs text-slate-300 font-medium leading-relaxed"></p>
+            <button onclick="dismissSystemModal(event)" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs tracking-widest uppercase active:scale-95 transition-all shadow-md" data-i18n="continueBtn">
+                CONTINUE
+            </button>
+        </div>
+    </div>
 
-        // RESTORED: Procedural Engine
-        function generateQuestions(category) {
-            let pool = [];
-            for(let i=0; i<50; i++) {
-                pool.push({ q: `Question ${i+1} for ${category}`, a: ["A", "B", "C", "D"], correct: 0 });
+    <div id="shop-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-modal w-full max-w-sm p-5 space-y-4 rounded-3xl animate__animated animate__fadeInUp animate__faster border border-slate-800">
+            <div class="flex justify-between items-center border-b border-white/10 pb-3">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-indigo-400 text-lg"></i>
+                    <h3 class="text-sm font-black uppercase tracking-wider text-slate-200" data-i18n="armoryTitle">Armory Depot</h3>
+                </div>
+                <button onclick="closeShopModal(event)" class="w-8 h-8 rounded-full bg-slate-900 text-slate-400 hover:text-white transition-colors flex items-center justify-center border border-slate-800"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="modal-shop-grid" class="space-y-2 max-h-[60vh] overflow-y-auto pr-1"></div>
+        </div>
+    </div>
+
+    <button id="lobby-bag-btn" onclick="openShopModal(event)" class="fixed bottom-20 right-6 z-40 bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-600 border border-white/20 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl text-xl hover:scale-110 active:scale-95 transition-all animate__animated animate__pulse animate__infinite">🎒</button>
+
+    <script>
+        // Localization Registry
+        const i18nRegistry = {
+            en: {
+                mapHub: "Quest Modules", armoryTitle: "Armory Depot", continueBtn: "PROCEED",
+                subtitle: "Select a scriptural sector to explore", 
+                phase1Title: "Phase 1: New Testament", phase1Desc: "The Gospels and Epistles",
+                phase2Title: "Phase 2: Old Testament", phase2Desc: "Covenants and Prophets", 
+                phase3Title: "Phase 3: Grand Mixture", phase3Desc: "Randomized Scriptural Challenge", 
+                phase4Title: "Phase 4: E.G. White Chronicles", phase4Desc: "Prophetic Heritage & Insights",
+                phase5Title: "Phase 5: Mastery Blitz Mode", phase5Desc: "High Speed Fire Arena", 
+                phase6Title: "Phase 6: Adventist Teachings", phase6Desc: "The 28 Fundamental Beliefs", 
+                task1: "Answer {target} questions", task2: "Maintain win streak of {target}", 
+                task3: "Deploy Chrono Freeze {target} times", task4: "Survive {target} Blitz cycles",
+                shortageTitle: "Treasury Shortage", shortageMsg: "Insufficient gold metrics to complete this transaction.",
+                clearTitle: "🎉 Sector Cleared!", clearMsg: "Superb effort! Tier increased to {tier}, reward loaded.",
+                walletTitle: "🚨 Wallet Depleted", walletMsg: "Your coin balance has hit zero. Returning to hub.",
+                unlockSuccess: "🔓 Sector Unlocked!", unlockSuccessMsg: "You have securely authorized access to {name}."
+            },
+            tw: {
+                mapHub: "Akwankyerɛ Kuw", armoryTitle: "Akodeɛ Koraeɛ", continueBtn: "TOA SO",
+                subtitle: "Miia Adebisa Kaadi biara so sɛ wubue", 
+                phase1Title: "Apaso 1: Apam Foforo", phase1Desc: "Nsɛmpa ne Nkyerɛwee no",
+                phase2Title: "Apaso 2: Apam Dedaw", phase2Desc: "Mmarahyɛ ne Adiyifo", 
+                phase3Title: "Apaso 3: Afrafra Kɛse", phase3Desc: "Kyerɛwnsɛm Nyinaa Nsɛm", 
+                phase4Title: "Apaso 4: E.G. White Nnwuma", phase4Desc: "Nkɔmhyɛ Nkyerɛkyerɛ",
+                phase5Title: "Apaso 5: Nkɔmhyɛ Ntɛmso", phase5Desc: "Nnarekodi Ntɛmso Berɛ", 
+                phase6Title: "Apaso 6: Adventist Nkyerɛkyerɛ", phase6Desc: "Nkyerɛkyerɛ Titiriw 28 No", 
+                task1: "Bua nsɛmmisa {target}", task2: "Kura nkonimdie {target} mu", 
+                task3: "Yɛ Chrono Freeze adwuma {target} mprɛ", task4: "Tena ase boro {target} Ntɛmso mu",
+                shortageTitle: "Sika Anni Mu", shortageMsg: "Wo sika kɔkɔɔ nnu sɛ wobɛtɔ saa nneɛma yi.",
+                clearTitle: "🎉 Dwumadi No Anyam!", clearMsg: "Mmɔdenbɔ pa! Tier akɔ {tier}, sika aba.",
+                walletTitle: "🚨 Sika Koraeɛ Ahwe Ase", walletMsg: "Wo sika kɔkɔɔ anya asa. Yɛresan akɔ maap hub.",
+                unlockSuccess: "🔓 Woatumi Abue!", unlockSuccessMsg: "Woatua sika abue fa foforɔ: {name}."
             }
-            return pool;
+        };
+
+        // Algorithmic 50-Question Engine (Generates 50 precise instances per category with varying difficulties)
+        function generateProceduralDatabaseItems() {
+            const seedData = [
+                { id: "nt", name: "Matthew", group: "NT", q: "Who was chosen to be the earthly mother of Jesus Christ?", choices: ["Elizabeth", "Mary", "Martha", "Salome"], correct: 1 },
+                { id: "nt", name: "Luke", group: "NT", q: "What was the professional trade of Luke before writing?", choices: ["Tax Collector", "Physician", "Fisherman", "Tentmaker"], correct: 1 },
+                { id: "ot", name: "Genesis", group: "OT", q: "How many days did God take to create the universe in Genesis?", choices: ["5 Days", "6 Days", "7 Days", "10 Days"], correct: 1 },
+                { id: "ot", name: "Exodus", group: "OT", q: "What was the first plague poured upon the kingdom of Egypt?", choices: ["Frogs", "Lice", "Blood", "Locusts"], correct: 2 },
+                { id: "egw", name: "E.G. White", group: "EGW", q: "Which work traces the cosmic metanarrative between Christ and Satan?", choices: ["Steps to Christ", "The Great Controversy", "Education", "Ministry of Healing"], correct: 1 },
+                { id: "mastery", name: "Mastery Blitz", group: "MASTERY", q: "In what year did the Millerite great disappointment take place?", choices: ["1798", "1843", "1844", "1850"], correct: 2 },
+                { id: "sda", name: "SDA Teachings", group: "SDA", q: "Which day is recognized as the biblical Sabbath according to Adventist Teachings?", choices: ["First Day", "Sixth Day", "Seventh Day", "Any Day"], correct: 2 }
+            ];
+
+            const categories = ["nt", "ot", "egw", "mastery", "sda"];
+            const difficulties = ["easy", "moderate", "hard"];
+            let compiledData = [];
+
+            categories.forEach(cat => {
+                let templates = seedData.filter(b => b.id === cat);
+                if(templates.length === 0) templates = seedData; // Fallback
+                
+                // Guarantee exactly 50 unique iterations per category
+                for(let i = 1; i <= 50; i++) {
+                    let t = templates[(i - 1) % templates.length];
+                    
+                    // Distribute difficulty dynamically across the 50 items
+                    let diffLevel = difficulties[i % 3]; 
+                    if(cat === "mastery") diffLevel = "hard";
+
+                    compiledData.push({
+                        name: t.name,
+                        group: t.group,
+                        questions: [{
+                            q: t.q + ` (Record #${i})`, // Ensures unique text string for evaluation
+                            a: [...t.choices],
+                            correct: t.correct,
+                            difficulty: diffLevel
+                        }]
+                    });
+                }
+            });
+            return compiledData;
         }
 
-        function renderMenu() {
-            state.activeTab = 'home';
-            document.getElementById('window-canvas').innerHTML = `
-                <h1 class="text-xl font-black heading-font text-indigo-400">REVELATORS PATHFINDERS</h1>
-                <div class="mt-6 space-y-3">
-                    <button onclick="startLevel('nt')" class="w-full p-4 glass-card text-left">PHASE 1: NEW TESTAMENT</button>
-                    <button onclick="startLevel('ot')" class="w-full p-4 glass-card text-left">PHASE 2: OLD TESTAMENT</button>
+        window.quizDatabase = generateProceduralDatabaseItems();
+
+        let state = JSON.parse(localStorage.getItem('revelatorsPathfinderV2')) || {
+            gold: 750, lang: 'en', activeTab: 'home',
+            perks: { freeze: 3, half: 2, skip: 1, shield: 2 },
+            unlockedBooks: { nt: true, ot: true, mix: true, egw: false, mastery: false, sda: false },
+            stats: { currentStreak: 0, freezeUsed: 0, totalCoinsEarned: 750, blitzSurvivals: 0, overallAnswers: 0 },
+            activitySetTier: 1,
+            dailyTasks: [
+                { id: "t1", type: "answer", target: 15, progress: 0, goldReward: 150, completed: false, i18nKey: "task1" },
+                { id: "t2", type: "streak", target: 5, progress: 0, goldReward: 200, completed: false, i18nKey: "task2" },
+                { id: "t3", type: "freeze", target: 3, progress: 0, goldReward: 100, completed: false, i18nKey: "task3" }
+            ]
+        };
+
+        let currentCampaignMode = "";
+        let campaignActivePool = [];
+        let currentActiveQuestion = null;
+        let countdownTimerRef = null;
+        let secondsRemaining = 0;
+        let initialSecondsAllowed = 15;
+        let inputInteractionsBlocked = false;
+        let isShieldActive = false;
+        let isFreezeActive = false;
+        
+        let audioCtx = null;
+        let globalAudioMuted = false;
+        let activeBackgroundToneLoop = null;
+        let currentBackgroundMoodType = "lobby"; 
+        let activePostAlertCallback = null;
+        
+        let snowAnimationId = null;
+        let snowFlakesArray = [];
+
+        function getString(key, variables = {}) {
+            let txt = i18nRegistry[state.lang]?.[key] || i18nRegistry['en']?.[key] || key;
+            for (let v in variables) {
+                let regex = new RegExp(`\\{${v}\\}`, 'g');
+                txt = txt.replace(regex, variables[v]);
+            }
+            return txt;
+        }
+
+        function saveState() {
+            localStorage.setItem('revelatorsPathfinderV2', JSON.stringify(state));
+            const goldVal = document.getElementById('player-gold-display');
+            const langLabel = document.getElementById('active-language-label');
+            
+            if (goldVal) goldVal.innerText = state.gold;
+            if (langLabel) langLabel.innerText = state.lang === 'en' ? "ENGLISH" : "TWI";
+            
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                let key = el.getAttribute('data-i18n');
+                el.innerText = getString(key);
+            });
+        }
+
+        function toggleAppLanguageSelector() {
+            state.lang = state.lang === 'en' ? 'tw' : 'en';
+            triggerAudioFeedbackTone(200, 0.05, 'triangle');
+            saveState();
+            if (state.activeTab === 'home') renderMenuMap();
+            else if (state.activeTab === 'tasks') renderTasksExplorer();
+            else if (state.activeTab === 'copilot') renderCopilotHub();
+        }
+
+        function switchContextTerminalWindow(tabTargetId) {
+            if (inputInteractionsBlocked) return;
+            state.activeTab = tabTargetId;
+            
+            const buttons = document.querySelectorAll('footer button');
+            buttons.forEach((btn, index) => {
+                let isActive = (tabTargetId === 'home' && index === 0) || (tabTargetId === 'tasks' && index === 1) || (tabTargetId === 'copilot' && index === 2);
+                btn.className = isActive ? 
+                    "flex flex-col items-center justify-center py-2 text-indigo-400 rounded-xl transition-all active:scale-95 bg-indigo-950/30" : 
+                    "flex flex-col items-center justify-center py-2 text-slate-500 rounded-xl transition-all active:scale-95 hover:bg-slate-900/50";
+            });
+
+            triggerAudioFeedbackTone(140, 0.05, 'triangle');
+            
+            if (tabTargetId === 'home') renderMenuMap();
+            else if (tabTargetId === 'tasks') renderTasksExplorer();
+            else if (tabTargetId === 'copilot') renderCopilotHub();
+        }
+
+        function renderMenuMap() {
+            const canvasNode = document.getElementById('window-canvas');
+            if (state.activeTab !== 'home') return;
+            
+            document.getElementById('lobby-bag-btn').classList.remove('hidden');
+            toggleSnowSystemPipeline(false);
+            switchBackgroundMoodSoundtrack('lobby');
+
+            canvasNode.innerHTML = `
+                <div class="space-y-1 animate__animated animate__fadeInDown">
+                    <h1 class="text-2xl font-black tracking-wider heading-font text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400 uppercase">Revelators Pathfinders</h1>
+                    <p class="text-[10px] text-slate-400 font-bold tracking-widest uppercase" data-i18n="subtitle">${getString('subtitle')}</p>
+                </div>
+
+                <div class="space-y-3 pt-2 pb-8">
+                    <div onclick="startArcadePipeline(event, 'nt')" class="level-card-interactive w-full p-4 glass-card text-left cursor-pointer relative overflow-hidden flex items-center justify-between group">
+                        <div class="absolute inset-y-0 left-0 w-1.5 bg-indigo-500"></div>
+                        <div class="pl-2">
+                            <h3 class="text-sm font-black text-indigo-400 uppercase tracking-wide group-hover:text-indigo-300 transition-colors" data-i18n="phase1Title">${getString('phase1Title')}</h3>
+                            <p class="text-[10px] text-slate-400 font-medium" data-i18n="phase1Desc">${getString('phase1Desc')}</p>
+                        </div>
+                        <span class="text-indigo-500/50 group-hover:text-indigo-400"><i class="fa-solid fa-play"></i></span>
+                    </div>
+
+                    <div onclick="startArcadePipeline(event, 'ot')" class="level-card-interactive w-full p-4 glass-card text-left cursor-pointer relative overflow-hidden flex items-center justify-between group">
+                        <div class="absolute inset-y-0 left-0 w-1.5 bg-emerald-500"></div>
+                        <div class="pl-2">
+                            <h3 class="text-sm font-black text-emerald-400 uppercase tracking-wide group-hover:text-emerald-300 transition-colors" data-i18n="phase2Title">${getString('phase2Title')}</h3>
+                            <p class="text-[10px] text-slate-400 font-medium" data-i18n="phase2Desc">${getString('phase2Desc')}</p>
+                        </div>
+                        <span class="text-emerald-500/50 group-hover:text-emerald-400"><i class="fa-solid fa-play"></i></span>
+                    </div>
+
+                    <div onclick="startArcadePipeline(event, 'mix')" class="level-card-interactive w-full p-4 glass-card text-left cursor-pointer relative overflow-hidden flex items-center justify-between group">
+                        <div class="absolute inset-y-0 left-0 w-1.5 bg-pink-500"></div>
+                        <div class="pl-2">
+                            <h3 class="text-sm font-black text-pink-400 uppercase tracking-wide group-hover:text-pink-300 transition-colors" data-i18n="phase3Title">${getString('phase3Title')}</h3>
+                            <p class="text-[10px] text-slate-400 font-medium" data-i18n="phase3Desc">${getString('phase3Desc')}</p>
+                        </div>
+                        <span class="text-pink-500/50 group-hover:text-pink-400"><i class="fa-solid fa-play"></i></span>
+                    </div>
+
+                    ${state.unlockedBooks.egw ? `
+                        <div onclick="startArcadePipeline(event, 'egw')" class="level-card-interactive w-full p-4 glass-card text-left cursor-pointer relative overflow-hidden flex items-center justify-between group">
+                            <div class="absolute inset-y-0 left-0 w-1.5 bg-amber-500"></div>
+                            <div class="pl-2">
+                                <h3 class="text-sm font-black text-amber-400 uppercase tracking-wide group-hover:text-amber-300 transition-colors" data-i18n="phase4Title">${getString('phase4Title')}</h3>
+                                <p class="text-[10px] text-slate-400 font-medium" data-i18n="phase4Desc">${getString('phase4Desc')}</p>
+                            </div>
+                            <span class="text-amber-500/50 group-hover:text-amber-400"><i class="fa-solid fa-play"></i></span>
+                        </div>
+                    ` : `
+                        <div onclick="requestSegmentVaultUnlock(event, 'egw', 1000, 'Phase 4: E.G. White Chronicles')" class="w-full p-4 glass-card border border-amber-500/20 bg-slate-950/40 text-left cursor-pointer relative group flex justify-between items-center hover:bg-slate-900/60 transition-all">
+                            <div>
+                                <h3 class="text-xs font-black text-amber-500/70 uppercase tracking-wide"><i class="fa-solid fa-lock mr-1"></i> PHASE 4: E.G. WHITE</h3>
+                                <p class="text-[9px] text-slate-500 mt-0.5">Prophetic Heritage Insights</p>
+                            </div>
+                            <span class="bg-amber-600/20 border border-amber-500/40 px-3 py-1.5 rounded-lg font-black text-[10px] text-amber-400 tracking-wider">1000 💰</span>
+                        </div>
+                    `}
+
+                    ${state.unlockedBooks.mastery ? `
+                        <div onclick="startArcadePipeline(event, 'mastery')" class="level-card-interactive w-full p-4 glass-card text-left cursor-pointer relative overflow-hidden flex items-center justify-between group border border-red-500/30 bg-gradient-to-br from-red-950/30 to-transparent">
+                            <div class="absolute inset-y-0 left-0 w-1.5 bg-red-600 shadow-[0_0_10px_rgba(239,68,68,0.8)]"></div>
+                            <div class="pl-2">
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-sm font-black text-red-500 uppercase tracking-wide group-hover:text-red-400 transition-colors" data-i18n="phase5Title">${getString('phase5Title')}</h3>
+                                    <span class="text-[7px] font-black text-white bg-red-600 px-1.5 py-0.5 rounded-sm animate-pulse">WAR ZONE</span>
+                                </div>
+                                <p class="text-[10px] text-slate-400 font-medium" data-i18n="phase5Desc">${getString('phase5Desc')}</p>
+                            </div>
+                            <span class="text-red-500/50 group-hover:text-red-400"><i class="fa-solid fa-fire"></i></span>
+                        </div>
+                    ` : `
+                        <div onclick="requestSegmentVaultUnlock(event, 'mastery', 500, 'Phase 5: Mastery Blitz Mode')" class="w-full p-4 glass-card border border-red-500/20 bg-slate-950/40 text-left cursor-pointer relative group flex justify-between items-center hover:bg-slate-900/60 transition-all">
+                            <div>
+                                <h3 class="text-xs font-black text-red-500/70 uppercase tracking-wide"><i class="fa-solid fa-lock mr-1"></i> PHASE 5: MASTERY BLITZ</h3>
+                                <p class="text-[9px] text-slate-500 mt-0.5">High Speed Fire Arena</p>
+                            </div>
+                            <span class="bg-red-600/20 border border-red-500/40 px-3 py-1.5 rounded-lg font-black text-[10px] text-red-400 tracking-wider">500 💰</span>
+                        </div>
+                    `}
+
+                    ${state.unlockedBooks.sda ? `
+                        <div onclick="startArcadePipeline(event, 'sda')" class="level-card-interactive w-full p-4 glass-card text-left cursor-pointer relative overflow-hidden flex items-center justify-between group">
+                            <div class="absolute inset-y-0 left-0 w-1.5 bg-cyan-500"></div>
+                            <div class="pl-2">
+                                <h3 class="text-sm font-black text-cyan-400 uppercase tracking-wide group-hover:text-cyan-300 transition-colors" data-i18n="phase6Title">${getString('phase6Title')}</h3>
+                                <p class="text-[10px] text-slate-400 font-medium" data-i18n="phase6Desc">${getString('phase6Desc')}</p>
+                            </div>
+                            <span class="text-cyan-500/50 group-hover:text-cyan-400"><i class="fa-solid fa-play"></i></span>
+                        </div>
+                    ` : `
+                        <div onclick="requestSegmentVaultUnlock(event, 'sda', 1500, 'Phase 6: Adventist Teachings')" class="w-full p-4 glass-card border border-cyan-500/20 bg-slate-950/40 text-left cursor-pointer relative group flex justify-between items-center hover:bg-slate-900/60 transition-all">
+                            <div>
+                                <h3 class="text-xs font-black text-cyan-500/70 uppercase tracking-wide"><i class="fa-solid fa-lock mr-1"></i> PHASE 6: SDA TEACHINGS</h3>
+                                <p class="text-[9px] text-slate-500 mt-0.5">The 28 Fundamental Beliefs</p>
+                            </div>
+                            <span class="bg-cyan-600/20 border border-cyan-500/40 px-3 py-1.5 rounded-lg font-black text-[10px] text-cyan-400 tracking-wider">1500 💰</span>
+                        </div>
+                    `}
                 </div>
             `;
         }
 
-        function startLevel(cat) {
-            let questions = generateQuestions(cat);
-            document.getElementById('app').classList.add('game-bg-active');
-            renderQuestion(questions[0], 0, questions);
+        function renderTasksExplorer() {
+            const canvasNode = document.getElementById('window-canvas');
+            if (state.activeTab !== 'tasks') return;
+            document.getElementById('lobby-bag-btn').classList.add('hidden');
+
+            let systemTaskRows = "";
+            state.dailyTasks.forEach(t => {
+                let currentPercentage = Math.min(100, Math.floor((t.progress / t.target) * 100));
+                systemTaskRows += `
+                    <div class="p-4 rounded-2xl glass-card border border-slate-800 flex flex-col gap-3 ${t.completed ? 'opacity-50' : ''}">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="text-lg">${t.type==='answer'?'📚':t.type==='streak'?'🔥':'❄️'}</span>
+                                <p class="text-[11px] font-black text-slate-200 uppercase tracking-wide">${getString(t.i18nKey, {target: t.target})}</p>
+                            </div>
+                            <span class="text-[10px] font-black text-amber-400 bg-amber-950/40 border border-amber-500/30 px-2 py-0.5 rounded-lg shrink-0">+${t.goldReward} 💰</span>
+                        </div>
+                        <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-900">
+                            <div class="h-full bg-indigo-500 rounded-full transition-all duration-500" style="width: ${currentPercentage}%"></div>
+                        </div>
+                        ${t.progress >= t.target && !t.completed ? `
+                            <button onclick="claimCompletedTaskReward(event, '${t.id}')" class="w-full py-2 rounded-xl bg-emerald-600 text-white font-black text-[10px] tracking-widest uppercase shadow-md active:scale-95 animate__animated animate__pulse animate__infinite">CLAIM REWARD</button>
+                        ` : t.completed ? `
+                            <div class="w-full py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-500 font-black text-[10px] tracking-widest uppercase text-center">COMPLETED</div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+
+            canvasNode.innerHTML = `
+                <div class="space-y-1 animate__animated animate__fadeIn">
+                    <h1 class="text-2xl font-black tracking-wider heading-font text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400 uppercase">Sector Tasks</h1>
+                    <p class="text-[10px] text-slate-400 font-bold tracking-widest uppercase">Secure daily gold ledger balances</p>
+                </div>
+                <div class="space-y-3 pt-4 animate__animated animate__fadeInUp">
+                    ${systemTaskRows}
+                </div>
+            `;
         }
 
-        function renderQuestion(q, idx, pool) {
-            document.getElementById('window-canvas').innerHTML = `
-                <div class="p-6 glass-card animate__animated animate__fadeIn">
-                    <p class="text-lg font-bold">${q.q}</p>
-                    <div class="mt-6 space-y-3">
-                        ${q.a.map((ans, i) => `<button onclick="checkAnswer(${i}, ${q.correct}, ${idx}, '${JSON.stringify(pool)}')" class="btn-choice w-full p-3 rounded-xl border border-white/10">${ans}</button>`).join('')}
+        function renderCopilotHub() {
+            const canvasNode = document.getElementById('window-canvas');
+            if (state.activeTab !== 'copilot') return;
+            document.getElementById('lobby-bag-btn').classList.add('hidden');
+
+            canvasNode.innerHTML = `
+                <div class="space-y-1 animate__animated animate__fadeIn">
+                    <h1 class="text-2xl font-black tracking-wider heading-font text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400 uppercase">Copilot Forum</h1>
+                    <p class="text-[10px] text-slate-400 font-bold tracking-widest uppercase">Stakeholder interactive assistance</p>
+                </div>
+
+                <div class="flex-1 mt-4 p-4 rounded-3xl glass-card border border-slate-800 flex flex-col justify-between gap-4 animate__animated animate__zoomIn">
+                    <div class="space-y-4 flex-1 overflow-y-auto">
+                        <div class="flex gap-3 items-start">
+                            <div class="w-8 h-8 rounded-xl bg-cyan-950 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-sm shrink-0">
+                                <i class="fa-solid fa-robot"></i>
+                            </div>
+                            <div class="p-3 rounded-2xl rounded-tl-none bg-slate-900/80 border border-slate-800 text-xs text-slate-300 font-medium leading-relaxed">
+                                System Initialization Operational. Terminal logs indicate high integrity status frameworks across all narrative segments.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 items-center border-t border-slate-800 pt-3">
+                        <input type="text" placeholder="Transmit query parameters..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-500/50">
+                        <button class="w-10 h-10 rounded-xl bg-cyan-600 text-white flex items-center justify-center text-sm active:scale-95 shadow-md">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
                     </div>
                 </div>
             `;
         }
 
-        function checkAnswer(chosen, correct, idx, poolStr) {
-            let pool = JSON.parse(poolStr);
-            const buttons = document.querySelectorAll('.btn-choice');
-            
-            if(chosen === correct) {
-                // RESTORED: Rainbow animation
-                buttons[chosen].classList.add('rainbow-correct');
-                playTone(440, 0.2); // Pleasant melody
-                setTimeout(() => { if(idx < 49) renderQuestion(pool[idx+1], idx+1, pool); }, 1000);
-            } else {
-                // RESTORED: Lively error sound, no irritating buzz
-                playTone(150, 0.3, 'triangle'); 
-                buttons[chosen].classList.add('bg-red-900');
-            }
+        function startArcadePipeline(evt, campaignId) {
+            evt.preventDefault();
+            if (inputInteractionsBlocked) return;
+
+            triggerAudioFeedbackTone(220, 0.1, 'sine');
+            currentCampaignMode = campaignId;
+
+            let targetGroup = "";
+            if (campaignId === 'nt') targetGroup = "NT";
+            else if (campaignId === 'ot') targetGroup = "OT";
+            else if (campaignId === 'egw') targetGroup = "EGW";
+            else if (campaignId === 'sda') targetGroup = "SDA";
+            else if (campaignId === 'mastery') targetGroup = "MASTERY";
+
+            campaignActivePool = targetGroup ? window.quizDatabase.filter(q => q.group === targetGroup) : [...window.quizDatabase];
+            if (campaignActivePool.length === 0) campaignActivePool = [...window.quizDatabase];
+
+            document.getElementById('lobby-bag-btn').classList.add('hidden');
+            switchBackgroundMoodSoundtrack('war'); // Up the intensity for gameplay
+            executeNextQuestionCycle();
         }
 
-        // RESTORED: Copilot Forum Functionality
-        function renderCopilot() {
-            state.activeTab = 'copilot';
-            document.getElementById('window-canvas').innerHTML = `
-                <h2 class="text-lg font-black text-cyan-400">COPILOT FORUM</h2>
-                <div class="mt-4 glass-card p-4">
-                    <input type="text" id="copilot-input" class="w-full bg-slate-900 p-2 rounded" placeholder="Transmit query parameters...">
-                    <button onclick="processCopilot()" class="mt-2 bg-cyan-600 px-4 py-2 rounded">SEND</button>
+        function executeNextQuestionCycle() {
+            if (campaignActivePool.length === 0) {
+                displayGlobalAlertOverlay("CAMPAIGN COMPLETE", "All scriptural processing vectors passed with validation clearances.", () => {
+                    switchContextTerminalWindow('home');
+                });
+                return;
+            }
+
+            const rIdx = Math.floor(Math.random() * campaignActivePool.length);
+            const activeNode = campaignActivePool[rIdx];
+            currentActiveQuestion = activeNode.questions[Math.floor(Math.random() * activeNode.questions.length)];
+            currentActiveQuestion._sourceBookContext = activeNode.name;
+            
+            // DYNAMIC TIERED DIFFICULTY LOGIC ENGINE
+            let diff = currentActiveQuestion.difficulty || 'easy';
+            if (currentCampaignMode === 'mastery') diff = 'blitz';
+
+            if (diff === 'hard') initialSecondsAllowed = 10;
+            else if (diff === 'moderate') initialSecondsAllowed = 15;
+            else if (diff === 'blitz') initialSecondsAllowed = 5;
+            else initialSecondsAllowed = 20;
+
+            secondsRemaining = initialSecondsAllowed;
+            isShieldActive = false;
+            isFreezeActive = false;
+            document.getElementById('shield-frame').className = "";
+            document.getElementById('frost-frame').className = "";
+            toggleSnowSystemPipeline(false);
+
+            renderActiveQuestionPort();
+            initiateQuestionCountdownTimer();
+        }
+
+        function renderActiveQuestionPort() {
+            const canvasNode = document.getElementById('window-canvas');
+            
+            let answersHtml = "";
+            currentActiveQuestion.a.forEach((ans, idx) => {
+                answersHtml += `
+                    <button onclick="submitSelectedAnswerChoice(event, ${idx})" class="answer-selection-btn w-full p-4 rounded-2xl glass-card border border-slate-800 text-left text-xs font-bold text-slate-300 hover:border-indigo-500/40 hover:bg-slate-900/60 transition-all active:scale-[0.99] flex items-center justify-between group">
+                        <span>${ans}</span><i class="fa-solid fa-chevron-right text-[10px] text-slate-600 group-hover:text-indigo-400"></i>
+                    </button>
+                `;
+            });
+
+            // Color coding difficulty badge
+            let diffColor = "text-emerald-400 bg-emerald-950/80 border-emerald-500/30";
+            if(currentActiveQuestion.difficulty === 'moderate') diffColor = "text-amber-400 bg-amber-950/80 border-amber-500/30";
+            if(currentActiveQuestion.difficulty === 'hard' || currentCampaignMode === 'mastery') diffColor = "text-red-400 bg-red-950/80 border-red-500/30";
+            
+            let diffLabel = currentCampaignMode === 'mastery' ? 'BLITZ OVERDRIVE' : (currentActiveQuestion.difficulty || 'EASY').toUpperCase();
+
+            canvasNode.innerHTML = `
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2 animate__animated animate__fadeInDown">
+                    <div>
+                        <h2 class="text-[11px] font-black text-indigo-400 uppercase tracking-widest">${currentActiveQuestion._sourceBookContext}</h2>
+                        <div class="text-[8px] font-black tracking-widest px-2 py-0.5 rounded-full border inline-block mt-1 ${diffColor}">${diffLabel}</div>
+                    </div>
+                    <div id="clock-wrapper" class="text-xl font-black tracking-tighter tabular-nums text-amber-400 bg-slate-950/80 px-3 py-1 rounded-xl border border-white/10 shadow-inner">
+                        ⏰ <span id="clock-digit">${secondsRemaining}</span>s
+                    </div>
+                </div>
+
+                <div class="w-full h-1.5 bg-slate-950 border border-slate-900 rounded-full shadow-inner animate__animated animate__fadeInDown">
+                    <div id="countdown-progress-bar" class="h-full bg-gradient-to-r from-emerald-400 to-teal-500 w-full transition-all duration-1000 ease-linear rounded-full"></div>
+                </div>
+
+                <div class="py-2 space-y-4 animate__animated animate__zoomIn">
+                    <div class="p-5 rounded-3xl glass-card border border-slate-800 shadow-md text-center">
+                        <p class="text-sm font-bold text-white tracking-wide leading-relaxed">${currentActiveQuestion.q}</p>
+                    </div>
+                    <div class="space-y-2">
+                        ${answersHtml}
+                    </div>
+                </div>
+
+                <div class="fixed bottom-0 left-0 right-0 p-3 bg-slate-950/95 border-t border-slate-900 z-40 flex justify-center gap-2 max-w-md mx-auto" onclick="event.stopPropagation()">
+                    <button id="perk-btn-freeze" onclick="applyInGameUtility('freeze')" class="flex-1 bg-slate-900 border border-sky-500/30 p-2 rounded-xl flex flex-col items-center active:scale-95 transition-transform ${state.perks.freeze<=0?'opacity-40':''}">
+                        <i class="fa-solid fa-snowflake text-sky-400 mb-1"></i><span class="text-[9px] text-slate-400 font-bold uppercase">Freeze (${state.perks.freeze})</span>
+                    </button>
+                    <button id="perk-btn-half" onclick="applyInGameUtility('half')" class="flex-1 bg-slate-900 border border-rose-500/30 p-2 rounded-xl flex flex-col items-center active:scale-95 transition-transform ${state.perks.half<=0?'opacity-40':''}">
+                        <i class="fa-solid fa-scale-balanced text-rose-400 mb-1"></i><span class="text-[9px] text-slate-400 font-bold uppercase">50/50 (${state.perks.half})</span>
+                    </button>
+                    <button id="perk-btn-shield" onclick="applyInGameUtility('shield')" class="flex-1 bg-slate-900 border border-amber-500/30 p-2 rounded-xl flex flex-col items-center active:scale-95 transition-transform ${state.perks.shield<=0?'opacity-40':''}">
+                        <i class="fa-solid fa-shield-halved text-amber-400 mb-1"></i><span class="text-[9px] text-slate-400 font-bold uppercase">Shield (${state.perks.shield})</span>
+                    </button>
                 </div>
             `;
         }
 
-        function processCopilot() {
-            alert("Query Transmitted: " + document.getElementById('copilot-input').value);
+        function initiateQuestionCountdownTimer() {
+            if (countdownTimerRef) clearInterval(countdownTimerRef);
+            const progressBar = document.getElementById('countdown-progress-bar');
+            
+            countdownTimerRef = setInterval(() => {
+                if (isFreezeActive) return;
+
+                secondsRemaining--;
+                let pct = Math.max(0, (secondsRemaining / initialSecondsAllowed) * 100);
+                
+                if (progressBar) {
+                    progressBar.style.width = `${pct}%`;
+                    if (pct <= 30) {
+                        progressBar.className = "h-full bg-red-500 rounded-full shadow-[0_0_10px_rgba(239,68,68,0.8)]";
+                        triggerAudioFeedbackTone(80, 0.05, 'sawtooth');
+                    } else if (pct <= 60) {
+                        progressBar.className = "h-full bg-amber-500 rounded-full";
+                    }
+                }
+                const clockNode = document.getElementById('clock-digit');
+                if(clockNode) clockNode.innerText = secondsRemaining;
+
+                if (secondsRemaining <= 0) {
+                    executeFailureSequence(); // NO popups. Direct fluid penalty jump.
+                }
+            }, 1000);
         }
 
-        function playTone(freq, dur, type='sine') {
-            if(!state.music) return;
-            const ctx = new AudioContext();
-            const osc = ctx.createOscillator();
-            osc.type = type; osc.frequency.value = freq;
-            osc.connect(ctx.destination);
-            osc.start(); osc.stop(ctx.currentTime + dur);
+        function submitSelectedAnswerChoice(evt, choiceIndex) {
+            evt.preventDefault();
+            if (inputInteractionsBlocked) return;
+            clearInterval(countdownTimerRef);
+            inputInteractionsBlocked = true;
+
+            const selectedBtn = document.getElementsByClassName('answer-selection-btn')[choiceIndex];
+            
+            if (choiceIndex === currentActiveQuestion.correct) {
+                triggerAudioFeedbackTone(440, 0.15, 'sine');
+                setTimeout(() => { triggerAudioFeedbackTone(659.25, 0.2, 'sine'); }, 150);
+
+                if (selectedBtn) selectedBtn.className = "w-full p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/60 text-left text-xs font-black text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.3)] animate__animated animate__pulse";
+
+                state.stats.currentStreak++;
+                state.stats.overallAnswers++;
+                state.gold += 15;
+                state.dailyTasks.forEach(t => { if (t.type === 'answer' || t.type === 'streak') t.progress++; });
+                saveState();
+
+                setTimeout(() => {
+                    inputInteractionsBlocked = false;
+                    executeNextQuestionCycle();
+                }, 1200);
+
+            } else {
+                if (selectedBtn) selectedBtn.className = "w-full p-4 rounded-2xl bg-red-950/40 border border-red-500/60 text-left text-xs font-black text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.3)] animate__animated animate__shakeX";
+                state.stats.currentStreak = 0; 
+                saveState();
+                
+                setTimeout(() => { executeFailureSequence(); }, 600); // Fluid jump
+            }
         }
 
-        function toggleAudio() {
-            state.music = !state.music;
-            document.getElementById('audio-status').innerText = state.music ? 'ON' : 'OFF';
+        // FLUID PENALTY: NO POPUPS FOR STANDARD WRONG ANSWERS/TIMEOUTS
+        function executeFailureSequence() {
+            clearInterval(countdownTimerRef);
+            inputInteractionsBlocked = true;
+            toggleSnowSystemPipeline(false);
+            
+            if (isShieldActive) {
+                isShieldActive = false;
+                displayGlobalAlertOverlay("SHIELD ABSORBED STRIKE", "Divine Aegis shield absorbed penalty strike.", () => {
+                    inputInteractionsBlocked = false;
+                    executeNextQuestionCycle();
+                });
+                return;
+            }
+
+            triggerAudioFeedbackTone(110, 0.4, 'sawtooth');
+            state.gold = Math.max(0, state.gold - 20);
+            saveState();
+            
+            // Extreme visual vibration feedback on the wallet
+            const walletWidget = document.getElementById('gold-container');
+            if(walletWidget) {
+                walletWidget.classList.add('vibrate-error-bag');
+                setTimeout(() => { walletWidget.classList.remove('vibrate-error-bag'); }, 600);
+            }
+
+            if(state.gold <= 0) {
+                // Only popup if they are completely dead/bankrupt
+                setTimeout(() => {
+                    displayGlobalAlertOverlay(getString('walletTitle'), getString('walletMsg'), () => { switchContextTerminalWindow('home'); });
+                }, 700);
+            } else {
+                // Seamless shuffle jump
+                setTimeout(() => { 
+                    inputInteractionsBlocked = false;
+                    executeNextQuestionCycle(); 
+                }, 800);
+            }
         }
 
-        renderMenu();
+        function applyInGameUtility(type) {
+            if (state.perks[type] <= 0 || inputInteractionsBlocked) return;
+            if (type === 'freeze' && isFreezeActive) return;
+
+            state.perks[type]--; 
+            saveState(); 
+            triggerAudioFeedbackTone(500, 0.1, 'sine');
+
+            const targetBtn = document.getElementById(`perk-btn-${type}`);
+            if(targetBtn) {
+                let flashClass = `perk-flash-${type}`;
+                targetBtn.classList.add(flashClass);
+                setTimeout(() => { targetBtn.classList.remove(flashClass); }, 600);
+            }
+
+            if (type === 'freeze') {
+                isFreezeActive = true;
+                document.getElementById('frost-frame').classList.add('frost-active');
+                toggleSnowSystemPipeline(true);
+            } else if (type === 'half') {
+                const elements = document.getElementsByClassName('answer-selection-btn');
+                let removed = 0;
+                for(let i=0; i<elements.length; i++) {
+                    if(i !== currentActiveQuestion.correct && removed < 2) {
+                        elements[i].style.opacity = "0.15";
+                        elements[i].disabled = true;
+                        removed++;
+                    }
+                }
+            } else if (type === 'shield') {
+                isShieldActive = true;
+                document.getElementById('shield-frame').classList.add('shield-active');
+            }
+            
+            // Update node texts immediately
+            document.getElementById('perk-btn-freeze').innerHTML = `<i class="fa-solid fa-snowflake text-sky-400 mb-1"></i><span class="text-[9px] text-slate-400 font-bold uppercase">Freeze (${state.perks.freeze})</span>`;
+            document.getElementById('perk-btn-half').innerHTML = `<i class="fa-solid fa-scale-balanced text-rose-400 mb-1"></i><span class="text-[9px] text-slate-400 font-bold uppercase">50/50 (${state.perks.half})</span>`;
+            document.getElementById('perk-btn-shield').innerHTML = `<i class="fa-solid fa-shield-halved text-amber-400 mb-1"></i><span class="text-[9px] text-slate-400 font-bold uppercase">Shield (${state.perks.shield})</span>`;
+        }
+
+        function requestSegmentVaultUnlock(evt, phaseTargetId, standardFeeValue, descriptiveLabelText) {
+            evt.preventDefault();
+            evt.stopPropagation();
+            if (inputInteractionsBlocked) return;
+
+            if (state.gold < standardFeeValue) {
+                triggerAudioFeedbackTone(90, 0.2, 'square');
+                displayGlobalAlertOverlay(getString('shortageTitle'), getString('shortageMsg'));
+                return;
+            }
+
+            triggerAudioFeedbackTone(293.66, 0.1, 'sine');
+            state.gold -= standardFeeValue;
+            state.unlockedBooks[phaseTargetId] = true;
+            saveState();
+
+            displayGlobalAlertOverlay(getString('unlockSuccess'), getString('unlockSuccessMsg', {name: descriptiveLabelText}), () => {
+                renderMenuMap();
+            });
+        }
+
+        function openShopModal(e) {
+            if(e) e.stopPropagation();
+            const catalog = [
+                { id: 'freeze', name: 'Chrono Freeze', cost: 50, icon: '❄️' },
+                { id: 'half', name: 'Divine 50:50', cost: 75, icon: '⚖️' },
+                { id: 'shield', name: 'Aegis Shield', cost: 60, icon: '🛡️' }
+            ];
+            const grid = document.getElementById('modal-shop-grid'); grid.innerHTML = "";
+            catalog.forEach(item => {
+                grid.innerHTML += `
+                    <div class="flex items-center justify-between p-3 bg-slate-900/60 rounded-2xl border border-slate-800">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xl bg-slate-950 p-2 rounded-xl border border-white/5">${item.icon}</span>
+                            <div>
+                                <h4 class="text-xs font-black text-slate-200 uppercase">${item.name}</h4>
+                                <p class="text-[9px] text-indigo-400 font-bold uppercase mt-0.5">Inventory: ${state.perks[item.id] || 0}</p>
+                            </div>
+                        </div>
+                        <button onclick="purchaseConsumablePerkItem(event, '${item.id}', ${item.cost})" class="bg-indigo-600 hover:bg-indigo-500 font-black text-[10px] px-3 py-2 rounded-xl text-white shadow-md active:scale-95 transition-transform uppercase tracking-wider border border-indigo-400/20 flex gap-1">
+                            <span>BUY</span><span class="text-indigo-200">${item.cost} 💰</span>
+                        </button>
+                    </div>
+                `;
+            });
+            document.getElementById('shop-modal').classList.remove('hidden');
+        }
+
+        function closeShopModal(e) { 
+            if(e) e.stopPropagation();
+            document.getElementById('shop-modal').classList.add('hidden'); 
+        }
+
+        function purchaseConsumablePerkItem(evt, itemKey, costMetricValue) {
+            evt.preventDefault();
+            if (state.gold >= costMetricValue) {
+                state.gold -= costMetricValue;
+                state.perks[itemKey]++;
+                saveState(); 
+                triggerAudioFeedbackTone(392, 0.15, 'sine');
+                openShopModal(evt); // Refresh the modal instantly
+            } else {
+                displayGlobalAlertOverlay(getString('shortageTitle'), getString('shortageMsg'));
+            }
+        }
+
+        function displayGlobalAlertOverlay(alertTitle, alertMessageBody, confirmationCallback = null) {
+            activePostAlertCallback = confirmationCallback;
+            document.getElementById('alert-title').innerText = alertTitle;
+            document.getElementById('alert-msg').innerText = alertMessageBody;
+            document.getElementById('game-alert-modal').classList.remove('hidden');
+        }
+
+        function dismissSystemModal(evt) {
+            evt.preventDefault();
+            triggerAudioFeedbackTone(180, 0.05, 'sine');
+            document.getElementById('game-alert-modal').classList.add('hidden');
+            if (activePostAlertCallback) {
+                const cb = activePostAlertCallback;
+                activePostAlertCallback = null;
+                cb();
+            }
+        }
+
+        // AMBIENCE PARTICLE & SOUND ENGINES
+        function initStarfieldAmbientLayer() {
+            const canvas = document.getElementById('ambient-particle-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let dots = [];
+            function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+            window.addEventListener('resize', resize); resize();
+            for(let i=0; i<35; i++) dots.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, r: Math.random() * 2 + 1, vY: Math.random() * 0.3 + 0.1, alpha: Math.random() * 0.4 + 0.1 });
+            function loop() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                dots.forEach(d => {
+                    d.y -= d.vY;
+                    if(d.y < -10) d.y = canvas.height + 10;
+                    ctx.fillStyle = `rgba(129, 140, 248, ${d.alpha})`;
+                    ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI*2); ctx.fill();
+                });
+                requestAnimationFrame(loop);
+            }
+            loop();
+        }
+
+        function toggleSnowSystemPipeline(run) {
+            const canvas = document.getElementById('snow-freeze-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            if (!run) {
+                canvas.style.opacity = "0";
+                if(snowAnimationId) cancelAnimationFrame(snowAnimationId);
+                return;
+            }
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            canvas.style.opacity = "1"; snowFlakesArray = [];
+
+            for (let i = 0; i < 65; i++) {
+                snowFlakesArray.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, r: Math.random() * 3 + 1.5, speed: Math.random() * 1.5 + 0.5, density: Math.random() * 30 });
+            }
+            function frame() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "rgba(224, 242, 254, 0.85)"; ctx.beginPath();
+                for (let i = 0; i < 65; i++) {
+                    let p = snowFlakesArray[i];
+                    ctx.moveTo(p.x, p.y); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, true);
+                    p.y += p.speed; p.x += Math.sin(p.density) * 0.6;
+                    if (p.y > canvas.height) snowFlakesArray[i] = { x: Math.random() * canvas.width, y: -10, r: p.r, speed: p.speed, density: p.density };
+                }
+                ctx.fill();
+                snowAnimationId = requestAnimationFrame(frame);
+            }
+            frame();
+        }
+
+        function initAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                startProceduralAmbianceLoop();
+            }
+        }
+
+        function startProceduralAmbianceLoop() {
+            if (activeBackgroundToneLoop) clearInterval(activeBackgroundToneLoop);
+            runMoodSynthesizerTick();
+            activeBackgroundToneLoop = setInterval(runMoodSynthesizerTick, currentBackgroundMoodType === 'war' ? 850 : 3500);
+        }
+
+        function runMoodSynthesizerTick() {
+            if (globalAudioMuted || !audioCtx) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+
+            if (currentBackgroundMoodType === 'war') {
+                let drumOsc = audioCtx.createOscillator(); let drumGain = audioCtx.createGain();
+                drumOsc.type = 'triangle'; drumOsc.frequency.setValueAtTime(58, now); drumOsc.frequency.exponentialRampToValueAtTime(0.01, now + 0.45);
+                drumGain.gain.setValueAtTime(0.4, now); drumGain.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
+                drumOsc.connect(drumGain); drumGain.connect(audioCtx.destination);
+                drumOsc.start(now); drumOsc.stop(now + 0.45);
+            } else {
+                let ambientFreqs = [146.83, 220.00, 293.66];
+                ambientFreqs.forEach((f) => {
+                    let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
+                    osc.type = 'triangle'; osc.frequency.setValueAtTime(f, now);
+                    gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.02, now + 1.2); gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.3);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(now); osc.stop(now + 3.4);
+                });
+            }
+        }
+
+        function switchBackgroundMoodSoundtrack(mood) {
+            initAudioContext();
+            if (currentBackgroundMoodType === mood) return;
+            currentBackgroundMoodType = mood;
+            startProceduralAmbianceLoop();
+        }
+
+        function toggleAudioAmbiance() {
+            const btn = document.getElementById('ambiance-toggle-btn');
+            if (!audioCtx) {
+                initAudioContext(); globalAudioMuted = false;
+                if (btn) btn.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span>AMBIANCE: ON</span>`;
+                return;
+            }
+            globalAudioMuted = !globalAudioMuted;
+            if (globalAudioMuted) {
+                if (activeBackgroundToneLoop) { try { activeBackgroundToneLoop.stop(); } catch(e){} activeBackgroundToneLoop = null; }
+                if (btn) btn.innerHTML = `<span class="w-2 h-2 rounded-full bg-slate-500"></span><span class="text-slate-500">AMBIANCE: OFF</span>`;
+            } else {
+                startProceduralAmbianceLoop();
+                if (btn) btn.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span class="text-emerald-400">AMBIANCE: ON</span>`;
+            }
+        }
+
+        function triggerAudioFeedbackTone(freq, dur, type = 'sine') {
+            if (!audioCtx || globalAudioMuted) return;
+            try {
+                let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
+                osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + dur);
+            } catch (err) {}
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initStarfieldAmbientLayer();
+            switchContextTerminalWindow('home');
+            saveState();
+        });
     </script>
 </body>
 </html>
