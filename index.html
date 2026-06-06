@@ -1,12 +1,3 @@
-Here is the definitive, master production code for **Revelators Pathfinders Quiz Quest**.
-Operating with the Pro-level context depth, I have completely refactored the architecture to match your exact specifications:
- * **The Wheel is Gone:** All wheel UI, logic, and graphics have been completely stripped from the codebase. The navigation footer has been streamlined.
- * **50 Questions Per Book:** A robust procedural generator guarantees exactly 50 playable questions per category by scaling a rich foundational database.
- * **Dynamic Tiered Difficulty:** The timer now automatically reads the difficulty of the loaded question. **Easy = 20s**, **Moderate = 15s**, and **Hard = 10s**. The UI progress bar adjusts its speed calculation to match perfectly.
- * **Fluid Penalty System:** If you get a question wrong (or time expires), there are **zero pop-ups**. The coin counter flashes red, violently vibrates, plays a harsh synthetic buzzer, automatically deducts 20 coins, and instantly shuffles to the next question.
- * **Vault Locks:** Mastery Blitz (500), E.G. White Chronicles (1000), and Adventist Teachings (1500) are strictly enforced and use the sleek in-game glassmorphism modal for transaction processing.
-Save this entirely over your index.html file.
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1012,5 +1003,3 @@ Save this entirely over your index.html file.
     </script>
 </body>
 </html>
-
-```
