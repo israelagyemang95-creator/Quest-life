@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bible Quest & Financial Literacy: Ultimate Arcade Edition</title>
-    <!-- Tailwind CSS for high-end styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Animate.css for smooth phase card transitions -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
         body { 
@@ -133,17 +131,13 @@
 </head>
 <body class="p-4 min-h-screen flex flex-col items-center justify-start text-white select-none">
 
-    <!-- Ambient Graphics Core Canvas Target -->
     <canvas id="ambient-particle-canvas"></canvas>
 
-    <!-- Visual Perk Overlay Frames -->
     <div id="frost-frame"></div>
     <div id="shield-frame"></div>
 
-    <!-- UTILITY CONTROL DOCK + TOP DOWN MENUS (ACTIVITIES & WHEEL SECTORS) -->
     <div class="w-full max-w-md flex flex-col gap-2 z-50 relative">
         
-        <!-- Status Row -->
         <div class="flex justify-between items-center w-full px-1">
             <button onclick="exitToMenu()" id="back-btn" class="hidden bg-slate-950/95 border border-white/15 text-white px-4 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-wider shadow-xl transition-all">
                 🚪 Map Hub
@@ -165,7 +159,6 @@
             </div>
         </div>
 
-        <!-- MENU MODULE 1: COMPACT TOP-DOWN ACTIVITIES MENU BAR -->
         <div id="lobby-activities-bar" class="relative w-full">
             <button onclick="toggleActivitiesDropWindow(event)" class="w-full bg-slate-900/60 hover:bg-slate-900/90 border border-white/5 backdrop-blur-md px-4 py-2.5 rounded-xl text-xs font-bold text-indigo-300 flex justify-between items-center transition-all shadow-md">
                 <span class="flex items-center gap-2">📋 View Sectors Task Explorer</span>
@@ -174,14 +167,12 @@
             <div id="activities-drop-window" class="hidden absolute top-full left-0 right-0 mt-1.5 bg-slate-950/95 border border-white/10 rounded-2xl p-3 shadow-2xl space-y-2 z-50 max-h-60 overflow-y-auto no-scrollbar"></div>
         </div>
 
-        <!-- MENU MODULE 2: COMPACT TOP-DOWN PROPHETIC WHEEL MENU BAR -->
         <div id="lobby-wheel-bar" class="relative w-full">
             <button onclick="toggleWheelDropWindow(event)" class="w-full bg-gradient-to-r from-amber-950/30 via-slate-900/60 to-amber-950/30 hover:brightness-110 border border-amber-500/20 backdrop-blur-md px-4 py-2.5 rounded-xl text-xs font-bold text-amber-400 flex justify-between items-center transition-all shadow-md">
                 <span class="flex items-center gap-2">🎯 Launch Prophetic Reward Wheel</span>
                 <span id="wheel-drop-arrow" class="transition-transform duration-200 text-[10px]">▼</span>
             </button>
             
-            <!-- REWARD WHEEL DROPDOWN ENCLOSURE -->
             <div id="wheel-drop-window" class="hidden absolute top-full left-0 right-0 mt-1.5 bg-slate-950/98 border border-amber-500/30 rounded-3xl p-5 shadow-2xl z-50 text-center space-y-4">
                 <div class="wheel-container">
                     <div class="wheel-pointer"></div>
@@ -195,10 +186,8 @@
 
     </div>
 
-    <!-- Main Dynamic Application Canvas Container Frame Layout -->
     <main id="window-canvas" class="w-full max-w-md mt-6 space-y-4 flex flex-col mb-28 relative z-10"></main>
 
-    <!-- ALERT DIALOG BOX OVERLAY SYSTEM -->
     <div id="game-alert-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
         <div id="alert-box-card" class="glass-card w-full max-w-xs p-6 text-center space-y-4 border-indigo-500/40 bg-slate-950/95 shadow-2xl animate__animated">
             <div id="alert-icon" class="text-5xl">⚠️</div>
@@ -210,7 +199,6 @@
         </div>
     </div>
 
-    <!-- Shop Modal Inventory Armory Layer -->
     <div id="shop-modal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
         <div class="glass-card w-full max-w-sm p-6 space-y-4 border-indigo-500/30 bg-slate-950/90 shadow-2xl">
             <div class="flex justify-between items-center border-b border-white/10 pb-3">
@@ -221,15 +209,719 @@
         </div>
     </div>
 
-    <!-- Floating Inventory Action Link Pin Button -->
     <button id="lobby-bag-btn" onclick="openShopModal()" class="fixed bottom-6 right-6 z-40 bg-gradient-to-tr from-indigo-500 via-purple-600 to-pink-500 border border-white/20 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl text-xl hover:scale-110 active:scale-95 transition-all animate__animated animate__pulse animate__infinite">🎒</button>
 
-    <!-- CORE SCRIPT LINK DOCK -->
-    <!-- STEP 1: Load external data file first so it attaches to the window namespace -->
     <script src="questions.js"></script>
-    
-    <!-- STEP 2: Load arcade application engine logic file second -->
-    <script src="app.js"></script>
 
+    <script>
+        // Core State Engine System Configuration
+        let state = JSON.parse(localStorage.getItem('bqArcadeV12Data')) || {
+            gold: 500, lang: 'en',
+            perks: { freeze: 3, half: 2, skip: 1, shield: 2 },
+            lastSpinTimestamp: 0,
+            stats: { currentStreak: 0, freezeUsed: 0, totalCoinsEarned: 500, blitzSurvivals: 0, overallAnswers: 0 },
+            activitySetTier: 1,
+            activityProgressCounters: [0, 0, 0, 0, 0]
+        };
+
+        const prizes = [
+            { icon: "💡", color: "#fbbf24", action: () => { state.perks.half += 1; } },
+            { icon: "🎫", color: "#3b82f6", action: () => { state.perks.skip += 1; } },
+            { icon: "🪙", color: "#f59e0b", action: () => { state.gold += 50; } },
+            { icon: "❄️", color: "#22d3ee", action: () => { state.perks.freeze += 1; } },
+            { icon: "💰", color: "#eab308", action: () => { state.gold += 100; } },
+            { icon: "🛡️", color: "#10b981", action: () => { state.perks.shield += 1; } }
+        ];
+
+        let currentCampaignMode = "";
+        let campaignActivePool = [];
+        let currentActiveQuestion = null;
+        let countdownTimerRef = null;
+        let secondsRemaining = 0;
+        let inputInteractionsBlocked = false;
+        let isShieldActive = false;
+        
+        let audioCtx = null;
+        let globalAudioMuted = false;
+        let activeBackgroundToneLoop = null;
+        let currentBackgroundMoodType = "lobby"; 
+
+        let wheelAnimationId = null;
+        let wheelBaseRotation = 0;
+        let wheelPulseScaleDelta = 0;
+        let isWheelActivelySpinning = false;
+        let activePostAlertCallback = null;
+
+        function saveState() {
+            localStorage.setItem('bqArcadeV12Data', JSON.stringify(state));
+            document.getElementById('gold-val').innerText = state.gold;
+            document.getElementById('lang-label').innerText = state.lang === 'en' ? "English" : "Twi";
+        }
+
+        function initStarfieldAmbientLayer() {
+            const canvas = document.getElementById('ambient-particle-canvas');
+            const ctx = canvas.getContext('2d');
+            let dots = [];
+            
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            for(let i=0; i<35; i++) {
+                dots.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    r: Math.random() * 2 + 1,
+                    vY: Math.random() * 0.3 + 0.1,
+                    alpha: Math.random() * 0.4 + 0.1
+                });
+            }
+
+            function loop() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                dots.forEach(d => {
+                    d.y -= d.vY;
+                    if(d.y < -10) d.y = canvas.height + 10;
+                    ctx.fillStyle = `rgba(129, 140, 248, ${d.alpha})`;
+                    ctx.beginPath();
+                    ctx.arc(d.x, d.y, d.r, 0, Math.PI*2);
+                    ctx.fill();
+                });
+                requestAnimationFrame(loop);
+            }
+            loop();
+        }
+
+        function initAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                startProceduralAmbianceLoop();
+            }
+        }
+
+        function startProceduralAmbianceLoop() {
+            if (activeBackgroundToneLoop) clearInterval(activeBackgroundToneLoop);
+            runMoodSynthesizerTick();
+            activeBackgroundToneLoop = setInterval(runMoodSynthesizerTick, currentBackgroundMoodType === 'war' ? 850 : 3500);
+        }
+
+        function runMoodSynthesizerTick() {
+            if (globalAudioMuted || !audioCtx) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+
+            if (currentBackgroundMoodType === 'war') {
+                let drumOsc = audioCtx.createOscillator();
+                let drumGain = audioCtx.createGain();
+                drumOsc.type = 'triangle';
+                drumOsc.frequency.setValueAtTime(58, now);
+                drumOsc.frequency.exponentialRampToValueAtTime(0.01, now + 0.45);
+                drumGain.gain.setValueAtTime(0.4, now);
+                drumGain.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
+                drumOsc.connect(drumGain);
+                drumGain.connect(audioCtx.destination);
+                drumOsc.start(now); drumOsc.stop(now + 0.45);
+
+                let tensionOsc = audioCtx.createOscillator();
+                let tensionGain = audioCtx.createGain();
+                let filter = audioCtx.createBiquadFilter();
+                tensionOsc.type = 'sawtooth';
+                tensionOsc.frequency.setValueAtTime(70, now);
+                tensionOsc.frequency.linearRampToValueAtTime(110, now + 0.7);
+                filter.type = 'lowpass'; filter.frequency.setValueAtTime(220, now);
+                tensionGain.gain.setValueAtTime(0, now);
+                tensionGain.linearRampToValueAtTime(0.08, now + 0.2);
+                tensionGain.exponentialRampToValueAtTime(0.001, now + 0.75);
+                tensionOsc.connect(filter); filter.connect(tensionGain); tensionGain.connect(audioCtx.destination);
+                tensionOsc.start(now); tensionOsc.stop(now + 0.8);
+            } else if (currentBackgroundMoodType === 'holy') {
+                let harmonies = [220.00, 277.18, 329.63, 440.00];
+                harmonies.forEach((f, index) => {
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(f, now);
+                    gain.gain.setValueAtTime(0, now);
+                    gain.gain.linearRampToValueAtTime(0.02, now + 0.8 + (index * 0.1));
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.2);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(now); osc.stop(now + 3.4);
+                });
+            } else {
+                let ambientFreqs = [146.83, 220.00, 293.66];
+                ambientFreqs.forEach((f) => {
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    osc.type = 'triangle'; osc.frequency.setValueAtTime(f, now);
+                    gain.gain.setValueAtTime(0, now);
+                    gain.gain.linearRampToValueAtTime(0.02, now + 1.2);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.3);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(now); osc.stop(now + 3.4);
+                });
+            }
+        }
+
+        function switchBackgroundMoodSoundtrack(mood) {
+            initAudioContext();
+            if (currentBackgroundMoodType === mood) return;
+            currentBackgroundMoodType = mood;
+            startProceduralAmbianceLoop();
+        }
+
+        function toggleGlobalAudioSystem() {
+            initAudioContext();
+            globalAudioMuted = !globalAudioMuted;
+            const btn = document.getElementById('audio-toggle-btn');
+            if (globalAudioMuted) {
+                btn.className = "bg-slate-950/95 border border-white/10 text-slate-500 px-3 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-xl";
+                btn.innerHTML = `<span class="w-2 h-2 rounded-full bg-slate-600"></span><span>AMBIANCE: OFF</span>`;
+            } else {
+                btn.className = "bg-slate-950/95 border border-emerald-500/30 text-emerald-400 px-3 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-xl";
+                btn.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span>AMBIANCE: ON</span>`;
+                runMoodSynthesizerTick();
+            }
+        }
+
+        function playInterfaceFeedbackChime(type) {
+            if (globalAudioMuted || !audioCtx) return;
+            let now = audioCtx.currentTime;
+            if (type === 'correct') {
+                [523.25, 659.25, 783.99].forEach((f, i) => {
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    osc.frequency.setValueAtTime(f, now + (i * 0.03));
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(now); osc.stop(now + 0.45);
+                });
+            } else if (type === 'wrong') {
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(130, now);
+                let f = audioCtx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(300, now);
+                gain.gain.setValueAtTime(0.15, now); gain.gain.linearRampToValueAtTime(0.001, now + 0.3);
+                osc.connect(f); f.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 0.35);
+            } else {
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.frequency.setValueAtTime(400, now);
+                gain.gain.setValueAtTime(0.03, now); gain.gain.linearRampToValueAtTime(0.001, now + 0.05);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 0.06);
+            }
+        }
+
+        function triggerInGameAlert(title, message, icon, completeCallback = null) {
+            document.getElementById('alert-title').innerText = title;
+            document.getElementById('alert-msg').innerText = message;
+            document.getElementById('alert-icon').innerText = icon || '⚠️';
+            activePostAlertCallback = completeCallback;
+            const element = document.getElementById('game-alert-modal');
+            element.classList.remove('hidden');
+            document.getElementById('alert-box-card').className = "glass-card w-full max-w-xs p-6 text-center space-y-4 border-indigo-500/40 bg-slate-950/90 animate__animated animate__jackInTheBox";
+        }
+
+        function dismissSystemModal() {
+            playInterfaceFeedbackChime('tap');
+            document.getElementById('game-alert-modal').classList.add('hidden');
+            if (activePostAlertCallback) {
+                const cb = activePostAlertCallback;
+                activePostAlertCallback = null;
+                cb();
+            }
+        }
+
+        function getProceduralActiveSet() {
+            let t = state.activitySetTier;
+            return [
+                { text: `Answer ${3 + t} questions across any stage`, target: 3 + t, current: state.activityProgressCounters[0] },
+                { text: `Maintain a win streak of ${2 + t} choices`, target: 2 + t, current: state.stats.currentStreak },
+                { text: `Activate Chrono Freeze ${1 + Math.floor(t/2)} times`, target: 1 + Math.floor(t/2), current: state.activityProgressCounters[2] },
+                { text: `Survive ${t} extreme Mastery Blitz cards`, target: t, current: state.stats.blitzSurvivals },
+                { text: `Possess a volume balance of ${400 + (t * 100)} gold`, target: 400 + (t * 100), current: state.gold }
+            ];
+        }
+
+        function evaluateActivityIncrements(type, amount = 1) {
+            if(type === 'answer') state.activityProgressCounters[0] += amount;
+            if(type === 'freeze') state.activityProgressCounters[2] += amount;
+            saveState();
+
+            let activeSet = getProceduralActiveSet();
+            let completedCount = 0;
+            activeSet.forEach(act => { if(act.current >= act.target) completedCount++; });
+
+            if (completedCount >= 5) {
+                let milestonePayout = 100 + (state.activitySetTier * 50);
+                state.gold += milestonePayout;
+                state.activitySetTier++;
+                state.activityProgressCounters = [0, 0, 0, 0, 0];
+                saveState();
+                
+                triggerInGameAlert(
+                    "🎉 Activity Set Cleared!", 
+                    `Superb effort! You have completed all active goals. Tier increased to ${state.activitySetTier}, and a milestone payout of ${milestonePayout} Coins has been loaded.`, 
+                    "🏆"
+                );
+            }
+        }
+
+        function toggleActivitiesDropWindow(e) {
+            if(e) e.stopPropagation();
+            initAudioContext();
+            playInterfaceFeedbackChime('tap');
+            document.getElementById('wheel-drop-window').classList.add('hidden');
+            document.getElementById('wheel-drop-arrow').innerText = "▼";
+            cancelAnimationFrame(wheelAnimationId);
+
+            const win = document.getElementById('activities-drop-window');
+            const arrow = document.getElementById('activities-drop-arrow');
+            if (win.classList.contains('hidden')) {
+                win.classList.remove('hidden');
+                arrow.innerText = "▲";
+                renderDropActivitiesList();
+            } else {
+                win.classList.add('hidden');
+                arrow.innerText = "▼";
+            }
+        }
+
+        function renderDropActivitiesList() {
+            const container = document.getElementById('activities-drop-window');
+            container.innerHTML = "";
+            let activeSet = getProceduralActiveSet();
+            
+            activeSet.forEach(act => {
+                let currentProgress = Math.min(act.target, act.current);
+                let isCompleted = currentProgress >= act.target;
+                let pct = Math.floor((currentProgress / act.target) * 100);
+
+                let statusText = `<span class="text-[10px] text-indigo-400 font-mono font-bold">${currentProgress}/${act.target}</span>`;
+                let borderStyle = "border-white/5 bg-slate-900/40";
+                if(isCompleted) {
+                    statusText = `<span class="text-[9px] text-emerald-400 font-black animate-pulse">✓ READY</span>`;
+                    borderStyle = "border-emerald-500/30 bg-emerald-950/10 completed-glow";
+                }
+
+                const div = document.createElement('div');
+                div.className = `p-2.5 rounded-xl border flex flex-col gap-1 ${borderStyle}`;
+                div.innerHTML = `
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-200 font-medium">${act.text}</span>
+                        ${statusText}
+                    </div>
+                    <div class="w-full bg-slate-950 h-1 rounded-full overflow-hidden">
+                        <div class="bg-gradient-to-r from-indigo-500 to-purple-500 h-full" style="width: ${pct}%"></div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function toggleWheelDropWindow(e) {
+            if(e) e.stopPropagation();
+            initAudioContext();
+            playInterfaceFeedbackChime('tap');
+            document.getElementById('activities-drop-window').classList.add('hidden');
+            document.getElementById('activities-drop-arrow').innerText = "▼";
+
+            const win = document.getElementById('wheel-drop-window');
+            const arrow = document.getElementById('wheel-drop-arrow');
+            if (win.classList.contains('hidden')) {
+                win.classList.remove('hidden');
+                arrow.innerText = "▲";
+                isWheelActivelySpinning = false;
+                wheelPulseScaleDelta = 0;
+                runInteractiveWheelLoopAnimation();
+            } else {
+                win.classList.add('hidden');
+                arrow.innerText = "▼";
+                cancelAnimationFrame(wheelAnimationId);
+            }
+        }
+
+        function runInteractiveWheelLoopAnimation() {
+            if(!isWheelActivelySpinning) { wheelPulseScaleDelta += 0.05; }
+            renderWheelCanvasLiveFrame();
+            wheelAnimationId = requestAnimationFrame(runInteractiveWheelLoopAnimation);
+        }
+
+        function renderWheelCanvasLiveFrame() {
+            const canvas = document.getElementById('wheel-canvas');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const numSectors = prizes.length;
+            const arcSize = (2 * Math.PI) / numSectors;
+            ctx.clearRect(0,0,250,250);
+            
+            for(let i=0; i<numSectors; i++) {
+                let angle = (i * arcSize) + wheelBaseRotation;
+                ctx.fillStyle = (i % 2 === 0) ? "#111827" : "#1f2937";
+                ctx.beginPath(); ctx.moveTo(125, 125);
+                ctx.arc(125, 125, 118, angle, angle + arcSize);
+                ctx.lineTo(125, 125); ctx.fill();
+                ctx.strokeStyle = "rgba(99, 102, 241, 0.3)"; ctx.lineWidth = 1.5; ctx.stroke();
+
+                ctx.save(); ctx.translate(125, 125); ctx.rotate(angle + arcSize / 2);
+                let currentScale = 1.0;
+                if(!isWheelActivelySpinning) { currentScale = 1.0 + Math.sin(wheelPulseScaleDelta + i) * 0.12; }
+                ctx.font = `${Math.floor(22 * currentScale)}px system-ui`;
+                ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                ctx.shadowColor = prizes[i].color;
+                ctx.shadowBlur = isWheelActivelySpinning ? 4 : 10 + Math.abs(Math.sin(wheelPulseScaleDelta)) * 15;
+                ctx.fillText(prizes[i].icon, 78, 0); ctx.restore();
+            }
+
+            ctx.beginPath(); ctx.arc(125, 125, 18, 0, Math.PI*2);
+            ctx.fillStyle = "#4f46e5"; ctx.shadowBlur = 15; ctx.shadowColor = "#6366f1"; ctx.fill();
+            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.stroke();
+        }
+
+        function spinWheelActionLogic() {
+            const now = Date.now();
+            const cooldownPeriod = 24 * 60 * 60 * 1000;
+            if (now - state.lastSpinTimestamp < cooldownPeriod) {
+                triggerInGameAlert("Engine Recharging", "Your daily prophetic reward drop is cooling down. Return tomorrow.", "⏳");
+                return;
+            }
+
+            playInterfaceFeedbackChime('tap');
+            document.getElementById('spin-action-trigger').disabled = true;
+            state.lastSpinTimestamp = now; saveState();
+
+            isWheelActivelySpinning = true;
+            let vel = 0.45; let decay = 0.993;
+            
+            function brakeRotationTick() {
+                wheelBaseRotation += vel; vel *= decay;
+                if (vel < 0.002) {
+                    isWheelActivelySpinning = false;
+                    let rad = wheelBaseRotation % (2 * Math.PI);
+                    let targetRad = (2 * Math.PI) - rad;
+                    if(targetRad < 0) targetRad += (2 * Math.PI);
+                    
+                    let sectorArc = (2 * Math.PI) / prizes.length;
+                    let adjustedRad = (targetRad - (Math.PI / 2) + (2 * Math.PI)) % (2 * Math.PI);
+                    let idx = Math.floor(adjustedRad / sectorArc);
+                    let winner = prizes[idx] || prizes[0];
+
+                    winner.action(); saveState();
+                    triggerInGameAlert("🎁 Prize Unlocked!", `The needle settled perfectly! Reward applied to inventory cache.`, winner.icon, () => {
+                        document.getElementById('spin-action-trigger').disabled = false;
+                        toggleWheelDropWindow(); renderMenuMap();
+                    });
+                } else { requestAnimationFrame(brakeRotationTick); }
+            }
+            brakeRotationTick();
+        }
+
+        function openShopModal() {
+            initAudioContext();
+            const catalog = [
+                { id: 'freeze', name: 'Chrono Freeze', cost: 50, icon: '❄️' },
+                { id: 'half', name: 'Divine 50:50', cost: 75, icon: '⚖️' },
+                { id: 'skip', name: 'Prophetic Skip', cost: 100, icon: '🔮' },
+                { id: 'shield', name: 'Aegis Shield', cost: 60, icon: '🛡️' }
+            ];
+            const grid = document.getElementById('modal-shop-grid'); grid.innerHTML = "";
+            catalog.forEach(item => {
+                const block = document.createElement('div');
+                block.className = "flex items-center justify-between p-3 bg-slate-900/90 rounded-xl border border-white/5";
+                block.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl bg-slate-950 p-2 rounded-lg">${item.icon}</span>
+                        <div>
+                            <h4 class="text-xs font-black text-slate-200">${item.name}</h4>
+                            <p class="text-[9px] text-indigo-400 font-bold">In Bag: ${state.perks[item.id] || 0}</p>
+                        </div>
+                    </div>
+                    <button onclick="purchaseInventoryPerk('${item.id}', ${item.cost})" class="bg-indigo-600 hover:bg-indigo-500 font-bold text-xs px-3 py-1.5 rounded-lg text-white shadow-md">${item.cost} 💰</button>
+                `;
+                grid.appendChild(block);
+            });
+            document.getElementById('shop-modal').classList.remove('hidden');
+        }
+        function closeShopModal() { document.getElementById('shop-modal').classList.add('hidden'); }
+
+        function purchaseInventoryPerk(id, cost) {
+            if (state.gold >= cost) {
+                state.gold -= cost; state.perks[id] = (state.perks[id] || 0) + 1;
+                saveState(); playInterfaceFeedbackChime('tap'); openShopModal();
+            } else { triggerInGameAlert("Treasury Shortage", "You do not have enough coins to purchase this deployable perk item.", "🪙"); }
+        }
+
+        // --- DYNAMIC PHASE CARD ROUTER SYSTEM ---
+        function renderMenuMap() {
+            currentCampaignMode = "";
+            document.body.classList.remove('game-bg-active');
+            document.getElementById('back-btn').classList.add('hidden');
+            document.getElementById('lobby-bag-btn').classList.remove('hidden');
+            document.getElementById('lobby-activities-bar').classList.remove('hidden');
+            document.getElementById('lobby-wheel-bar').classList.remove('hidden');
+            switchBackgroundMoodSoundtrack('lobby');
+
+            const canvas = document.getElementById('window-canvas');
+            canvas.innerHTML = `
+                <div class="text-center space-y-1 py-2 animate__animated animate__fadeInDown">
+                    <h1 class="text-4xl font-black tracking-tighter shimmer-title filter drop-shadow-[0_5px_15px_rgba(99,102,241,0.35)]">BIBLE & WEALTH</h1>
+                    <p class="text-[9px] text-indigo-400 font-black tracking-widest uppercase">Tap a Phase Card to Explore</p>
+                </div>
+
+                <div class="space-y-3 animate__animated animate__fadeInUp">
+                    
+                    <div onclick="startArcadePipeline('nt')" class="level-card-interactive w-full p-5 glass-card text-left cursor-pointer relative group overflow-hidden">
+                        <div class="absolute inset-y-0 left-0 w-1 bg-blue-500"></div>
+                        <h3 class="text-base font-black text-blue-400 uppercase tracking-wide group-hover:text-blue-300 transition-colors">Phase 1: New Testament</h3>
+                        <p class="text-xs text-slate-400 mt-1 font-medium">Explore the Gospels and Epistles</p>
+                    </div>
+                    
+                    <div onclick="startArcadePipeline('ot')" class="level-card-interactive w-full p-5 glass-card text-left cursor-pointer relative group overflow-hidden">
+                        <div class="absolute inset-y-0 left-0 w-1 bg-emerald-500"></div>
+                        <h3 class="text-base font-black text-emerald-400 uppercase tracking-wide group-hover:text-emerald-300 transition-colors">Phase 2: Old Testament</h3>
+                        <p class="text-xs text-slate-400 mt-1 font-medium">Continuous Covenant Law Pools</p>
+                    </div>
+
+                    <div onclick="startArcadePipeline('finance')" class="level-card-interactive w-full p-5 glass-card text-left cursor-pointer relative group overflow-hidden border border-amber-500/10 bg-gradient-to-r from-amber-950/10 to-slate-900/40">
+                        <div class="absolute inset-y-0 left-0 w-1 bg-amber-400"></div>
+                        <h3 class="text-base font-black text-amber-400 uppercase tracking-wide group-hover:text-amber-300 transition-colors">Phase 3: Financial Literacy</h3>
+                        <p class="text-xs text-slate-400 mt-1 font-medium">Rich Dad Poor Dad & The Richest Man in Babylon</p>
+                    </div>
+                    
+                    <div onclick="startArcadePipeline('egw')" class="level-card-interactive w-full p-5 glass-card text-left cursor-pointer relative group overflow-hidden">
+                        <div class="absolute inset-y-0 left-0 w-1 bg-orange-500"></div>
+                        <h3 class="text-base font-black text-orange-400 uppercase tracking-wide group-hover:text-orange-300 transition-colors">Phase 4: E.G. White Chronicles</h3>
+                        <p class="text-xs text-slate-400 mt-1 font-medium">Prophetic Heritage Insight Pools</p>
+                    </div>
+                    
+                    <div onclick="startArcadePipeline('mastery')" class="w-full p-5 glass-card text-left cursor-pointer relative overflow-hidden border border-red-500/30 bg-gradient-to-br from-red-950/20 to-slate-950 hover:scale-[1.02] transition-transform duration-300 group shadow-[0_0_20px_rgba(239,68,68,0.05)]">
+                        <div class="absolute inset-y-0 left-0 w-1 bg-red-600 shadow-[0_0_10px_rgba(239,68,68,0.8)]"></div>
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-base font-black text-red-500 uppercase tracking-wide group-hover:text-red-400 transition-colors">Phase 5: Mastery Blitz Mode</h3>
+                            <span class="text-[9px] font-black text-red-400 bg-red-950/80 border border-red-500/40 px-2 py-0.5 rounded-full animate-pulse tracking-wider">WAR ZONE</span>
+                        </div>
+                        <p class="text-xs text-red-300/70 mt-1 font-medium">5-Second Extreme Rapid Fire Speed Clock</p>
+                    </div>
+                    
+                    <div onclick="startArcadePipeline('sda')" class="level-card-interactive w-full p-5 glass-card text-left cursor-pointer relative group overflow-hidden">
+                        <div class="absolute inset-y-0 left-0 w-1 bg-indigo-500"></div>
+                        <h3 class="text-base font-black text-indigo-400 uppercase tracking-wide group-hover:text-indigo-300 transition-colors">Phase 6: Adventist Teachings</h3>
+                        <p class="text-xs text-slate-400 mt-1 font-medium">The 28 Fundamental Sanctuary & Prophetic Beliefs</p>
+                    </div>
+
+                </div>
+            `;
+        }
+
+        function startArcadePipeline(mode) {
+            playInterfaceFeedbackChime('tap');
+            currentCampaignMode = mode;
+            switchBackgroundMoodSoundtrack(mode === 'mastery' ? 'war' : 'holy');
+            document.getElementById('back-btn').classList.remove('hidden');
+            compileQuestionsPoolForMode(mode);
+            launchNextActiveQuestionEngine();
+        }
+
+        // SAFE ROUTING SYSTEM LINKED TO THE EXTERNAL OBJECT NAMESPACE
+        function compileQuestionsPoolForMode(mode) {
+            campaignActivePool = [];
+            const database = window.bookQuestions;
+            
+            if (!database) {
+                console.error("Linkage Crash: window.bookQuestions database not found.");
+                return;
+            }
+
+            // Route categories into pools
+            if (mode === 'nt') {
+                const ntKeys = ["Matthew", "Mark", "Luke", "John"];
+                ntKeys.forEach(k => { if(database[k]) campaignActivePool.push({ name: k, questions: database[k] }); });
+            } else if (mode === 'ot') {
+                const otKeys = ["Genesis", "Exodus"];
+                otKeys.forEach(k => { if(database[k]) campaignActivePool.push({ name: k, questions: database[k] }); });
+            } else if (mode === 'finance') {
+                const finKeys = ["Rich Dad Poor Dad", "The Richest Man in Babylon"];
+                finKeys.forEach(k => { if(database[k]) campaignActivePool.push({ name: k, questions: database[k] }); });
+            } else if (mode === 'egw') {
+                if(database["EGW Writings"]) campaignActivePool.push({ name: "EGW Writings", questions: database["EGW Writings"] });
+            } else if (mode === 'sda') {
+                const sdaKeys = ["Fundamental Beliefs", "Adventist Sanctuary", "State of the Dead"];
+                sdaKeys.forEach(k => { if(database[k]) campaignActivePool.push({ name: k, questions: database[k] }); });
+            } else if (mode === 'mastery') {
+                // Shuffles across every book registry key in the system
+                Object.keys(database).forEach(k => { campaignActivePool.push({ name: k, questions: database[k] }); });
+            }
+
+            // Fallback safety layer
+            if (campaignActivePool.length === 0) {
+                Object.keys(database).forEach(k => { campaignActivePool.push({ name: k, questions: database[k] }); });
+            }
+        }
+
+        function launchNextActiveQuestionEngine() {
+            document.getElementById('lobby-bag-btn').classList.add('hidden');
+            document.getElementById('lobby-activities-bar').classList.add('hidden');
+            document.getElementById('lobby-wheel-bar').classList.add('hidden');
+            document.body.classList.add('game-bg-active');
+            
+            inputInteractionsBlocked = false; isShieldActive = false;
+            document.getElementById('shield-frame').className = "";
+            document.getElementById('frost-frame').className = "";
+            evaluateActivityIncrements('check_only', 0);
+
+            // Select random subcategory book array block, then select a question
+            const selectedSubCategory = campaignActivePool[Math.floor(Math.random() * campaignActivePool.length)];
+            const questionData = selectedSubCategory.questions[Math.floor(Math.random() * selectedSubCategory.questions.length)];
+            
+            // Build temporary item matrix
+            currentActiveQuestion = {
+                q: questionData.question,
+                a: questionData.options,
+                correct: questionData.correctAnswer,
+                _sourceBookContext: selectedSubCategory.name
+            };
+
+            secondsRemaining = (currentCampaignMode === 'mastery') ? 5 : 15;
+
+            const canvas = document.getElementById('window-canvas');
+            canvas.innerHTML = `
+                <div class="glass-card p-4 space-y-3 flex flex-col bg-slate-900/90 shadow-2xl animate__animated animate__fadeInDown">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xs font-black text-indigo-400 uppercase tracking-wider">${currentActiveQuestion._sourceBookContext}</h2>
+                            <div class="text-[10px] font-bold text-slate-400 mt-0.5">Continuous Active Shuffle Loop</div>
+                        </div>
+                        <div id="clock-wrapper" class="text-xl font-black tracking-tighter tabular-nums text-amber-400 bg-slate-950/80 px-3 py-1 rounded-2xl border border-white/10 shadow-inner">
+                            ⏰ <span id="clock-digit">${secondsRemaining}</span>s
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 min-h-[100px] flex items-center justify-center text-center animate__animated animate__zoomIn bg-slate-900/95 shadow-2xl border-white/10">
+                    <h3 class="text-sm font-bold leading-snug text-slate-100">${currentActiveQuestion.q}</h3>
+                </div>
+
+                <div id="choice-matrix" class="space-y-2.5 animate__animated animate__fadeInUp"></div>
+
+                <div class="fixed bottom-0 left-0 right-0 p-3 bg-slate-950/95 border-t border-white/10 z-40 flex justify-center gap-2 shadow-2xl">
+                    <button onclick="applyInGameUtility('freeze')" class="flex-1 bg-slate-900 hover:bg-slate-850 border border-sky-500/30 p-2 rounded-xl flex flex-col items-center transition-all"><span>❄️</span><span class="text-[9px] text-slate-400 font-bold">Qty: ${state.perks.freeze}</span></button>
+                    <button onclick="applyInGameUtility('half')" class="flex-1 bg-slate-900 hover:bg-slate-850 border border-rose-500/30 p-2 rounded-xl flex flex-col items-center transition-all"><span>⚖️</span><span class="text-[9px] text-slate-400 font-bold">Qty: ${state.perks.half}</span></button>
+                    <button onclick="applyInGameUtility('skip')" class="flex-1 bg-slate-900 hover:bg-slate-850 border border-purple-500/30 p-2 rounded-xl flex flex-col items-center transition-all"><span>🔮</span><span class="text-[9px] text-slate-400 font-bold">Qty: ${state.perks.skip}</span></button>
+                    <button onclick="applyInGameUtility('shield')" class="flex-1 bg-slate-900 hover:bg-slate-850 border border-amber-500/30 p-2 rounded-xl flex flex-col items-center transition-all"><span>🛡️</span><span class="text-[9px] text-slate-400 font-bold">Qty: ${state.perks.shield}</span></button>
+                </div>
+            `;
+
+            const matrix = document.getElementById('choice-matrix');
+            currentActiveQuestion.a.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "btn-choice bg-slate-900/90 text-xs font-semibold shadow-md";
+                btn.innerText = opt;
+                btn.onclick = () => challengeAnswerSubmitted(idx, btn);
+                matrix.appendChild(btn);
+            });
+
+            beginCountdownTicker();
+        }
+
+        function beginCountdownTicker() {
+            clearInterval(countdownTimerRef);
+            countdownTimerRef = setInterval(() => {
+                if(inputInteractionsBlocked) return;
+                secondsRemaining--;
+                const elem = document.getElementById('clock-digit'); if(elem) elem.innerText = secondsRemaining;
+                
+                if(secondsRemaining <= 0) {
+                    clearInterval(countdownTimerRef);
+                    executeFailureSequence("Countdown Time Expired!");
+                }
+            }, 1000);
+        }
+
+        function challengeAnswerSubmitted(index, clickTarget) {
+            if (inputInteractionsBlocked) return;
+            inputInteractionsBlocked = true;
+            clearInterval(countdownTimerRef);
+
+            if (index === currentActiveQuestion.correct) {
+                clickTarget.className = "btn-choice rainbow-correct text-white text-xs shadow-2xl transform scale-[1.01]";
+                playInterfaceFeedbackChime('correct');
+                
+                state.stats.currentStreak++;
+                state.gold += 15;
+                if(currentCampaignMode === 'mastery') state.stats.blitzSurvivals++;
+                saveState();
+                evaluateActivityIncrements('answer', 1);
+
+                setTimeout(() => { launchNextActiveQuestionEngine(); }, 1400);
+            } else {
+                clickTarget.className = "btn-choice bg-gradient-to-r from-red-600 to-rose-700 border-rose-400 text-white text-xs animate__animated animate__shakeX font-bold shadow-2xl";
+                playInterfaceFeedbackChime('wrong');
+                state.stats.currentStreak = 0; 
+                saveState();
+                setTimeout(() => { executeFailureSequence("Incorrect Answer Choice Selected!"); }, 1200);
+            }
+        }
+
+        function executeFailureSequence(reason) {
+            clearInterval(countdownTimerRef);
+            if(!isShieldActive) {
+                state.gold = Math.max(0, state.gold - 20);
+                saveState();
+            }
+
+            if(state.gold <= 0) {
+                triggerInGameAlert("🚨 Wallet Depleted", "Your coin balance has hit zero. Returning to tactical menu map hub.", "💀", () => { exitToMenu(); });
+            } else {
+                triggerInGameAlert("⚠️ Deducted -20 Coins", `${reason} 20 coins deducted from cache. Shuffling instantly to next pool.`, "📉", () => { launchNextActiveQuestionEngine(); });
+            }
+        }
+
+        function applyInGameUtility(type) {
+            if (state.perks[type] <= 0 || inputInteractionsBlocked) return;
+            state.perks[type]--; 
+            if(type === 'freeze') evaluateActivityIncrements('freeze', 1);
+            saveState(); playInterfaceFeedbackChime('perk');
+
+            if (type === 'freeze') {
+                clearInterval(countdownTimerRef);
+                document.getElementById('frost-frame').classList.add('frost-active');
+            } else if (type === 'half') {
+                const elements = document.getElementById('choice-matrix').getElementsByTagName('button');
+                let removed = 0;
+                for(let i=0; i<elements.length; i++) {
+                    if(i !== currentActiveQuestion.correct && removed < 2) {
+                        elements[i].style.opacity = "0.15"; elements[i].disabled = true; removed++;
+                    }
+                }
+            } else if (type === 'skip') {
+                clearInterval(countdownTimerRef);
+                launchNextActiveQuestionEngine();
+            } else if (type === 'shield') {
+                isShieldActive = true;
+                document.getElementById('shield-frame').classList.add('shield-active');
+            }
+        }
+
+        function toggleLanguage() { playInterfaceFeedbackChime('tap'); state.lang = state.lang === 'en' ? 'tw' : 'en'; saveState(); renderMenuMap(); }
+        function exitToMenu() { playInterfaceFeedbackChime('tap'); clearInterval(countdownTimerRef); renderMenuMap(); }
+        
+        window.addEventListener('click', () => {
+            document.getElementById('activities-drop-window').classList.add('hidden');
+            document.getElementById('activities-drop-arrow').innerText = "▼";
+            document.getElementById('wheel-drop-window').classList.add('hidden');
+            document.getElementById('wheel-drop-arrow').innerText = "▼";
+            cancelAnimationFrame(wheelAnimationId);
+        });
+
+        window.onload = () => { 
+            saveState(); 
+            initStarfieldAmbientLayer();
+            renderMenuMap(); 
+        };
+    </script>
 </body>
 </html>
