@@ -8,10 +8,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
         body { 
-            background-color: #050811; 
+            background-color: #030712; 
             font-family: system-ui, -apple-system, sans-serif; 
             overflow-x: hidden;
-            background-image: radial-gradient(circle at center, rgba(16, 23, 42, 0.4) 0%, rgba(2, 6, 23, 0.98) 100%);
+            position: relative;
+        }
+
+        /* Animated Ambient Particle Space Canvas Layer */
+        #ambient-particle-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.6;
         }
         
         .game-bg-active {
@@ -19,14 +28,59 @@
             background-size: cover !important;
             background-position: center !important;
             background-blend-mode: overlay !important;
-            background-color: rgba(5, 8, 20, 0.85) !important;
+            background-color: rgba(3, 7, 18, 0.9) !important;
         }
 
-        .glass-card { background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; color: white; }
+        /* Catchy Neon Glassmorphism Elements */
+        .glass-card { 
+            background: rgba(17, 24, 39, 0.7); 
+            backdrop-filter: blur(24px); 
+            -webkit-backdrop-filter: blur(24px); 
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            border-radius: 24px; 
+            color: white; 
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Interactive Level Card Hover Scaling & Glow Effects */
+        .level-card-interactive:hover {
+            transform: translateY(-4px) scale(1.02);
+            background: rgba(31, 41, 55, 0.85);
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 15px 30px rgba(99, 102, 241, 0.2), inset 0 0 15px rgba(255, 255, 255, 0.05);
+        }
         
-        .btn-choice { width: 100%; text-align: left; padding: 1.1rem 1.4rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.07); background: rgba(15, 23, 42, 0.8); font-weight: 600; color: #f1f5f9; transition: all 0.2s ease; position: relative; }
-        .btn-choice:hover { background: rgba(30, 41, 59, 0.9); border-color: rgba(255, 255, 255, 0.2); transform: translateY(-1px); }
+        .btn-choice { 
+            width: 100%; 
+            text-align: left; 
+            padding: 1.1rem 1.4rem; 
+            border-radius: 20px; 
+            border: 1px solid rgba(255,255,255,0.07); 
+            background: rgba(17, 24, 39, 0.85); 
+            font-weight: 600; 
+            color: #f1f5f9; 
+            transition: all 0.2s ease; 
+        }
+        .btn-choice:hover { 
+            background: rgba(37, 99, 235, 0.15); 
+            border-color: rgba(37, 99, 235, 0.4); 
+            transform: translateY(-1px); 
+        }
         
+        /* Shimmering Cosmic Title Text Animation */
+        @keyframes titleShimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .shimmer-title {
+            background: linear-gradient(degraded, #60a5fa, #a78bfa, #f472b6, #34d399, #60a5fa);
+            background-size: 300% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: titleShimmer 6s linear infinite;
+        }
+
         @keyframes auroraFlow {
             0% { background-position: 0% 50%; filter: hue-rotate(0deg); }
             50% { background-position: 100% 50%; filter: hue-rotate(180deg); }
@@ -42,7 +96,7 @@
             box-shadow: 0 0 25px rgba(16, 185, 129, 0.6) !important;
         }
 
-        .completed-glow { box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); border-color: rgba(16, 185, 129, 0.6); }
+        .completed-glow { box-shadow: 0 0 20px rgba(16, 185, 129, 0.5); border-color: rgba(16, 185, 129, 0.7); }
 
         #frost-frame { position: fixed; inset: 0; border: 14px solid rgba(56, 189, 248, 0.45); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 80px rgba(14, 165, 233, 0.35); }
         .frost-active { opacity: 1 !important; }
@@ -50,68 +104,70 @@
         #shield-frame { position: fixed; inset: 0; border: 12px solid rgba(245, 158, 11, 0.5); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 60px rgba(245, 158, 11, 0.25); }
         .shield-active { opacity: 1 !important; }
 
-        /* Compact Spin Wheel pop up canvas adjustments */
-        .wheel-container { position: relative; width: 280px; height: 280px; margin: 0 auto; }
-        #wheel-canvas { width: 100%; height: 100%; border-radius: 50%; border: 8px solid #4338ca; transition: transform 4s cubic-bezier(0.1, 0.8, 0.2, 1); background: #1e1b4b; }
-        .wheel-pointer { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent; border-top: 24px solid #ef4444; z-index: 30; }
+        .wheel-container { position: relative; width: 290px; height: 290px; margin: 0 auto; filter: drop-shadow(0 0 25px rgba(99, 102, 241, 0.35)); }
+        #wheel-canvas { width: 100%; height: 100%; border-radius: 50%; border: 8px solid #4f46e5; transition: transform 4s cubic-bezier(0.1, 0.8, 0.25, 1); background: #0f172a; }
+        .wheel-pointer { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 16px solid transparent; border-right: 16px solid transparent; border-top: 26px solid #ef4444; z-index: 30; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); }
     </style>
 </head>
 <body class="p-4 min-h-screen flex flex-col items-center justify-start text-white select-none">
+
+    <!-- Ambient Graphics Core Canvas Target -->
+    <canvas id="ambient-particle-canvas"></canvas>
 
     <div id="frost-frame"></div>
     <div id="shield-frame"></div>
 
     <!-- Global HUD Display Panel -->
     <div class="fixed top-4 left-4 right-4 flex justify-between items-center z-50 max-w-md mx-auto w-full px-2">
-        <button onclick="exitToMenu()" id="back-btn" class="hidden bg-slate-900/95 border border-white/10 text-white px-4 py-2 rounded-full font-bold text-xs uppercase tracking-wider shadow-2xl transition-all">
+        <button onclick="exitToMenu()" id="back-btn" class="hidden bg-slate-950/95 border border-white/15 text-white px-4 py-2 rounded-full font-bold text-xs uppercase tracking-wider shadow-2xl transition-all">
             🚪 Map Hub
         </button>
         <div class="flex gap-2 ml-auto">
-            <button onclick="toggleLanguage()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-full font-bold text-xs uppercase shadow-md transition-all">
+            <button onclick="toggleLanguage()" class="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white px-4 py-2 rounded-full font-bold text-xs uppercase shadow-lg transition-all transform active:scale-95">
                 🌐 <span id="lang-label">English</span>
             </button>
-            <div id="gold-container" class="bg-slate-900/95 border border-white/10 px-4 py-2 rounded-full shadow-2xl flex items-center gap-2">
-                <span>💰</span>
-                <span id="gold-val" class="font-black text-amber-400">500</span>
+            <div id="gold-container" class="bg-slate-950/95 border border-white/15 px-4 py-2 rounded-full shadow-2xl flex items-center gap-2">
+                <span class="animate-bounce">💰</span>
+                <span id="gold-val" class="font-black text-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]">500</span>
             </div>
         </div>
     </div>
 
-    <!-- Main Dynamic Application Canvas Render Target -->
-    <main id="window-canvas" class="w-full max-w-md mt-16 space-y-5 flex flex-col mb-28"></main>
+    <!-- Main Dynamic Canvas Frame -->
+    <main id="window-canvas" class="w-full max-w-md mt-16 space-y-5 flex flex-col mb-28 relative z-10"></main>
 
-    <!-- IN-GAME SYSTEM POPUP MODAL NOTIFICATION ENGINE -->
+    <!-- IN-GAME MODAL POPUP SYSTEM Engine -->
     <div id="game-alert-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div id="alert-box-card" class="glass-card w-full max-w-xs p-6 text-center space-y-4 border-indigo-500/30 bg-slate-950/90 animate__animated">
-            <div id="alert-icon" class="text-4xl">⚠️</div>
+        <div id="alert-box-card" class="glass-card w-full max-w-xs p-6 text-center space-y-4 border-indigo-500/40 bg-slate-950/95 shadow-2xl animate__animated">
+            <div id="alert-icon" class="text-5xl drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">⚠️</div>
             <h3 id="alert-title" class="text-base font-black uppercase tracking-wider text-slate-100">Notification</h3>
             <p id="alert-msg" class="text-xs text-slate-300 leading-relaxed font-medium"></p>
-            <button onclick="dismissSystemModal()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition-all shadow-md">
+            <button onclick="dismissSystemModal()" class="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold text-xs py-3 rounded-xl transition-all shadow-md transform active:scale-95">
                 CONTINUE PROCEEDING
             </button>
         </div>
     </div>
 
-    <!-- INTERACTIVE DAILY WHEEL POPUP POPULATED LAYER -->
-    <div id="wheel-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="glass-card w-full max-w-sm p-6 space-y-5 text-center bg-slate-950/90 border-amber-500/30">
+    <!-- ARCADIA WHEEL POPUP INTERACTIVE RENDER MODAL -->
+    <div id="wheel-modal" class="fixed inset-0 bg-black/90 backdrop-blur-xl z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card w-full max-w-sm p-6 space-y-5 text-center bg-slate-950/95 border-amber-500/40 shadow-2xl animate__animated animate__zoomIn">
             <div class="flex justify-between items-center border-b border-white/10 pb-2">
-                <h3 class="text-xs font-black uppercase tracking-wider text-amber-400">🎯 Prophetic Prize Wheel Manifest</h3>
-                <button onclick="closeWheelModal()" class="text-slate-400 hover:text-white text-xs bg-white/5 px-2 py-1 rounded">CLOSE</button>
+                <h3 class="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1">🎯 Prophetic Reward Engine</h3>
+                <button onclick="closeWheelModal()" class="text-slate-400 hover:text-white text-xs bg-white/5 px-2.5 py-1 rounded-lg">CLOSE</button>
             </div>
             <div class="wheel-container">
                 <div class="wheel-pointer"></div>
                 <canvas id="wheel-canvas" width="280" height="280"></canvas>
             </div>
-            <button onclick="spinWheelActionLogic()" id="spin-action-trigger" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 font-black text-xs py-3 rounded-xl shadow-xl hover:scale-[1.01] transition-all">
+            <button onclick="spinWheelActionLogic()" id="spin-action-trigger" class="w-full bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 text-slate-950 font-black text-xs py-3.5 rounded-xl shadow-xl hover:brightness-110 active:scale-[0.98] transition-all tracking-wider uppercase">
                 START PROPHETIC SPIN
             </button>
         </div>
     </div>
 
     <!-- Inventory Armory Shop Modal Layer -->
-    <div id="shop-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="glass-card w-full max-w-sm p-6 space-y-4 border-indigo-500/30 bg-slate-950/80">
+    <div id="shop-modal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card w-full max-w-sm p-6 space-y-4 border-indigo-500/30 bg-slate-950/90 shadow-2xl">
             <div class="flex justify-between items-center border-b border-white/10 pb-3">
                 <div class="flex items-center gap-2"><span>🛒</span><h3 class="text-sm font-black uppercase tracking-wider text-indigo-300">Armory Depot</h3></div>
                 <button onclick="closeShopModal()" class="text-slate-400 text-sm bg-white/5 w-7 h-7 rounded-full">✕</button>
@@ -120,11 +176,11 @@
         </div>
     </div>
 
-    <!-- Floating Inventory Bag Button Trigger -->
-    <button id="lobby-bag-btn" onclick="openShopModal()" class="fixed bottom-6 right-6 z-40 bg-gradient-to-tr from-indigo-600 to-purple-600 border border-white/20 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl text-2xl transition-all">🎒</button>
+    <!-- Floating Bag Button Trigger -->
+    <button id="lobby-bag-btn" onclick="openShopModal()" class="fixed bottom-6 right-6 z-40 bg-gradient-to-tr from-indigo-500 via-purple-600 to-pink-500 border border-white/20 w-15 h-15 rounded-full flex items-center justify-center shadow-2xl text-2xl hover:scale-110 active:scale-95 transition-all animate__animated animate__pulse animate__infinite">🎒</button>
 
     <script>
-        // Game Scriptural Database Engine Definition
+        // Game Scriptural Database Framework Definitions
         window.quizDatabase = [
             { name: "Matthew", group: "NT", questions: [{ q: "Who was chosen to be the earthly mother of Jesus Christ?", a: ["Elizabeth", "Mary", "Martha", "Salome"], correct: 1 }] },
             { name: "Mark", group: "Mark", questions: [{ q: "Which prophet did Mark quote at the opening of his Gospel script?", a: ["Isaiah", "Jeremiah", "Ezekiel", "Daniel"], correct: 0 }] },
@@ -138,17 +194,15 @@
             { name: "State of the Dead", group: "SDA", questions: [{ q: "How does Scripture describe the condition of death according to Adventist doctrine?", a: ["An immediate purgatory", "A state of unconscious sleep", "Disembodied spirit wandering", "Immediate ascent to eternal torment"], correct: 1 }] }
         ];
 
-        // State Machine Storage Architecture
-        let state = JSON.parse(localStorage.getItem('bqArcadeV10Data')) || {
+        // Core State Engine System Configuration
+        let state = JSON.parse(localStorage.getItem('bqArcadeV11Data')) || {
             gold: 500, lang: 'en',
             perks: { freeze: 3, half: 2, skip: 1, shield: 2 },
             lastSpinTimestamp: 0,
             activitiesAccordOpen: false,
-            // Trackable metrics for programmatic evaluation
             stats: { currentStreak: 0, freezeUsed: 0, totalCoinsEarned: 500, blitzSurvivals: 0, overallAnswers: 0 },
-            // Procedural Activity State Pipeline 
             activitySetTier: 1,
-            activityProgressCounters: [0, 0, 0, 0, 0] // tracks step indices for the current active 5 goals
+            activityProgressCounters: [0, 0, 0, 0, 0]
         };
 
         const prizes = [
@@ -169,64 +223,96 @@
         let isShieldActive = false;
         let audioCtx = null;
         let activePostAlertCallback = null;
+        
+        // Spinning Wheel Animation Loop Global Handlers
+        let wheelAnimationId = null;
+        let wheelBaseRotation = 0;
+        let wheelPulseScaleDelta = 0;
+        let isWheelActivelySpinning = false;
 
         function saveState() {
-            localStorage.setItem('bqArcadeV10Data', JSON.stringify(state));
+            localStorage.setItem('bqArcadeV11Data', JSON.stringify(state));
             document.getElementById('gold-val').innerText = state.gold;
             document.getElementById('lang-label').innerText = state.lang === 'en' ? "English" : "Twi";
         }
 
-        // Beautiful, Harmonious Synthesized Audio Triad Cord Engine
+        // Ambient Dynamic Starfield Particle Routine
+        function initStarfieldAmbientLayer() {
+            const canvas = document.getElementById('ambient-particle-canvas');
+            const ctx = canvas.getContext('2d');
+            let dots = [];
+            
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            for(let i=0; i<45; i++) {
+                dots.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    r: Math.random() * 2 + 1,
+                    vY: Math.random() * 0.4 + 0.1,
+                    alpha: Math.random() * 0.5 + 0.2
+                });
+            }
+
+            function loop() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                dots.forEach(d => {
+                    d.y -= d.vY;
+                    if(d.y < -10) d.y = canvas.height + 10;
+                    ctx.fillStyle = `rgba(167, 139, 250, ${d.alpha})`;
+                    ctx.beginPath();
+                    ctx.arc(d.x, d.y, d.r, 0, Math.PI*2);
+                    ctx.fill();
+                });
+                requestAnimationFrame(loop);
+            }
+            loop();
+        }
+
+        // Beautiful Musical Triad Synthesizer Node Configuration
         function playChimeAudio(type) {
             try {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 let now = audioCtx.currentTime;
                 
                 if (type === 'correct') {
-                    // Play a beautiful, enjoyable major triad chord (C5, E5, G5) with a soft, lush synthesizer decay envelope
                     let freqs = [523.25, 659.25, 783.99]; 
                     freqs.forEach((f, i) => {
                         let osc = audioCtx.createOscillator();
                         let gainNode = audioCtx.createGain();
                         osc.type = 'sine';
-                        osc.frequency.setValueAtTime(f, now + (i * 0.03)); // Arpeggiated strike entry
-                        
-                        gainNode.gain.setValueAtTime(0.15, now);
-                        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-                        
-                        osc.connect(gainNode);
-                        gainNode.connect(audioCtx.destination);
-                        osc.start(now);
-                        osc.stop(now + 0.45);
+                        osc.frequency.setValueAtTime(f, now + (i * 0.03));
+                        gainNode.gain.setValueAtTime(0.12, now);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                        osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+                        osc.start(now); osc.stop(now + 0.55);
                     });
                 } else if (type === 'wrong') {
-                    // A soft, low-frequency dull synth hum (not jarring or screechy)
                     let osc = audioCtx.createOscillator();
                     let gainNode = audioCtx.createGain();
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(130.81, now); 
-                    gainNode.gain.setValueAtTime(0.2, now);
+                    osc.type = 'triangle'; osc.frequency.setValueAtTime(125, now); 
+                    gainNode.gain.setValueAtTime(0.18, now);
                     gainNode.gain.linearRampToValueAtTime(0.001, now + 0.3);
-                    osc.connect(gainNode);
-                    gainNode.connect(audioCtx.destination);
-                    osc.start(now);
-                    osc.stop(now + 0.35);
+                    osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+                    osc.start(now); osc.stop(now + 0.35);
                 } else {
-                    // Micro systemic interface pulse tap
                     let osc = audioCtx.createOscillator();
                     let gainNode = audioCtx.createGain();
                     osc.frequency.setValueAtTime(440, now);
-                    gainNode.gain.setValueAtTime(0.08, now);
-                    gainNode.gain.linearRampToValueAtTime(0.001, now + 0.05);
-                    osc.connect(gainNode);
-                    gainNode.connect(audioCtx.destination);
-                    osc.start(now);
-                    osc.stop(now + 0.06);
+                    gainNode.gain.setValueAtTime(0.05, now);
+                    gainNode.gain.linearRampToValueAtTime(0.001, now + 0.04);
+                    osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+                    osc.start(now); osc.stop(now + 0.05);
                 }
-            } catch(e) { console.log("Audio failed initialization structural hook:", e); }
+            } catch(e) {}
         }
 
-        // Custom Modal Overlay Manager (Replaces irritating default browser prompts)
+        // Custom Modal Overlay Execution Engine
         function triggerInGameAlert(title, message, icon, completeCallback = null) {
             document.getElementById('alert-title').innerText = title;
             document.getElementById('alert-msg').innerText = message;
@@ -235,8 +321,7 @@
             
             const element = document.getElementById('game-alert-modal');
             element.classList.remove('hidden');
-            const card = document.getElementById('alert-box-card');
-            card.className = "glass-card w-full max-w-xs p-6 text-center space-y-4 border-indigo-500/30 bg-slate-950/90 animate__animated animate__bounceIn";
+            document.getElementById('alert-box-card').className = "glass-card w-full max-w-xs p-6 text-center space-y-4 border-indigo-500/40 bg-slate-950/90 animate__animated animate__jackInTheBox";
         }
 
         function dismissSystemModal() {
@@ -249,7 +334,7 @@
             }
         }
 
-        // Infinite Procedural Generation Engine Logic for the 5 Active Tasks
+        // Infinite Scaling Task Generation Algorithm
         function getProceduralActiveSet() {
             let t = state.activitySetTier;
             return [
@@ -262,23 +347,19 @@
         }
 
         function evaluateActivityIncrements(type, amount = 1) {
-            let activeSet = getProceduralActiveSet();
             if(type === 'answer') state.activityProgressCounters[0] += amount;
             if(type === 'freeze') state.activityProgressCounters[2] += amount;
             saveState();
 
-            // Check if all 5 procedures within the set have hit maturity targets simultaneously
-            activeSet = getProceduralActiveSet();
+            let activeSet = getProceduralActiveSet();
             let completedCount = 0;
-            activeSet.forEach(act => {
-                if(act.current >= act.target) completedCount++;
-            });
+            activeSet.forEach(act => { if(act.current >= act.target) completedCount++; });
 
             if (completedCount >= 5) {
                 let milestonePayout = 100 + (state.activitySetTier * 50);
                 state.gold += milestonePayout;
                 state.activitySetTier++;
-                state.activityProgressCounters = [0, 0, 0, 0, 0]; // Reset counter slots for fresh procedural generation seeds
+                state.activityProgressCounters = [0, 0, 0, 0, 0];
                 saveState();
                 
                 triggerInGameAlert(
@@ -289,15 +370,29 @@
             }
         }
 
-        // Tiny Sector Spin Wheel Initialization Mechanics
+        // Dynamic Animated Text/Bracket Core Wheel Engine
         function openWheelModal() {
             playChimeAudio('tap');
             document.getElementById('wheel-modal').classList.remove('hidden');
-            renderWheelCanvasTextGraphics();
+            isWheelActivelySpinning = false;
+            wheelPulseScaleDelta = 0;
+            runInteractiveWheelLoopAnimation();
         }
-        function closeWheelModal() { document.getElementById('wheel-modal').classList.add('hidden'); }
 
-        function renderWheelCanvasTextGraphics() {
+        function closeWheelModal() {
+            document.getElementById('wheel-modal').classList.add('hidden');
+            cancelAnimationFrame(wheelAnimationId);
+        }
+
+        function runInteractiveWheelLoopAnimation() {
+            if(!isWheelActivelySpinning) {
+                wheelPulseScaleDelta += 0.07; // Control oscillation rate for floating labels
+            }
+            renderWheelCanvasLiveFrame();
+            wheelAnimationId = requestAnimationFrame(runInteractiveWheelLoopAnimation);
+        }
+
+        function renderWheelCanvasLiveFrame() {
             const canvas = document.getElementById('wheel-canvas');
             if(!canvas) return;
             const ctx = canvas.getContext('2d');
@@ -306,27 +401,52 @@
 
             ctx.clearRect(0,0,280,280);
             
+            // Draw baseline colored sectors
             for(let i=0; i<numSectors; i++) {
-                let angle = i * arcSize;
-                ctx.fillStyle = (i % 2 === 0) ? "#1e1b4b" : "#312e81";
+                let angle = (i * arcSize) + wheelBaseRotation;
+                ctx.fillStyle = (i % 2 === 0) ? "#1e1b4b" : "#2e2a85";
                 ctx.beginPath();
                 ctx.moveTo(140, 140);
-                ctx.arc(140, 140, 130, angle, angle + arcSize);
+                ctx.arc(140, 140, 132, angle, angle + arcSize);
                 ctx.lineTo(140, 140);
                 ctx.fill();
-                ctx.strokeStyle = "rgba(255,255,255,0.1)";
+                
+                // Neon structural perimeter separation rules
+                ctx.strokeStyle = "rgba(99, 102, 241, 0.25)";
+                ctx.lineWidth = 1.5;
                 ctx.stroke();
 
-                // Project physical prize texts directly onto the wheel sector
+                // Compute dynamic text glowing scales inside brackets
                 ctx.save();
-                ctx.fillStyle = "#f1f5f9";
-                ctx.font = "bold 11px system-ui";
+                // Add a glowing filter to the canvas text engine
+                ctx.shadowColor = "#f43f5e";
+                ctx.shadowBlur = isWheelActivelySpinning ? 4 : Math.abs(Math.sin(wheelPulseScaleDelta)) * 12;
+                ctx.fillStyle = (i % 2 === 0) ? "#f1f5f9" : "#fbbf24";
+                
+                // Dynamic scaling calculation for text motion
+                let sizeModifier = isWheelActivelySpinning ? 11 : 11 + (Math.sin(wheelPulseScaleDelta) * 1.2);
+                ctx.font = `900 ${sizeModifier}px system-ui`;
+                
                 ctx.translate(140, 140);
                 ctx.rotate(angle + arcSize / 2);
                 ctx.textAlign = "right";
-                ctx.fillText(prizes[i].text, 120, 4);
+                
+                // Slide items slightly inside coordinates dynamically
+                let placementOffset = isWheelActivelySpinning ? 116 : 116 + (Math.sin(wheelPulseScaleDelta) * 2);
+                ctx.fillText(prizes[i].text, placementOffset, 4);
                 ctx.restore();
             }
+
+            // Draw Center Hub Cap Ring Pin
+            ctx.beginPath();
+            ctx.arc(140, 140, 24, 0, Math.PI*2);
+            ctx.fillStyle = "#4f46e5";
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = "#6366f1";
+            ctx.fill();
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 3;
+            ctx.stroke();
         }
 
         function spinWheelActionLogic() {
@@ -342,33 +462,48 @@
             state.lastSpinTimestamp = now;
             saveState();
 
-            const canvas = document.getElementById('wheel-canvas');
-            const randomRotationDegrees = Math.floor(Math.random() * 360) + 2160; // Spin 6 full circles min
-            canvas.style.transform = `rotate(${randomRotationDegrees}deg)`;
+            isWheelActivelySpinning = true;
+            let currentVelocity = 0.45; // Fast initial startup speed
+            let frictionCoefficient = 0.992; // Smooth deceleration decay
+            
+            function brakeRotationTick() {
+                wheelBaseRotation += currentVelocity;
+                currentVelocity *= frictionCoefficient;
 
-            setTimeout(() => {
-                const relativeDegrees = (360 - (randomRotationDegrees % 360)) % 360;
-                const arcLengthDegrees = 360 / prizes.length;
-                const targetPrizeIndex = Math.floor(relativeDegrees / arcLengthDegrees);
-                const selectedAward = prizes[targetPrizeIndex] || prizes[0];
+                if (currentVelocity < 0.002) {
+                    isWheelActivelySpinning = false;
+                    // Evaluate index angle conversion calculations
+                    let normalizedRotation = wheelBaseRotation % (2 * Math.PI);
+                    let relativeTargetRad = (2 * Math.PI) - normalizedRotation;
+                    if(relativeTargetRad < 0) relativeTargetRad += (2 * Math.PI);
+                    
+                    let sectorArcRad = (2 * Math.PI) / prizes.length;
+                    // Adjusted pointer calculation matching standard top 12-o'clock point geometry matching arrow indicator position
+                    let adjustedRad = (relativeTargetRad - (Math.PI / 2) + (2 * Math.PI)) % (2 * Math.PI);
+                    let targetIndex = Math.floor(adjustedRad / sectorArcRad);
+                    let finalAward = prizes[targetIndex] || prizes[0];
 
-                selectedAward.action();
-                saveState();
+                    finalAward.action();
+                    saveState();
 
-                triggerInGameAlert(
-                    "🎁 Wheel Manifestation", 
-                    `The needle settled precisely on: ${selectedAward.text}! Item added to inventory profile immediately.`, 
-                    "🎉", 
-                    () => {
-                        document.getElementById('spin-action-trigger').disabled = false;
-                        closeWheelModal();
-                        renderMenuMap();
-                    }
-                );
-            }, 4100);
+                    triggerInGameAlert(
+                        "🎁 Prize Unlocked!", 
+                        `The dynamic needle settled perfectly onto: ${finalAward.text}! Added to your inventory stack.`, 
+                        "🎉", 
+                        () => {
+                            document.getElementById('spin-action-trigger').disabled = false;
+                            closeWheelModal();
+                            renderMenuMap();
+                        }
+                    );
+                } else {
+                    requestAnimationFrame(brakeRotationTick);
+                }
+            }
+            brakeRotationTick();
         }
 
-        // Shop Overlay Infrastructure
+        // Armory Core Depot Rendering Functions
         function openShopModal() {
             const catalog = [
                 { id: 'freeze', name: 'Chrono Freeze', cost: 50, icon: '❄️' },
@@ -379,7 +514,7 @@
             const grid = document.getElementById('modal-shop-grid'); grid.innerHTML = "";
             catalog.forEach(item => {
                 const block = document.createElement('div');
-                block.className = "flex items-center justify-between p-3 bg-slate-900 rounded-xl border border-white/5";
+                block.className = "flex items-center justify-between p-3 bg-slate-900/90 rounded-xl border border-white/5";
                 block.innerHTML = `
                     <div class="flex items-center gap-3">
                         <span class="text-xl bg-slate-950 p-2 rounded-lg">${item.icon}</span>
@@ -388,7 +523,7 @@
                             <p class="text-[9px] text-indigo-400 font-bold">In Bag: ${state.perks[item.id] || 0}</p>
                         </div>
                     </div>
-                    <button onclick="purchaseInventoryPerk('${item.id}', ${item.cost})" class="bg-indigo-600 hover:bg-indigo-500 font-bold text-xs px-3 py-1.5 rounded-lg text-white">${item.cost} 💰</button>
+                    <button onclick="purchaseInventoryPerk('${item.id}', ${item.cost})" class="bg-indigo-600 hover:bg-indigo-500 font-bold text-xs px-3 py-1.5 rounded-lg text-white shadow-md">${item.cost} 💰</button>
                 `;
                 grid.appendChild(block);
             });
@@ -403,7 +538,7 @@
             } else { triggerInGameAlert("Treasury Shortage", "You do not have enough golden coins to finance this inventory deployment.", "🪙"); }
         }
 
-        // Menu Hub Generation Screen Matrix Layout
+        // Enhanced Main Menu Map Layout Engine
         function renderMenuMap() {
             currentCampaignMode = "";
             document.body.classList.remove('game-bg-active');
@@ -412,63 +547,83 @@
             
             const canvas = document.getElementById('window-canvas');
             canvas.innerHTML = `
-                <div class="text-center space-y-1 py-1">
-                    <h1 class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">BIBLE QUEST</h1>
-                    <p class="text-[9px] text-slate-500 font-bold tracking-widest uppercase">Select Campaign Route Pipeline</p>
+                <div class="text-center space-y-1 py-1 animate__animated animate__fadeInDown">
+                    <h1 class="text-4xl font-black tracking-tighter shimmer-title filter drop-shadow-[0_5px_15px_rgba(99,102,241,0.3)]">BIBLE QUEST</h1>
+                    <p class="text-[9px] text-indigo-400 font-black tracking-widest uppercase">Select Campaign Route Pipeline</p>
                 </div>
 
-                <!-- NEW COMPACT SEC-WHEEL TINY ENTRY COMPONENT -->
-                <div class="glass-card p-3.5 flex items-center justify-between border-amber-500/20 bg-gradient-to-r from-slate-900 via-indigo-950/20 to-slate-900">
+                <!-- DYNAMIC ARCADE SPIN ENTRY WIDGET -->
+                <div class="glass-card p-4 flex items-center justify-between border-amber-500/30 bg-gradient-to-r from-slate-900/90 via-amber-950/20 to-slate-900/90 shadow-xl animate__animated animate__fadeInUp">
                     <div class="flex items-center gap-3">
-                        <span class="text-2xl animate-pulse">🎯</span>
+                        <span class="text-3xl animate-bounce">🎯</span>
                         <div class="text-left">
-                            <h4 class="text-xs font-black uppercase text-amber-400 tracking-wider">Prophetic Wheel Available</h4>
-                            <p class="text-[9px] text-slate-400">Spin once every 24 hours to claim power rewards</p>
+                            <h4 class="text-xs font-black uppercase text-amber-400 tracking-wider">Prophetic Wheel</h4>
+                            <p class="text-[9px] text-slate-400 font-medium">Glow rewards are moving! Spin to win</p>
                         </div>
                     </div>
-                    <button onclick="openWheelModal()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 text-[10px] font-black px-3 py-2 rounded-xl transition-all shadow-md shrink-0 uppercase tracking-wide">
+                    <button onclick="openWheelModal()" class="bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 text-[10px] font-black px-4 py-2.5 rounded-xl transition-all shadow-lg uppercase tracking-wider transform active:scale-95">
                         OPEN WHEEL
                     </button>
                 </div>
                 
-                <!-- CAMPAIGN SECTORS BUTTON MAP PATHWAYS -->
-                <div class="space-y-2">
-                    <button onclick="startArcadePipeline('nt')" class="w-full p-3.5 glass-card text-left flex justify-between items-center hover:border-blue-500 transition-all">
-                        <div><h3 class="text-xs font-black text-blue-300">Phase 1: New Testament</h3></div>
-                        <span class="text-[9px] bg-blue-950 px-2 py-1 rounded text-blue-400 font-bold uppercase">⚡ Play</span>
-                    </button>
-                    <button onclick="startArcadePipeline('ot')" class="w-full p-3.5 glass-card text-left flex justify-between items-center hover:border-emerald-500 transition-all">
-                        <div><h3 class="text-xs font-black text-emerald-300">Phase 2: Old Testament</h3></div>
-                        <span class="text-[9px] bg-emerald-950 px-2 py-1 rounded text-emerald-400 font-bold uppercase">📜 Play</span>
-                    </button>
-                    <button onclick="startArcadePipeline('mix')" class="w-full p-3.5 glass-card text-left flex justify-between items-center hover:border-purple-500 transition-all">
-                        <div><h3 class="text-xs font-black text-purple-300">Phase 3: Grand Mixture Pool</h3></div>
-                        <span class="text-[9px] bg-purple-950 px-2 py-1 rounded text-purple-400 font-bold uppercase">🌀 Mix</span>
-                    </button>
-                    <button onclick="startArcadePipeline('egw')" class="w-full p-3.5 glass-card text-left flex justify-between items-center hover:border-amber-400 transition-all">
-                        <div><h3 class="text-xs font-black text-amber-300">Phase 4: E.G. White Chronicles</h3></div>
-                        <span class="text-[9px] bg-amber-950 px-2 py-1 rounded text-amber-400 font-bold uppercase">✒️ Read</span>
-                    </button>
-                    <button onclick="startArcadePipeline('mastery')" class="w-full p-3.5 glass-card text-left flex justify-between items-center border border-red-500/30 bg-red-950/20 hover:border-red-500 transition-all">
-                        <div><h3 class="text-xs font-black text-red-400">Phase 5: Mastery Blitz Mode (5s)</h3></div>
-                        <span class="text-[9px] bg-red-950 px-2 py-1 rounded text-red-400 font-bold uppercase">🔥 Blitz</span>
-                    </button>
-                    <button onclick="startArcadePipeline('sda')" class="w-full p-3.5 glass-card text-left flex justify-between items-center border border-indigo-500/40 bg-indigo-950/20 hover:border-indigo-400 transition-all">
+                <!-- DYNAMICALLY HOVERING LEVEL MAP PATHWAYS -->
+                <div class="space-y-2.5 animate__animated animate__fadeInUp">
+                    <button onclick="startArcadePipeline('nt')" class="level-card-interactive w-full p-4 glass-card text-left flex justify-between items-center">
                         <div>
-                            <h3 class="text-xs font-black text-indigo-400">Phase 6: Adventist Teachings & Doctrines</h3>
-                            <p class="text-[9px] text-slate-400">The 28 Fundamental Sanctuary & Prophetic Beliefs</p>
+                            <h3 class="text-xs font-black text-blue-300 uppercase tracking-wide">Phase 1: New Testament Arcade</h3>
+                            <p class="text-[9px] text-slate-400 mt-0.5">Explore the Gospels and Epistles</p>
                         </div>
-                        <span class="text-[9px] bg-indigo-900 px-2 py-1 rounded text-indigo-300 font-bold uppercase">🕊️ Study</span>
+                        <span class="text-[9px] bg-blue-950/80 border border-blue-500/30 px-3 py-1.5 rounded-xl text-blue-400 font-black uppercase tracking-wider shadow-inner">⚡ Play</span>
+                    </button>
+                    
+                    <button onclick="startArcadePipeline('ot')" class="level-card-interactive w-full p-4 glass-card text-left flex justify-between items-center">
+                        <div>
+                            <h3 class="text-xs font-black text-emerald-300 uppercase tracking-wide">Phase 2: Old Testament Arcade</h3>
+                            <p class="text-[9px] text-slate-400 mt-0.5">Continuous Covenant Law Pools</p>
+                        </div>
+                        <span class="text-[9px] bg-emerald-950/80 border border-emerald-500/30 px-3 py-1.5 rounded-xl text-emerald-400 font-black uppercase tracking-wider shadow-inner">📜 Play</span>
+                    </button>
+                    
+                    <button onclick="startArcadePipeline('mix')" class="level-card-interactive w-full p-4 glass-card text-left flex justify-between items-center">
+                        <div>
+                            <h3 class="text-xs font-black text-purple-300 uppercase tracking-wide">Phase 3: Grand Mixture Pool</h3>
+                            <p class="text-[9px] text-slate-400 mt-0.5">Randomized Across All Scriptural Cards</p>
+                        </div>
+                        <span class="text-[9px] bg-purple-950/80 border border-purple-500/30 px-3 py-1.5 rounded-xl text-purple-400 font-black uppercase tracking-wider shadow-inner">🌀 Mix</span>
+                    </button>
+                    
+                    <button onclick="startArcadePipeline('egw')" class="level-card-interactive w-full p-4 glass-card text-left flex justify-between items-center">
+                        <div>
+                            <h3 class="text-xs font-black text-amber-300 uppercase tracking-wide">Phase 4: E.G. White Chronicles</h3>
+                            <p class="text-[9px] text-slate-400 mt-0.5">Prophetic Heritage Insight Pools</p>
+                        </div>
+                        <span class="text-[9px] bg-amber-950/80 border border-amber-500/30 px-3 py-1.5 rounded-xl text-amber-400 font-black uppercase tracking-wider shadow-inner">✒️ Read</span>
+                    </button>
+                    
+                    <button onclick="startArcadePipeline('mastery')" class="level-card-interactive w-full p-4 glass-card text-left flex justify-between items-center border border-red-500/30 bg-red-950/10">
+                        <div>
+                            <h3 class="text-xs font-black text-red-400 uppercase tracking-wide">Phase 5: Mastery Blitz Mode (5s)</h3>
+                            <p class="text-[9px] text-red-300/70 mt-0.5">5-Second Extreme Rapid Fire Speed Clock</p>
+                        </div>
+                        <span class="text-[9px] bg-red-900/80 border border-red-500/50 px-3 py-1.5 rounded-xl text-red-400 font-black uppercase tracking-wider shadow-lg animate-pulse">🔥 Blitz</span>
+                    </button>
+                    
+                    <button onclick="startArcadePipeline('sda')" class="level-card-interactive w-full p-4 glass-card text-left flex justify-between items-center border border-indigo-500/40 bg-indigo-950/20">
+                        <div>
+                            <h3 class="text-xs font-black text-indigo-400 uppercase tracking-wide">Phase 6: Adventist Teachings</h3>
+                            <p class="text-[9px] text-slate-400 mt-0.5">The 28 Fundamental Sanctuary & Prophetic Beliefs</p>
+                        </div>
+                        <span class="text-[9px] bg-indigo-900/80 border border-indigo-500/50 px-3 py-1.5 rounded-xl text-indigo-300 font-black uppercase tracking-wider shadow-inner">🕊️ Study</span>
                     </button>
                 </div>
 
-                <!-- PROCEDURAL ACTIVITIES ACCORDION DRAWER WRAPPER -->
-                <div class="pt-1">
-                    <button onclick="toggleActivitiesAccordion()" class="w-full p-3.5 glass-card bg-slate-900/90 border border-purple-500/30 flex justify-between items-center font-bold text-xs text-purple-300">
+                <!-- TASK ACCORDION PROGRESS WRAPPER DISPLAY COMPONENTS -->
+                <div class="pt-1 animate__animated animate__fadeInUp">
+                    <button onclick="toggleActivitiesAccordion()" class="w-full p-3.5 glass-card bg-slate-900/90 border border-purple-500/30 flex justify-between items-center font-bold text-xs text-purple-300 hover:border-purple-400 transition-all">
                         <span class="flex items-center gap-1.5">📋 View Sectors Task Explorer (Set Tier ${state.activitySetTier})</span>
                         <span id="accord-arrow">${state.activitiesAccordOpen ? '▲' : '▼'}</span>
                     </button>
-                    <div id="activities-accord-body" class="${state.activitiesAccordOpen ? '' : 'hidden'} mt-2 space-y-2"></div>
+                    <div id="activities-accord-body" class="${state.activitiesAccordOpen ? '' : 'hidden'} mt-2 space-y-2.5"></div>
                 </div>
             `;
             if(state.activitiesAccordOpen) renderAccordionContents();
@@ -491,11 +646,11 @@
                 let mathPct = Math.floor((currentProgress / act.target) * 100);
 
                 let statusBadge = `<span class="text-[9px] text-indigo-400 font-black">${currentProgress}/${act.target} (${mathPct}%)</span>`;
-                let cardGlow = "bg-slate-900/90 border border-white/5";
+                let cardGlow = "bg-slate-900/90 border border-white/5 shadow-md";
 
                 if(isCompleted) {
-                    statusBadge = `<span class="text-[9px] text-emerald-400 font-black uppercase">✓ READY</span>`;
-                    cardGlow = "completed-glow bg-emerald-950/20 border border-emerald-500/30";
+                    statusBadge = `<span class="text-[9px] text-emerald-400 font-black uppercase tracking-wider animate-pulse">✓ READY</span>`;
+                    cardGlow = "completed-glow bg-emerald-950/20 border border-emerald-500/40";
                 }
 
                 const block = document.createElement('div');
@@ -505,8 +660,8 @@
                         <p class="text-xs font-bold text-slate-200 leading-tight">${act.text}</p>
                         <div class="shrink-0 ml-2">${statusBadge}</div>
                     </div>
-                    <div class="w-full bg-slate-950 h-1 rounded-full overflow-hidden">
-                        <div class="bg-indigo-500 h-full transition-all" style="width: ${mathPct}%"></div>
+                    <div class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-white/5">
+                        <div class="bg-gradient-to-r from-indigo-500 to-purple-500 h-full transition-all duration-500" style="width: ${mathPct}%"></div>
                     </div>
                 `;
                 container.appendChild(block);
@@ -544,7 +699,6 @@
             document.getElementById('shield-frame').className = "";
             document.getElementById('frost-frame').className = "";
 
-            // Continually evaluate standard state requirements across loops
             evaluateActivityIncrements('check_only', 0);
 
             const activeNode = campaignActivePool[Math.floor(Math.random() * campaignActivePool.length)];
@@ -555,36 +709,36 @@
 
             const canvas = document.getElementById('window-canvas');
             canvas.innerHTML = `
-                <div class="glass-card p-4 space-y-3 flex flex-col bg-slate-900/90 shadow-2xl animate__animated animate__fadeIn">
+                <div class="glass-card p-4 space-y-3 flex flex-col bg-slate-900/90 shadow-2xl animate__animated animate__fadeInDown">
                     <div class="flex justify-between items-center">
                         <div>
                             <h2 class="text-xs font-black text-indigo-400 uppercase tracking-wider">${currentActiveQuestion._sourceBookContext}</h2>
                             <div class="text-[10px] font-bold text-slate-400 mt-0.5">Continuous Active Shuffle Loop</div>
                         </div>
-                        <div id="clock-wrapper" class="text-xl font-black tracking-tighter tabular-nums text-amber-400 bg-slate-950/70 px-2.5 py-1 rounded-2xl border border-white/10">
+                        <div id="clock-wrapper" class="text-xl font-black tracking-tighter tabular-nums text-amber-400 bg-slate-950/80 px-3 py-1 rounded-2xl border border-white/10 shadow-inner">
                             ⏰ <span id="clock-digit">${secondsRemaining}</span>s
                         </div>
                     </div>
                 </div>
 
-                <div class="glass-card p-6 min-h-[95px] flex items-center justify-center text-center animate__animated animate__zoomIn bg-slate-900/95 shadow-xl">
+                <div class="glass-card p-6 min-h-[100px] flex items-center justify-center text-center animate__animated animate__zoomIn bg-slate-900/95 shadow-2xl border-white/10">
                     <h3 class="text-sm font-bold leading-snug text-slate-100">${currentActiveQuestion.q}</h3>
                 </div>
 
-                <div id="choice-matrix" class="space-y-2.5"></div>
+                <div id="choice-matrix" class="space-y-2.5 animate__animated animate__fadeInUp"></div>
 
-                <div class="fixed bottom-0 left-0 right-0 p-3 bg-slate-950/95 border-t border-white/10 z-40 flex justify-center gap-2">
-                    <button onclick="applyInGameUtility('freeze')" class="flex-1 bg-slate-900 border border-sky-500/30 p-2 rounded-xl flex flex-col items-center"><span>❄️</span><span class="text-[9px] text-slate-400 font-bold">Qty: ${state.perks.freeze}</span></button>
-                    <button onclick="applyInGameUtility('half')" class="flex-1 bg-slate-900 border border-rose-500/30 p-2 rounded-xl flex flex-col items-center"><span>⚖️</span><span class="text-[9px] text-slate-400 font-bold">Qty: ${state.perks.half}</span></button>
-                    <button onclick="applyInGameUtility('skip')" class="flex-1 bg-slate-900 border border-purple-500/30 p-2 rounded-xl flex flex-col items-center"><span>🔮</span><span class="text-[9px] text-slate-400 font-bold">Qty: ${state.perks.skip}</span></button>
-                    <button onclick="applyInGameUtility('shield')" class="flex-1 bg-slate-900 border border-amber-500/30 p-2 rounded-xl flex flex-col items-center"><span>🛡️</span><span class="text-[9px] text-slate-400 font-bold">Qty: ${state.perks.shield}</span></button>
+                <div class="fixed bottom-0 left-0 right-0 p-3 bg-slate-950/95 border-t border-white/10 z-40 flex justify-center gap-2 shadow-2xl">
+                    <button onclick="applyInGameUtility('freeze')" class="flex-1 bg-slate-900 hover:bg-slate-850 border border-sky-500/30 p-2 rounded-xl flex flex-col items-center transition-all"><span>❄️</span><span class="text-[9px] text-slate-400 font-bold">Qty: ${state.perks.freeze}</span></button>
+                    <button onclick="applyInGameUtility('half')" class="flex-1 bg-slate-900 hover:bg-slate-850 border border-rose-500/30 p-2 rounded-xl flex flex-col items-center transition-all"><span>⚖️</span><span class="text-[9px] text-slate-400 font-bold">Qty: ${state.perks.half}</span></button>
+                    <button onclick="applyInGameUtility('skip')" class="flex-1 bg-slate-900 hover:bg-slate-850 border border-purple-500/30 p-2 rounded-xl flex flex-col items-center transition-all"><span>🔮</span><span class="text-[9px] text-slate-400 font-bold">Qty: ${state.perks.skip}</span></button>
+                    <button onclick="applyInGameUtility('shield')" class="flex-1 bg-slate-900 hover:bg-slate-850 border border-amber-500/30 p-2 rounded-xl flex flex-col items-center transition-all"><span>🛡️</span><span class="text-[9px] text-slate-400 font-bold">Qty: ${state.perks.shield}</span></button>
                 </div>
             `;
 
             const matrix = document.getElementById('choice-matrix');
             currentActiveQuestion.a.forEach((opt, idx) => {
                 const btn = document.createElement('button');
-                btn.className = "btn-choice bg-slate-900/90 text-xs";
+                btn.className = "btn-choice bg-slate-900/90 text-xs font-semibold shadow-md";
                 btn.innerText = opt;
                 btn.onclick = () => challengeAnswerSubmitted(idx, btn);
                 matrix.appendChild(btn);
@@ -613,7 +767,7 @@
             clearInterval(countdownTimerRef);
 
             if (index === currentActiveQuestion.correct) {
-                clickTarget.className = "btn-choice rainbow-correct text-white text-xs shadow-2xl";
+                clickTarget.className = "btn-choice rainbow-correct text-white text-xs shadow-2xl transform scale-[1.01]";
                 playChimeAudio('correct');
                 
                 state.stats.currentStreak++;
@@ -624,7 +778,7 @@
 
                 setTimeout(() => { launchNextActiveQuestionEngine(); }, 1400);
             } else {
-                clickTarget.className = "btn-choice bg-rose-600 border-rose-400 text-white text-xs animate__animated animate__shakeX font-bold shadow-lg";
+                clickTarget.className = "btn-choice bg-gradient-to-r from-red-600 to-rose-700 border-rose-400 text-white text-xs animate__animated animate__shakeX font-bold shadow-2xl";
                 playChimeAudio('wrong');
                 state.stats.currentStreak = 0; 
                 saveState();
@@ -650,7 +804,7 @@
             } else {
                 triggerInGameAlert(
                     "⚠️ Deducted -20 Coins", 
-                    `${reason} 20 coins deducted. Shuffling immediately to next card query loop.`, 
+                    `${reason} 20 coins deducted from cache. Shuffling instantly to next card pool loop.`, 
                     "📉", 
                     () => { launchNextActiveQuestionEngine(); }
                 );
@@ -689,7 +843,11 @@
         function toggleLanguage() { playChimeAudio('tap'); state.lang = state.lang === 'en' ? 'tw' : 'en'; saveState(); renderMenuMap(); }
         function exitToMenu() { playChimeAudio('tap'); clearInterval(countdownTimerRef); renderMenuMap(); }
         
-        window.onload = () => { saveState(); renderMenuMap(); };
+        window.onload = () => { 
+            saveState(); 
+            initStarfieldAmbientLayer();
+            renderMenuMap(); 
+        };
     </script>
 </body>
 </html>
