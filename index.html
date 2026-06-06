@@ -3,206 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Revelators Pathfinder Quiz Quest</title>
+    <title>Prophetic Word Quest Explorer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
-        body { 
-            background-color: #030611; 
-            font-family: system-ui, -apple-system, sans-serif; 
+        body {
+            background-color: #020617;
+            color: #f8fafc;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             overflow-x: hidden;
-            position: relative;
         }
-
-        #ambient-particle-canvas, #snow-freeze-canvas {
-            position: fixed;
-            inset: 0;
-            z-index: 1;
-            pointer-events: none;
+        /* Custom scrollbar setup for clean presentation */
+        ::-webkit-scrollbar {
+            width: 6px;
         }
-        #ambient-particle-canvas { opacity: 0.5; z-index: 1; }
-        #snow-freeze-canvas { z-index: 45; opacity: 0; transition: opacity 0.4s ease; }
-        
-        .game-bg-active {
-            background-image: url('https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?auto=format&fit=crop&w=800&q=80') !important;
-            background-size: cover !important;
-            background-position: center !important;
-            background-blend-mode: overlay !important;
-            background-color: rgba(3, 6, 17, 0.92) !important;
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
         }
-
-        .glass-card { 
-            background: rgba(13, 18, 35, 0.75); 
-            backdrop-filter: blur(24px); 
-            -webkit-backdrop-filter: blur(24px); 
-            border: 1px solid rgba(255, 255, 255, 0.06); 
-            border-radius: 24px; 
-            color: white; 
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 9999px;
         }
-
-        .level-card-interactive {
-            background: rgba(15, 23, 42, 0.65);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-        }
-        .level-card-interactive:hover {
-            transform: translateY(-4px) scale(1.02);
-            background: rgba(23, 37, 84, 0.45);
-            border-color: rgba(99, 102, 241, 0.4);
-            box-shadow: 0 15px 30px rgba(99, 102, 241, 0.25);
-        }
-        
-        .btn-choice { 
-            width: 100%; 
-            text-align: left; 
-            padding: 1.1rem 1.4rem; 
-            border-radius: 20px; 
-            border: 1px solid rgba(255,255,255,0.07); 
-            background: rgba(13, 18, 35, 0.85); 
-            font-weight: 600; 
-            color: #f1f5f9; 
-            transition: all 0.2s ease; 
-        }
-        .btn-choice:hover { 
-            background: rgba(37, 99, 235, 0.15); 
-            border-color: rgba(37, 99, 235, 0.4); 
-            transform: translateY(-1px); 
-        }
-        
-        @keyframes titleShimmer {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .shimmer-title {
-            background: linear-gradient(45deg, #38bdf8, #818cf8, #f472b6, #34d399, #38bdf8);
-            background-size: 300% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: titleShimmer 6s linear infinite;
-        }
-
-        @keyframes auroraFlow {
-            0% { background-position: 0% 50%; filter: hue-rotate(0deg); }
-            50% { background-position: 100% 50%; filter: hue-rotate(180deg); filter: hue-rotate(180deg); }
-            100% { background-position: 0% 50%; filter: hue-rotate(360deg); }
-        }
-        .rainbow-correct { 
-            background: linear-gradient(45deg, #10b981, #2563eb, #8b5cf6, #059669) !important;
-            background-size: 300% 300% !important;
-            animation: auroraFlow 4s ease infinite !important;
-            border-color: transparent !important;
-            color: #ffffff !important;
-            font-weight: 900 !important;
-            box-shadow: 0 0 25px rgba(16, 185, 129, 0.6) !important;
-        }
-
-        .completed-glow { box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); border-color: rgba(16, 185, 129, 0.6); }
-
-        #frost-frame { position: fixed; inset: 0; border: 14px solid rgba(56, 189, 248, 0.55); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 90px rgba(14, 165, 233, 0.45); }
-        .frost-active { opacity: 1 !important; }
-        
-        #shield-frame { position: fixed; inset: 0; border: 12px solid rgba(245, 158, 11, 0.5); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 60px rgba(245, 158, 11, 0.25); }
-        .shield-active { opacity: 1 !important; }
-
-        .wheel-container { position: relative; width: 260px; height: 260px; margin: 0 auto; filter: drop-shadow(0 0 25px rgba(99, 102, 241, 0.35)); }
-        #wheel-canvas { width: 100%; height: 100%; border-radius: 50%; border: 6px solid #4f46e5; transition: transform 4s cubic-bezier(0.1, 0.8, 0.25, 1); background: #0f172a; }
-        .wheel-pointer { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent; border-top: 22px solid #ef4444; z-index: 30; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.4)); }
-        
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        #timer-progress-bar {
-            height: 6px;
-            width: 100%;
-            background-color: #10b981;
-            border-radius: 3px;
-            transition: width 1s linear, background-color 0.3s ease;
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.5);
         }
     </style>
 </head>
-<body class="p-4 min-h-screen flex flex-col items-center justify-start text-white select-none">
+<body class="relative min-h-screen flex flex-col justify-between selection:bg-indigo-500/30 selection:text-indigo-200">
 
-    <canvas id="ambient-particle-canvas"></canvas>
-    <canvas id="snow-freeze-canvas"></canvas>
+    <canvas id="ambient-particle-canvas" class="absolute top-0 left-0 w-full h-full pointer-events-none z-0"></canvas>
+    <canvas id="snow-freeze-canvas" class="absolute top-0 left-0 w-full h-full pointer-events-none z-40 opacity-0 transition-opacity duration-700"></canvas>
 
-    <div id="frost-frame"></div>
-    <div id="shield-frame"></div>
+    <header class="w-full max-w-md mx-auto px-4 pt-4 relative z-10 flex items-center justify-between gap-2 shrink-0">
+        <button id="audio-toggle-btn" onclick="toggleGlobalAudioSystem(event)" class="bg-slate-950/95 border border-emerald-500/30 text-emerald-400 px-3 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-xl transition-all duration-300 active:scale-95">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="audio-label">AMBIANCE: ON</span>
+        </button>
 
-    <div class="w-full max-w-md flex flex-col gap-2 z-50 relative">
-        <div class="flex justify-between items-center w-full px-1">
-            <button onclick="exitToMenu(event)" id="back-btn" class="hidden bg-slate-950/95 border border-white/15 text-white px-4 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-wider shadow-xl transition-all">
-                🚪 <span data-i18n="mapHub">Map Hub</span>
+        <div class="flex items-center gap-2">
+            <button onclick="toggleSystemLocalizationLanguage()" class="bg-slate-950/95 border border-indigo-500/30 text-indigo-400 px-3 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-xl active:scale-95 transition-transform">
+                <span>🌐</span>
+                <span id="lang-label">ENGLISH</span>
             </button>
-            
-            <button id="audio-toggle-btn" onclick="toggleGlobalAudioSystem(event)" class="bg-slate-950/95 border border-emerald-500/30 text-emerald-400 px-3 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-xl ml-0">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span id="audio-label">AMBIANCE: ON</span>
-            </button>
+            <div class="bg-slate-950/95 border border-amber-500/30 text-amber-400 px-3 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-xl">
+                <span>💰</span>
+                <span id="gold-val">500</span>
+            </div>
+        </div>
+    </header>
 
-            <div class="flex gap-1.5 ml-auto">
-                <button onclick="toggleLanguage(event)" class="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white px-3 py-1.5 rounded-full font-bold text-[10px] uppercase shadow-lg transition-all">
-                    🌐 <span id="lang-label">English</span>
-                </button>
-                <div id="gold-container" class="bg-slate-950/95 border border-white/15 px-3 py-1.5 rounded-full shadow-2xl flex items-center gap-1.5">
-                    <span class="text-xs">💰</span>
-                    <span id="gold-val" class="font-black text-amber-400 text-xs drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]">500</span>
+    <main id="window-canvas" class="w-full max-w-md mx-auto px-4 py-6 relative z-10 flex-1 flex flex-col justify-start overflow-y-auto">
+        
+        <div class="w-full bg-slate-900/60 backdrop-blur-xl border border-white/5 rounded-2xl p-4 shadow-2xl mb-4 transition-all duration-300">
+            <div class="flex items-center justify-between cursor-pointer" onclick="this.parentElement.classList.toggle('max-h-[500px]')">
+                <div class="flex items-center gap-2">
+                    <span class="text-lg">📋</span>
+                    <h3 class="text-sm font-bold tracking-wide text-slate-300" data-i18n="viewTasks">View Sectors Task Explorer</h3>
                 </div>
+                <span class="text-slate-500 text-xs">▼</span>
             </div>
-        </div>
+            </div>
 
-        <div id="lobby-activities-bar" class="relative w-full">
-            <button onclick="toggleActivitiesDropWindow(event)" class="w-full bg-slate-900/60 hover:bg-slate-900/90 border border-white/5 backdrop-blur-md px-4 py-2.5 rounded-xl text-xs font-bold text-indigo-300 flex justify-between items-center transition-all shadow-md">
-                <span class="flex items-center gap-2">📋 <span data-i18n="viewTasks">View Sectors Task Explorer</span></span>
-                <span id="activities-drop-arrow" class="transition-transform duration-200 text-[10px]">▼</span>
-            </button>
-            <div id="activities-drop-window" onclick="event.stopPropagation()" class="hidden absolute top-full left-0 right-0 mt-1.5 bg-slate-950/95 border border-white/10 rounded-2xl p-3 shadow-2xl space-y-2 z-50 max-h-60 overflow-y-auto no-scrollbar"></div>
-        </div>
-
-        <div id="lobby-wheel-bar" class="relative w-full">
-            <button onclick="toggleWheelDropWindow(event)" class="w-full bg-gradient-to-r from-amber-950/30 via-slate-900/60 to-amber-950/30 hover:brightness-110 border border-amber-500/20 backdrop-blur-md px-4 py-2.5 rounded-xl text-xs font-bold text-amber-400 flex justify-between items-center transition-all shadow-md">
-                <span class="flex items-center gap-2">🎯 <span data-i18n="launchWheel">Launch Prophetic Reward Wheel</span></span>
-                <span id="wheel-drop-arrow" class="transition-transform duration-200 text-[10px]">▼</span>
-            </button>
-            
-            <div id="wheel-drop-window" onclick="event.stopPropagation()" class="hidden absolute top-full left-0 right-0 mt-1.5 bg-slate-950/98 border border-amber-500/30 rounded-3xl p-5 shadow-2xl z-50 text-center space-y-4">
-                <div class="wheel-container">
-                    <div class="wheel-pointer"></div>
-                    <canvas id="wheel-canvas" width="250" height="250"></canvas>
+        <div class="w-full bg-slate-900/60 backdrop-blur-xl border border-white/5 rounded-2xl p-4 shadow-2xl transition-all duration-300">
+            <div class="flex items-center justify-between cursor-pointer">
+                <div class="flex items-center gap-2">
+                    <span class="text-lg">🎯</span>
+                    <h3 class="text-sm font-bold tracking-wide text-amber-400" data-i18n="launchWheel">Launch Prophetic Reward Wheel</h3>
                 </div>
-                <button onclick="spinWheelActionLogic(event)" id="spin-action-trigger" class="w-full bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 text-slate-950 font-black text-xs py-3 rounded-xl shadow-xl hover:brightness-110 active:scale-[0.98] transition-all tracking-wider uppercase" data-i18n="startSpin">
-                    START PROPHETIC SPIN
-                </button>
+                <span class="text-slate-500 text-xs">▼</span>
             </div>
         </div>
-    </div>
 
-    <main id="window-canvas" class="w-full max-w-md mt-6 space-y-4 flex flex-col mb-28 relative z-10"></main>
+    </main>
 
-    <div id="game-alert-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div id="alert-box-card" class="glass-card w-full max-w-xs p-6 text-center space-y-4 border-indigo-500/40 bg-slate-950/95 shadow-2xl animate__animated">
-            <div id="alert-icon" class="text-5xl">⚠️</div>
-            <h3 id="alert-title" class="text-base font-black uppercase tracking-wider text-slate-100">Notification</h3>
-            <p id="alert-msg" class="text-xs text-slate-300 leading-relaxed font-medium"></p>
-            <button onclick="dismissSystemModal(event)" class="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold text-xs py-3 rounded-xl transition-all shadow-md transform active:scale-95" data-i18n="continueBtn">
-                CONTINUE PROCEEDING
-            </button>
-        </div>
-    </div>
-
-    <div id="shop-modal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="glass-card w-full max-w-sm p-6 space-y-4 border-indigo-500/30 bg-slate-950/90 shadow-2xl" onclick="event.stopPropagation()">
-            <div class="flex justify-between items-center border-b border-white/10 pb-3">
-                <div class="flex items-center gap-2"><span>🛒</span><h3 class="text-sm font-black uppercase tracking-wider text-indigo-300" data-i18n="armoryTitle">Armory Depot</h3></div>
-                <button onclick="closeShopModal(event)" class="text-slate-400 text-sm bg-white/5 w-7 h-7 rounded-full">✕</button>
+    <nav class="w-full max-w-md mx-auto bg-slate-950/90 backdrop-blur-md border-t border-white/5 px-6 py-2 relative z-30 flex justify-between items-center shrink-0 rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.8)]">
+        <button class="flex flex-col items-center gap-1 text-indigo-400 opacity-100 transition-all">
+            <div class="p-2 bg-indigo-500/10 rounded-xl shadow-inner">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
             </div>
-            <div id="modal-shop-grid" class="space-y-2"></div>
-        </div>
-    </div>
+            <span class="text-[9px] font-black tracking-widest uppercase">Home</span>
+        </button>
 
-    <button id="lobby-bag-btn" onclick="openShopModal(event)" class="fixed bottom-6 right-6 z-40 bg-gradient-to-tr from-indigo-500 via-purple-600 to-pink-500 border border-white/20 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl text-xl hover:scale-110 active:scale-95 transition-all animate__animated animate__pulse animate__infinite">🎒</button>
+        <button class="flex flex-col items-center gap-1 text-slate-500 opacity-70 hover:opacity-100 transition-all">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+            <span class="text-[9px] font-bold tracking-widest uppercase">Inbox</span>
+        </button>
+
+        <button class="flex flex-col items-center gap-1 text-slate-500 opacity-70 hover:opacity-100 transition-all">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <span class="text-[9px] font-bold tracking-widest uppercase">Explore</span>
+        </button>
+
+        <button class="flex flex-col items-center gap-1 text-slate-500 opacity-70 hover:opacity-100 transition-all">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+            <span class="text-[9px] font-bold tracking-widest uppercase">Copilot</span>
+        </button>
+    </nav>
 
     <script>
         // System Localization Registry System Database
@@ -216,110 +112,20 @@
                 phase5Title: "Phase 5: Mastery Blitz Mode", phase5Desc: "5-Second Extreme Rapid Fire Speed Clock", phase6Title: "Phase 6: Adventist Teachings",
                 phase6Desc: "The 28 Fundamental Sanctuary & Prophetic Beliefs", task1: "Answer {target} questions across any stage",
                 task2: "Maintain a win streak of {target} choices", task3: "Activate Chrono Freeze {target} times",
-                task4: "Survive {target} extreme Mastery Blitz cards", task5: "Possess a volume balance of {target} gold",
-                rechargeTitle: "Engine Recharging", rechargeMsg: "Your daily prophetic reward drop is cooling down. Return tomorrow.",
-                prizeTitle: "🎁 Prize Unlocked!", prizeMsg: "The animated needle settled perfectly! Reward item applied to inventory stack.",
-                shortageTitle: "Treasury Shortage", shortageMsg: "You do not have enough coins to purchase this deployable perk item.",
-                clearTitle: "🎉 Activity Set Cleared!", clearMsg: "Superb effort! Completed all active goals. Tier increased to {tier}, reward loaded.",
-                timeoutReason: "Countdown Time Expired!", wrongReason: "Incorrect Answer Choice Selected!",
-                walletTitle: "🚨 Wallet Depleted", walletMsg: "Your coin balance has hit zero. Returning to tactical menu map hub.",
-                deductTitle: "⚠️ Deducted -20 Coins", deductMsg: "{reason} 20 coins deducted. Shuffling instantly.",
-                continuousLoop: "Continuous Active Shuffle Loop"
+                task4: "Survive {target} extreme Mastery Blitz stages", task5: "Acquire {target} gold elements out of standard reward engines"
             },
             tw: {
-                mapHub: "Kyerɛ Maap", viewTasks: "Hwɛ Dwumadi Ahodoɔ Yi", launchWheel: "Bɔ Twa Nkyekyɛmu Afiri No",
-                startSpin: "HYƐ TWA NO ASE", armoryTitle: "Akodeɛ Koraeɛ", continueBtn: "KƆ SO DWUMADI NO",
-                subtitle: "Mia Phase Kaade Biara So", phase1Title: "Phase 1: Apam Foforɔ", phase1Desc: "Hwɛ Asɛmpa Nnwuma Ahodoɔ No",
-                phase2Title: "Phase 2: Apam Dada", phase2Desc: "Mmara ne Ahyɛdeɛ Ahodoɔ", phase3Title: "Phase 3: Nneɛma Frafra Koraeɛ",
-                phase3Desc: "Nsɛmmisa Frafra afiri Twerɛnsɛm mu", phase4Title: "Phase 4: E.G. White Atwerɛeɛ", phase4Desc: "Nkɔmhyɛ ne Tete Sukuu Ahodoɔ",
-                phase5Title: "Phase 5: Mastery Blitz kwan", phase5Desc: "Nnarekodi Nsekene 5 Nsɛmmisa Denden", phase6Title: "Phase 6: Adventist Nkyerɛkyerɛ",
-                phase6Desc: "Gyidie nnyinasoɔ 28 ne Ɔsoro Kronkronbea no", task1: "Bua nsɛmmisa {target} wɔ fa biara",
-                task2: "Kora nkɔsoɔ streak {target} so pɛpɛɛpɛ", task3: "Fa Chrono Freeze dwuma mpren {target}",
-                task4: "Tena Mastery Blitz kaade {target} mu", task5: "Kora sika botaeɔ {target} sika kɔkɔɔ so",
-                rechargeTitle: "Afiri No Rehyia", rechargeMsg: "Wo da biara da nkɔmhyɛ nkyekyɛmu rehome. San bra ɔkyena.",
-                prizeTitle: "🎁 Akyɛdeɛ Abue!", prizeMsg: "Paaneɛ no sii baabi pa! Yɛde nneɛma no ahyɛ wo koraeɛ mu.",
-                shortageTitle: "Sika Anni Mu", shortageMsg: "Wo sika kɔkɔɔ nnu sɛ wobɛtɔ saa akodeɛ dwumadie perk yi.",
-                clearTitle: "🎉 Dwumadi Ahodoɔ No Anyam!", clearMsg: "Mmɔdenbɔ pa! Woawie botaeɛ nketewa no nyinaa. Tier akɔ {tier}.",
-                timeoutReason: "Berɛ a Yɛde Maeɛ No Asa!", wrongReason: "Mmuaeɛ a Woapaw No Nyɛ Pɛpɛɛpɛ!",
-                walletTitle: "🚨 Sika Koraeɛ Ahwe Ase", walletMsg: "Wo sika kɔkɔɔ anya asa korakora. Yɛresan akɔ maap hub no mu.",
-                deductTitle: "⚠️ Yɛate Sika Kɔkɔɔ -20", deductMsg: "{reason} Yɛate sika 20 afiri wo koraeɛ mu. Shuffling rekɔ so.",
-                continuousLoop: "Kwan a Nsɛmmisa Resesa Berɛ Biara"
+                mapHub: "Akwankyerɛ Kuw", viewTasks: "Hwɛ Dwumadi Horow Akwankyerɛfo", launchWheel: "Twa Nkyekyem Nkonimdie Afiri No",
+                startSpin: "HYƐ AFIRI NO ASE TWA", armoryTitle: "Akode Akorade", continueBtn: "TOA SO KO ANIM",
+                subtitle: "Miia Adebisa Kaadi biara so sɛ wubue", phase1Title: "Apaso 1: Apam Foforo", phase1Desc: "Hwehwɛ Nsɛmpa ne Nkyerɛwee no mu",
+                phase2Title: "Apaso 2: Apam Dedaw", phase2Desc: "Mmarahyɛ Nhyehyɛe Apam Horow", phase3Title: "Apaso 3: Afrafra Kuw Kɛse",
+                phase3Desc: "Wbɛfrafra Kyerɛwnsɛm Kaadi Horow No Nyinaa mu", phase4Title: "Apaso 4: E.G. White Nnwuma", phase4Desc: "Nkɔmhyɛ Nkyerɛkyerɛ ne Nimdeɛ Horow",
+                phase5Title: "Apaso 5: Nkɔmhyɛ Ntɛmso Akansi", phase5Desc: "Nnarekodi 5 Ntɛmso Berɛ Horow", phase6Title: "Apaso 6: Adventist Nkyerɛkyerɛ",
+                phase6Desc: "Nkyerɛkyerɛ Titiriw 28 ne Kronkronbea Nsɛm", task1: "Bua nsɛmmisa {target} wɔ gyinabea biara",
+                task2: "Kura nkonimdie {target} a ɛtoatoa so mpo", task3: "Yɛ Chrono Freeze adwuma {target} mprɛ pii",
+                task4: "Tena ase boro {target} Ntɛmso Akansi mu nkonim", task5: "Nya sika kɔkɔɔ {target} fi afiri dwumadi mu"
             }
         };
-
-        // Complete 50 Dynamic Matrix Scriptural Quiz Database
-        window.quizDatabase = [
-            { name: "Matthew", group: "NT", questions: [
-                { q: "Who was chosen to be the earthly mother of Jesus Christ?", a: ["Elizabeth", "Mary", "Martha", "Salome"], correct: 1, difficulty: "easy" },
-                { q: "Where was Jesus Christ born historically?", a: ["Nazareth", "Jerusalem", "Bethlehem", "Capernaum"], correct: 2, difficulty: "easy" },
-                { q: "How many generations are recorded in Matthew from Abraham to David?", a: ["7 Generations", "12 Generations", "14 Generations", "40 Generations"], correct: 2, difficulty: "moderate" },
-                { q: "Who was the father of Joseph, the husband of Mary?", a: ["Heli", "Jacob", "Matthan", "Eleazar"], correct: 1, difficulty: "difficult" },
-                { q: "What was Matthew's profession before becoming a disciple?", a: ["Fisherman", "Physician", "Tax Collector", "Tentmaker"], correct: 2, difficulty: "easy" }
-            ]},
-            { name: "Mark", group: "NT", questions: [
-                { q: "Which prophet did Mark quote at the opening of his Gospel script?", a: ["Isaiah", "Jeremiah", "Ezekiel", "Daniel"], correct: 0, difficulty: "easy" },
-                { q: "Who was the father of John the Baptist?", a: ["Zechariah", "Simeon", "Levi", "Joseph"], correct: 0, difficulty: "easy" },
-                { q: "In Mark 5, what was the name of the demon-possessed man's tormentors?", a: ["Beelzebub", "Legion", "Mammon", "Belial"], correct: 1, difficulty: "moderate" },
-                { q: "What language did Jesus speak when he said 'Talitha cumi'?", a: ["Hebrew", "Greek", "Latin", "Aramaic"], correct: 3, difficulty: "moderate" },
-                { q: "Whose mother-in-law did Jesus heal of a fever early in Mark?", a: ["Peter", "Andrew", "John", "James"], correct: 0, difficulty: "easy" }
-            ]},
-            { name: "Luke", group: "NT", questions: [
-                { q: "What was the professional trade of Luke before writing?", a: ["Tax Collector", "Physician", "Fisherman", "Tentmaker"], correct: 1, difficulty: "easy" },
-                { q: "To whom is the Gospel of Luke explicitly addressed?", a: ["Timothy", "Theophilus", "Cornelius", "Titus"], correct: 1, difficulty: "moderate" },
-                { q: "Which parables are exclusively found in the Gospel of Luke?", a: ["The Sower", "The Prodigal Son", "The Ten Virgins", "The Talents"], correct: 1, difficulty: "moderate" },
-                { q: "Who was the Roman Emperor when John the Baptist began his ministry?", a: ["Augustus", "Nero", "Tiberius", "Caligula"], correct: 2, difficulty: "difficult" },
-                { q: "What was the name of the town where Jesus met the widow whose son died?", a: ["Nain", "Joppa", "Lydda", "Sychar"], correct: 0, difficulty: "difficult" }
-            ]},
-            { name: "John", group: "NT", questions: [
-                { q: "Complete the prophetic text: 'In the beginning was the...'", a: ["Light", "Spirit", "Word", "Kingdom"], correct: 2, difficulty: "easy" },
-                { q: "What was the first recorded miracle performed by Jesus in John?", a: ["Healing blind man", "Walking on water", "Turning water to wine", "Raising Lazarus"], correct: 2, difficulty: "easy" },
-                { q: "Who came to Jesus by night to ask about rebirth?", a: ["Lazarus", "Nicodemus", "Zacchaeus", "Bartimaeus"], correct: 1, difficulty: "easy" },
-                { q: "For how many days had Lazarus been dead before Jesus raised him?", a: ["2 Days", "3 Days", "4 Days", "7 Days"], correct: 2, difficulty: "moderate" },
-                { q: "What was the name of the high priest's servant whose ear Peter cut off?", a: ["Malchus", "Marcus", "Mathias", "Machaorus"], correct: 0, difficulty: "difficult" }
-            ]},
-            { name: "Genesis", group: "OT", questions: [
-                { q: "What garden home was explicitly planted for Adam and Eve's habitation?", a: ["Gethsemane", "Eden", "Sinai", "Ararat"], correct: 1, difficulty: "easy" },
-                { q: "How many days did God take to create the universe in Genesis?", a: ["5 Days", "6 Days", "7 Days", "10 Days"], correct: 1, difficulty: "easy" },
-                { q: "What was the name of Abraham's firstborn son?", a: ["Isaac", "Ishmael", "Jacob", "Esau"], correct: 1, difficulty: "moderate" },
-                { q: "On which mountain did Noah's ark come to rest?", a: ["Sinai", "Nebo", "Ararat", "Carmel"], correct: 2, difficulty: "easy" },
-                { q: "What does the name Bethel mean structurally?", a: ["City of Peace", "House of God", "Altar of Mercy", "Holy Ground"], correct: 1, difficulty: "difficult" }
-            ]},
-            { name: "Exodus", group: "OT", questions: [
-                { q: "Out of what elemental item did God call Moses in the desert?", a: ["Cloud", "Bush", "Rock", "Whirlwind"], correct: 1, difficulty: "easy" },
-                { q: "What was the first plague poured upon the kingdom of Egypt?", a: ["Frogs", "Lice", "Blood", "Locusts"], correct: 2, difficulty: "easy" },
-                { q: "What was the name of Moses' wife?", a: ["Miriam", "Zipporah", "Leah", "Rachel"], correct: 1, difficulty: "moderate" },
-                { q: "From which tribe of Israel was Moses born?", a: ["Judah", "Reuben", "Levi", "Benjamin"], correct: 2, difficulty: "moderate" },
-                { q: "What was the name of the place where Moses struck the rock for water?", a: ["Marah", "Massah and Meribah", "Elim", "Shiloh"], correct: 1, difficulty: "difficult" }
-            ]},
-            { name: "Leviticus & Numbers", group: "OT", questions: [
-                { q: "Which feast day required total fasting and sanctuary cleansing once a year?", a: ["Passover", "Pentecost", "Day of Atonement", "Feast of Tabernacles"], correct: 2, difficulty: "moderate" },
-                { q: "What offering required completely burning the entire animal on the altar?", a: ["Grain offering", "Peace offering", "Sin offering", "Burnt offering"], correct: 3, difficulty: "difficult" },
-                { q: "Who were the only two adult spies permitted to enter the Promised Land?", a: ["Moses & Aaron", "Joshua & Caleb", "Gideon & Samson", "Elezar & Ithamar"], correct: 1, difficulty: "easy" },
-                { q: "What happened to Aaron's rod to prove his high priestly lineage?", a: ["Turned to gold", "Budded and produced almonds", "Divided the stream", "Consumed by fire"], correct: 1, difficulty: "moderate" },
-                { q: "What was the specific sin that caused Nadab and Abihu to drop dead?", a: ["Stealing silver", "Offering strange fire", "Refusing circumcision", "Worshipping idols"], correct: 1, difficulty: "difficult" }
-            ]},
-            { name: "EGW Writings", group: "EGW", questions: [
-                { q: "Which work traces the cosmic metanarrative between Christ and Satan?", a: ["Steps to Christ", "The Great Controversy", "Education", "Ministry of Healing"], correct: 1, difficulty: "easy" },
-                { q: "Which book focuses heavily on daily salvation devotional steps?", a: ["Steps to Christ", "The Desire of Ages", "Patriarchs and Prophets", "Prophets and Kings"], correct: 0, difficulty: "easy" },
-                { q: "What was Ellen White's maiden name before marriage?", a: ["Harmon", "Fitch", "Smith", "Bates"], correct: 0, difficulty: "moderate" },
-                { q: "In which city did Ellen White receive her first major vision?", a: ["Portland", "Battle Creek", "Washington", "Boston"], correct: 0, difficulty: "difficult" },
-                { q: "Which book in the Conflict of the Ages series covers the period of Old Testament kings?", a: ["Patriarchs and Prophets", "Prophets and Kings", "The Desire of Ages", "Acts of the Apostles"], correct: 1, difficulty: "easy" }
-            ]},
-            { name: "Adventist Sanctuary", group: "SDA", questions: [
-                { q: "In what year did the prophetic cleansing of the heavenly sanctuary commence?", a: ["1798", "1844", "1888", "1931"], correct: 1, difficulty: "easy" },
-                { q: "Which compartment of the sanctuary contained the Ark of the Covenant?", a: ["Courtyard", "Holy Place", "Most Holy Place", "Outer Altar"], correct: 2, difficulty: "easy" },
-                { q: "What scriptural time prophecy forms the foundation of the 1844 movement?", a: ["1260 Days", "2300 Days", "70 Weeks", "1335 Days"], correct: 1, difficulty: "moderate" },
-                { q: "Which item sat on top of the Ark of the Covenant?", a: ["The Altar", "The Golden Censer", "The Mercy Seat", "The Table of Shewbread"], correct: 2, difficulty: "moderate" },
-                { q: "What specific book and chapter of Daniel contains the 2300-day sanctuary text?", a: ["Daniel 7:25", "Daniel 8:14", "Daniel 9:24", "Daniel 12:1"], correct: 1, difficulty: "difficult" }
-            ]},
-            { name: "Fundamental Beliefs", group: "SDA", questions: [
-                { q: "Which day is recognized as the biblical Sabbath according to Adventist Teachings?", a: ["First Day (Sunday)", "Sixth Day (Friday)", "Seventh Day (Saturday)", "Any rest day"], correct: 2, difficulty: "easy" },
-                { q: "How does Scripture describe the condition of death according to Adventist doctrine?", a: ["An immediate purgatory", "A state of unconscious sleep", "Disembodied spirit", "Immediate ascent"], correct: 1, difficulty: "easy" },
-                { q: "How many total Fundamental Beliefs are officially held by the Adventist Church?", a: ["10", "22", "27", "28"], correct: 3, difficulty: "easy" },
-                { q: "What gift is explicitly recognized as a identifying mark of the remnant church?", a: ["The Gift of Tongues", "The Gift of Prophecy", "The Gift of Miracles", "The Gift of Administration"], correct: 1, difficulty: "moderate" },
-                { q: "Which angelic message calls believers out of Babylon and warning against the beast?", a: ["First Message", "Second Message", "Third Message", "Fourth Message"], correct: 2, difficulty: "difficult" }
-            ]}
-        ];
 
         // System Configuration Profile Engines
         let state = JSON.parse(localStorage.getItem('revelatorsQuizDataV1')) || {
@@ -365,19 +171,25 @@
         let snowAnimationId = null;
         let snowFlakes = [];
 
+        // FIXED: Robust translation utility with dynamic placeholder injection
         function getString(key, variables = {}) {
-            let txt = i18nRegistry[state.lang][key] || i18nRegistry['en'][key] || key;
+            let txt = i18nRegistry[state.lang]?.[key] || i18nRegistry['en']?.[key] || key;
             for (let v in variables) {
-                txt = txt.replace(`{${v}}`, variables[v]);
+                let regex = new RegExp(`\\{${v}\\}`, 'g');
+                txt = txt.replace(regex, variables[v]);
             }
             return txt;
         }
 
         function saveState() {
             localStorage.setItem('revelatorsQuizDataV1', JSON.stringify(state));
-            document.getElementById('gold-val').innerText = state.gold;
-            document.getElementById('lang-label').innerText = state.lang === 'en' ? "English" : "Twi";
-            document.getElementById('audio-label').innerText = globalAudioMuted ? "AMBIANCE: OFF" : "AMBIANCE: ON";
+            const goldVal = document.getElementById('gold-val');
+            const langLabel = document.getElementById('lang-label');
+            const audioLabel = document.getElementById('audio-label');
+
+            if (goldVal) goldVal.innerText = state.gold;
+            if (langLabel) langLabel.innerText = state.lang === 'en' ? "ENGLISH" : "TWI";
+            if (audioLabel) audioLabel.innerText = globalAudioMuted ? "AMBIANCE: OFF" : "AMBIANCE: ON";
             
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 let key = el.getAttribute('data-i18n');
@@ -385,9 +197,14 @@
             });
         }
 
+        function toggleSystemLocalizationLanguage() {
+            state.lang = state.lang === 'en' ? 'tw' : 'en';
+            saveState();
+        }
+
         function initStarfieldAmbientLayer() {
             const canvas = document.getElementById('ambient-particle-canvas');
-            if(!canvas) return;
+            if (!canvas) return;
             const ctx = canvas.getContext('2d');
             let dots = [];
             
@@ -425,12 +242,12 @@
 
         function toggleSnowParticleSystem(activate) {
             const canvas = document.getElementById('snow-freeze-canvas');
-            if(!canvas) return;
+            if (!canvas) return;
             const ctx = canvas.getContext('2d');
             
             if(!activate) {
                 canvas.style.opacity = "0";
-                if(snowAnimationId) cancelAnimationFrame(snowAnimationId);
+                if (snowAnimationId) cancelAnimationFrame(snowAnimationId);
                 return;
             }
 
@@ -539,6 +356,8 @@
             initAudioContext();
             globalAudioMuted = !globalAudioMuted;
             const btn = document.getElementById('audio-toggle-btn');
+            if (!btn) return;
+            
             if (globalAudioMuted) {
                 btn.className = "bg-slate-950/95 border border-white/10 text-slate-500 px-3 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-xl";
                 btn.innerHTML = `<span class="w-2 h-2 rounded-full bg-slate-600"></span><span id="audio-label">AMBIANCE: OFF</span>`;
@@ -574,7 +393,7 @@
             }
         }
 
-        // Initialize script logic bindings on window frame load
+        // Boot system initializers cleanly on script load
         window.addEventListener('DOMContentLoaded', () => {
             initStarfieldAmbientLayer();
             saveState();
