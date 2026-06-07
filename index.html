@@ -2,786 +2,501 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Revelators Pathfinders Quiz Quest</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revelators Pathfinders</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@500;600;700&display=swap');
+
+        :root {
+            --bg-color: #0A0A1A;
+            --glow-color: #00FF87;
+        }
+
         body {
-            background-color: #020617;
-            color: #f8fafc;
+            background-color: var(--bg-color);
+            color: white;
             font-family: 'Rajdhani', sans-serif;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 50% 0%, #1a1a3a 0%, #0a0a1a 100%);
+            touch-action: manipulation;
         }
-        .heading-font { font-family: 'Orbitron', sans-serif; }
-        .custom-scroll::-webkit-scrollbar { display: none; }
-        
+
+        h1, h2, h3, .brand-text { font-family: 'Orbitron', sans-serif; }
+
+        /* Glassmorphism */
         .glass-panel {
-            background: rgba(15, 23, 42, 0.65);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
+            background: rgba(16, 20, 43, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        /* Ambient Canvases */
-        #ambient-particle-canvas, #snow-freeze-canvas { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
-        #ambient-particle-canvas { opacity: 0.4; }
-        #snow-freeze-canvas { z-index: 45; opacity: 0; transition: opacity 0.3s ease; }
-
-        /* Overlays */
-        #frost-frame { position: fixed; inset: 0; border: 16px solid rgba(56, 189, 248, 0.5); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 100px rgba(14, 165, 233, 0.4); }
-        .frost-active { opacity: 1 !important; }
-        #shield-frame { position: fixed; inset: 0; border: 12px solid rgba(245, 158, 11, 0.6); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 80px rgba(245, 158, 11, 0.3); }
-        .shield-active { opacity: 1 !important; }
-
-        /* Animations */
-        @keyframes flash {
-            0%, 100% { opacity: 1; box-shadow: 0 0 0 transparent; }
-            50% { opacity: 0.9; transform: scale(1.03); filter: brightness(1.3); box-shadow: 0 0 30px currentColor; }
-        }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px) rotate(-1deg); }
-            75% { transform: translateX(5px) rotate(1deg); }
-        }
-        @keyframes fadeOut {
-            to { opacity: 0.2; transform: scale(0.98); pointer-events: none; filter: grayscale(1); }
-        }
-        @keyframes auroraFlow {
+        /* Rainbow Animation for Correct Answers */
+        @keyframes rainbow-bg {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
-        @keyframes coinShock {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.15) rotate(-3deg); filter: drop-shadow(0 0 20px #ef4444); }
-        }
 
-        .animate-powerup { animation: flash 0.5s ease-out; }
-        .animate-wrong {
-            animation: shake 0.4s ease-in-out;
-            border-color: #ef4444 !important;
-            background-color: rgba(127, 29, 29, 0.3) !important;
-            color: #fca5a5 !important;
-        }
-        .eliminated { animation: fadeOut 0.4s forwards; }
-        .rainbow-correct { 
-            background: linear-gradient(45deg, #10b981, #3b82f6, #8b5cf6, #10b981) !important;
-            background-size: 300% 300% !important;
-            animation: auroraFlow 3s ease infinite !important;
+        .correct-answer-anim {
+            background: linear-gradient(270deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+            background-size: 1400% 1400%;
+            animation: rainbow-bg 1.5s ease infinite;
             border-color: transparent !important;
-            color: #ffffff !important;
-            box-shadow: 0 0 25px rgba(16, 185, 129, 0.5) !important;
+            color: white !important;
             transform: scale(1.02);
-        }
-        .vibrate-error-bag { 
-            animation: coinShock 0.4s ease-in-out; 
-            border-color: #ef4444 !important; 
-            background-color: rgba(153, 27, 27, 0.6) !important;
-            color: #fca5a5 !important;
+            transition: transform 0.3s ease;
         }
 
-        /* Dynamic Background applied directly to question container */
-        .question-bg-layer {
-            background-image: linear-gradient(to bottom, rgba(2,6,23,0.7), rgba(2,6,23,0.95)), url('1000602700.jpg');
-            background-size: cover;
-            background-position: center;
+        /* Dramatic Power-up Animation */
+        @keyframes dramatic-powerup {
+            0% { filter: brightness(1) scale(1); box-shadow: 0 0 0 transparent; }
+            50% { filter: brightness(2) scale(1.15); box-shadow: 0 0 40px var(--glow-color); z-index: 50; }
+            100% { filter: brightness(1) scale(1); box-shadow: 0 0 0 transparent; }
         }
+        
+        .powerup-active {
+            animation: dramatic-powerup 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        /* Ambient Snow */
+        .snowflake {
+            position: absolute;
+            top: -20px;
+            z-index: 5;
+            pointer-events: none;
+            color: #C0E8FF;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.9), 0 0 30px rgba(0, 210, 255, 0.6);
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-20px) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+
+        ::-webkit-scrollbar { display: none; }
+        
+        /* Power-Up Bag Button */
+        #bag-button {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            background: linear-gradient(135deg, #FF007A, #7928CA);
+            border-radius: 50%;
+            width: 65px;
+            height: 65px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 0 25px rgba(121, 40, 202, 0.6);
+            z-index: 40;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        #bag-button:active { transform: scale(0.9); }
     </style>
 </head>
-<body class="flex justify-center items-center min-h-screen p-0 m-0 relative">
+<body class="h-screen flex flex-col relative">
 
-    <audio id="bgMusic" loop src="background-music.mp3"></audio>
-    <audio id="clickSound" src="click.mp3"></audio>
-    <audio id="correctSound" src="correct.mp3"></audio>
-    <audio id="wrongSound" src="wrong.mp3"></audio>
-    <audio id="freezeSound" src="freeze.mp3"></audio>
+    <audio id="bgMusic" loop src="https://actions.google.com/sounds/v1/ambiences/space_ship_hum.ogg"></audio>
+    <audio id="sfxCorrect" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+    <audio id="sfxWrong" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+    <audio id="sfxPowerup" src="https://actions.google.com/sounds/v1/science_fiction/power_up.ogg"></audio>
 
-    <canvas id="ambient-particle-canvas"></canvas>
-    <canvas id="snow-freeze-canvas"></canvas>
-    <div id="frost-frame"></div>
-    <div id="shield-frame"></div>
-
-    <div id="app-container" class="relative w-full max-w-md h-[100vh] bg-slate-950 flex flex-col overflow-hidden border-x border-slate-900 shadow-2xl">
-    </div>
-
-    <div id="game-alert-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[200] hidden flex items-center justify-center p-4">
-        <div class="glass-panel w-full max-w-xs p-6 text-center space-y-5 rounded-3xl animate__animated animate__zoomIn animate__faster border border-indigo-500/50 shadow-2xl">
-            <div id="alert-icon-container" class="text-5xl drop-shadow-[0_0_15px_rgba(99,102,241,0.5)] text-indigo-400">
-                <i data-lucide="bell" class="mx-auto w-12 h-12"></i>
-            </div>
-            <div class="space-y-1">
-                <h3 id="alert-title" class="text-sm font-black heading-font text-white uppercase tracking-widest">Notice</h3>
-                <p id="alert-msg" class="text-xs text-slate-300 font-medium leading-relaxed"></p>
-            </div>
-            <button onclick="playSound('clickSound'); dismissSystemModal(event)" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs tracking-widest uppercase active:scale-95 transition-all">CONTINUE</button>
-        </div>
-    </div>
-
-<script>
-// --- STATE MANAGEMENT ---
-const state = {
-    view: 'home', 
-    coins: 1500,
-    currentBookId: null,
-    currentNode: 1,
-    unlockedBooks: { nt: true, ot: true, mix: true, egw: false, mastery: false, at: false },
-    perks: { freeze: 3, half: 3, shield: 2, skip: 1, hint: 5 },
-    perkCosts: { freeze: 100, half: 150, shield: 200, skip: 250, hint: 50 },
-    activeEffects: { shielded: false },
-    tasks: []
-};
-
-// --- AUDIO CONTROLLER ---
-function playSound(id) {
-    const el = document.getElementById(id);
-    if(el) {
-        el.currentTime = 0;
-        el.play().catch(e => console.log('Audio required interaction first', e));
-    }
-}
-
-function toggleAmbiance() {
-    const bg = document.getElementById('bgMusic');
-    if (bg.paused) { 
-        bg.play().catch(e => console.log(e)); 
-    } else { 
-        bg.pause(); 
-    }
-}
-
-// --- DATA MATRIX: QUESTIONS PRESERVED AS PROVIDED ---
-const rawOT = [{ q: "Who created the heavens and the earth?", a: ["Moses", "God", "Abraham", "Angels"], correct: 1 }, { q: "What did God create on the first day?", a: ["Animals", "Light", "Man", "Stars"], correct: 1 }, { q: "What was the name of the first man?", a: ["Noah", "Cain", "Adam", "Seth"], correct: 2 }, { q: "What was the name of the first woman?", a: ["Sarah", "Eve", "Rachel", "Rebekah"], correct: 1 }]; // (Truncated for brevity, assuming your full arrays are injected here)
-const rawNT = [{ q: "In what town was Jesus born?", a: ["Nazareth", "Jerusalem", "Bethlehem", "Capernaum"], correct: 2 }];
-const rawEGW = [{ q: "In what year was Ellen G. Gould born?", a: ["1815", "1827", "1844", "1863"], correct: 1 }];
-const rawAT = [{ q: "How many Fundamental Beliefs are currently recognized?", a: ["22", "27", "28", "30"], correct: 2 }];
-
-// Fill arrays to 50 for the demo functionality to not crash
-while(rawOT.length < 50) rawOT.push({ q: "Sample OT Question?", a: ["A", "B", "C", "D"], correct: 0 });
-while(rawNT.length < 50) rawNT.push({ q: "Sample NT Question?", a: ["A", "B", "C", "D"], correct: 0 });
-while(rawEGW.length < 50) rawEGW.push({ q: "Sample EGW Question?", a: ["A", "B", "C", "D"], correct: 0 });
-while(rawAT.length < 50) rawAT.push({ q: "Sample AT Question?", a: ["A", "B", "C", "D"], correct: 0 });
-
-function applyDifficultyCurve(qArray) {
-    return qArray.map((q, idx) => {
-        let diff = "easy";
-        if (idx >= 15 && idx <= 34) diff = "moderate";
-        else if (idx >= 35) diff = "hard";
-        return { ...q, difficulty: diff };
-    });
-}
-
-const library = [
-    { id: "nt", title: "New Testament", subtitle: "Grace & Revelation", description: "The life, parables, and sacrifice of Jesus Christ.", color: "from-blue-900 to-indigo-950", totalNodes: 50, questions: applyDifficultyCurve(rawNT) },
-    { id: "ot", title: "Old Testament", subtitle: "Law & Prophets", description: "Explore creation, early covenants, historical battles.", color: "from-amber-900 to-orange-950", totalNodes: 50, questions: applyDifficultyCurve(rawOT) },
-    { id: "egw", title: "Ellen G. White", subtitle: "Spirit of Prophecy", description: "Examine the life, writings, and historical context.", color: "from-teal-900 to-emerald-950", totalNodes: 50, questions: applyDifficultyCurve(rawEGW) },
-    { id: "at", title: "SDA Teachings", subtitle: "28 Fundamental Beliefs", description: "Test your comprehension of core doctrines.", color: "from-cyan-900 to-sky-950", totalNodes: 50, questions: applyDifficultyCurve(rawAT) },
-    { id: "mix", title: "Grand Mixed Track", subtitle: "Global Synthesis", description: "Dynamic nodes across all opened tracks.", color: "from-pink-900 to-rose-950", totalNodes: 50, questions: [] },
-    { id: "mastery", title: "Mastery Level Track", subtitle: "Deep Comprehension", description: "Advanced track testing deep structural themes.", color: "from-red-950 to-slate-900", totalNodes: 50, questions: [] }
-];
-
-// --- APP INITIALIZATION ---
-let countdownTimerRef = null;
-let secondsRemaining = 0;
-let initialSecondsAllowed = 15;
-let inputInteractionsBlocked = false;
-let isFreezeActive = false;
-let snowAnimationId = null;
-
-function initApp() {
-    const savedState = JSON.parse(localStorage.getItem('revelatorsFinalV1'));
-    if (savedState) {
-        state.coins = savedState.coins;
-        state.unlockedBooks = savedState.unlockedBooks;
-        state.perks = savedState.perks;
-    }
-    lucide.createIcons();
-    renderHome();
-}
-
-function saveState() {
-    localStorage.setItem('revelatorsFinalV1', JSON.stringify(state));
-    const goldVal = document.getElementById('player-gold-display');
-    if (goldVal) goldVal.innerText = `${state.coins}`;
-}
-
-function buildDynamicPools() {
-    let unlockedQuestions = [];
-    ['nt', 'ot', 'egw', 'at'].forEach(bookId => {
-        if (state.unlockedBooks[bookId]) {
-            const bookData = library.find(b => b.id === bookId);
-            unlockedQuestions = unlockedQuestions.concat(bookData.questions);
-        }
-    });
-
-    const shuffledMixed = [...unlockedQuestions].sort(() => 0.5 - Math.random());
-    const shuffledMastery = [...unlockedQuestions].sort(() => 0.5 - Math.random()); 
-
-    while(shuffledMixed.length < 50) { shuffledMixed.push(...shuffledMixed); }
-    while(shuffledMastery.length < 50) { shuffledMastery.push(...shuffledMastery); }
-
-    library.find(b => b.id === 'mix').questions = applyDifficultyCurve(shuffledMixed.slice(0, 50));
-    library.find(b => b.id === 'mastery').questions = applyDifficultyCurve(shuffledMastery.slice(0, 50));
-}
-
-// --- RENDER VIEWS ---
-function renderHome() {
-    state.view = 'home';
-    buildDynamicPools(); 
-    
-    document.getElementById('app-container').innerHTML = `
-        <header class="px-5 py-4 flex items-center justify-between border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50">
-            <div class="flex items-center gap-2">
-                <h1 class="text-xl font-black tracking-widest text-indigo-400 heading-font">SECTORS</h1>
-                <button onclick="toggleAmbiance()" class="text-slate-500 hover:text-white"><i data-lucide="music" class="w-4 h-4"></i></button>
-            </div>
-            <div class="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-slate-900 border border-amber-500/40 text-amber-400 font-black text-sm shadow-inner">
-                <i data-lucide="coins" class="w-4 h-4"></i> <span id="player-gold-display">${state.coins}</span>
-            </div>
-        </header>
-        
-        <div class="flex-grow overflow-y-auto p-6 space-y-4 pb-28 custom-scroll">
-            ${buildPhaseCard('nt', 'bg-indigo-500')}
-            ${buildPhaseCard('ot', 'bg-emerald-500')}
-            ${buildPhaseCard('mix', 'bg-pink-500')}
-            ${state.unlockedBooks.egw ? buildPhaseCard('egw', 'bg-amber-500') : buildLockedCard('egw', 1000)}
-            ${state.unlockedBooks.mastery ? buildPhaseCard('mastery', 'bg-red-600', true) : buildLockedCard('mastery', 500)}
-            ${state.unlockedBooks.at ? buildPhaseCard('at', 'bg-cyan-500') : buildLockedCard('at', 1500)}
-        </div>
-        ${renderBottomNav()}
-    `;
-    lucide.createIcons();
-}
-
-function renderActivities() {
-    state.view = 'activities';
-    document.getElementById('app-container').innerHTML = `
-        <header class="px-5 py-4 flex items-center justify-between border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50">
-            <h1 class="text-xl font-black tracking-widest text-indigo-400 heading-font">DAILY TASKS</h1>
-        </header>
-        <div class="flex-grow overflow-y-auto p-6 space-y-4 pb-28 custom-scroll">
-            <div class="glass-panel p-5 border border-slate-700 bg-slate-900/40">
-                <h3 class="text-sm font-black uppercase tracking-wide text-white mb-2 flex items-center gap-2"><i data-lucide="target" class="w-4 h-4 text-emerald-400"></i> Clear 15 Nodes</h3>
-                <p class="text-[10px] text-slate-400 font-bold mb-3">Progress: 0/15</p>
-                <div class="w-full bg-slate-800 rounded-full h-1.5"><div class="bg-emerald-400 h-1.5 rounded-full w-[0%]"></div></div>
-                <div class="mt-3 text-right"><span class="text-xs font-bold text-amber-500">Reward: 100 🪙</span></div>
-            </div>
-            <div class="glass-panel p-5 border border-slate-700 bg-slate-900/40">
-                <h3 class="text-sm font-black uppercase tracking-wide text-white mb-2 flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4 text-amber-400"></i> Use Freeze Power-up</h3>
-                <p class="text-[10px] text-slate-400 font-bold mb-3">Progress: 0/1</p>
-                <div class="w-full bg-slate-800 rounded-full h-1.5"><div class="bg-amber-400 h-1.5 rounded-full w-[0%]"></div></div>
-                <div class="mt-3 text-right"><span class="text-xs font-bold text-amber-500">Reward: 50 🪙</span></div>
-            </div>
-        </div>
-        ${renderBottomNav()}
-    `;
-    lucide.createIcons();
-}
-
-function buildPhaseCard(id, colorClass, isBlitz = false) {
-    const book = library.find(b => b.id === id);
-    let extra = isBlitz ? `<span class="text-[8px] font-black text-white bg-red-600 px-2 py-0.5 rounded animate-pulse absolute top-4 right-4 border border-red-400">WAR ZONE</span>` : '';
-    return `
-        <div onclick="playSound('clickSound'); renderPreview('${id}')" class="w-full p-5 glass-panel text-left cursor-pointer relative overflow-hidden flex items-center group transition-transform active:scale-95 hover:bg-slate-800 ${isBlitz ? 'border-red-500/50' : ''}">
-            <div class="absolute inset-y-0 left-0 w-1.5 ${colorClass}"></div>
-            <div class="pl-3 w-full">
-                <h3 class="text-sm font-black uppercase tracking-wide text-white">${book.title}</h3>
-                <p class="text-[10px] text-slate-400 font-bold mt-0.5 tracking-wider">${book.subtitle}</p>
-            </div>
-            ${extra}
-        </div>
-    `;
-}
-
-function buildLockedCard(id, cost) {
-    const book = library.find(b => b.id === id);
-    return `
-        <div onclick="playSound('clickSound'); requestVaultUnlock('${id}', ${cost}, '${book.title}')" class="w-full p-4 glass-panel border border-slate-700 bg-slate-900/40 text-left cursor-pointer relative flex justify-between items-center hover:bg-slate-800 transition-all active:scale-95">
-            <div>
-                <h3 class="text-xs font-black text-slate-400 uppercase tracking-wide flex items-center gap-1.5"><i data-lucide="lock" class="w-3 h-3"></i> <span>${book.title}</span></h3>
-            </div>
-            <span class="bg-amber-950/40 border border-amber-500/30 px-3 py-1.5 rounded-lg font-black text-[10px] text-amber-400 tracking-wider">${cost} 💰</span>
-        </div>
-    `;
-}
-
-function renderPreview(bookId) {
-    const book = library.find(b => b.id === bookId);
-    state.currentBookId = bookId;
-    state.currentNode = 1; 
-
-    const container = document.getElementById('app-container');
-    const modalHtml = `
-        <div id="preview-modal" class="absolute inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-end justify-center p-0 opacity-0 transition-opacity duration-300">
-            <div class="w-full bg-[#090b18] border-t border-slate-800 rounded-t-[2.5rem] p-6 pb-10 transform translate-y-20 transition-transform duration-300" id="preview-card">
-                <div class="w-12 h-1.5 bg-slate-800 rounded-full mx-auto mb-6"></div>
-                <div class="flex justify-between items-start mb-4">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br ${book.color} flex items-center justify-center border border-white/10 shadow-lg">
-                        <i data-lucide="book-open" class="w-6 h-6 text-white"></i>
-                    </div>
-                    <button onclick="playSound('clickSound'); closePreview()" class="p-2 bg-slate-900 rounded-full text-slate-400 hover:text-white transition-colors">
-                        <i data-lucide="x" class="w-4 h-4"></i>
-                    </button>
-                </div>
-                <h2 class="text-2xl font-black text-white mb-1">${book.title}</h2>
-                <p class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-4">${book.subtitle}</p>
-                <p class="text-slate-400 text-sm leading-relaxed mb-6">${book.description}</p>
-                
-                <div class="flex items-center justify-between mb-8 p-4 bg-black/30 rounded-xl border border-slate-900">
-                    <div class="text-center flex-1">
-                        <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold">Total Depth</span>
-                        <span class="font-black text-lg text-white">${book.totalNodes} Nodes</span>
-                    </div>
-                    <div class="w-px h-8 bg-slate-900"></div>
-                    <div class="text-center flex-1">
-                        <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold">Variant</span>
-                        <span class="font-black text-lg text-amber-500">Economy</span>
-                    </div>
-                </div>
-
-                <button onclick="playSound('clickSound'); startQuiz()" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 border border-indigo-500/50 text-white rounded-xl font-black uppercase tracking-widest hover:brightness-110 transition active:scale-95 shadow-[0_0_20px_rgba(79,70,229,0.3)]">
-                    Launch Mission
-                </button>
-            </div>
-        </div>
-    `;
-    container.insertAdjacentHTML('beforeend', modalHtml);
-    lucide.createIcons();
-    
-    setTimeout(() => {
-        document.getElementById('preview-modal').classList.remove('opacity-0');
-        document.getElementById('preview-card').classList.remove('translate-y-20');
-    }, 10);
-}
-
-function closePreview() {
-    const modal = document.getElementById('preview-modal');
-    document.getElementById('preview-card').classList.add('translate-y-20');
-    modal.classList.add('opacity-0');
-    setTimeout(() => modal.remove(), 300);
-}
-
-function renderCopilot() {
-    state.view = 'copilot';
-    const container = document.getElementById('app-container');
-    container.innerHTML = `
-        <header class="px-5 py-4 flex items-center justify-between border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50">
-            <h1 class="text-xl font-black tracking-widest text-indigo-400 heading-font">COPILOT</h1>
-        </header>
-        <div class="flex-grow flex flex-col p-6 pb-24 items-center justify-center text-center">
-            <div class="w-20 h-20 bg-indigo-950/30 rounded-full flex items-center justify-center border border-indigo-500/20 mb-5 relative">
-                <div class="absolute inset-0 rounded-full border border-indigo-500/40 border-t-transparent animate-spin"></div>
-                <i data-lucide="bot" class="w-8 h-8 text-indigo-400"></i>
-            </div>
-            <h2 class="text-base font-black text-white mb-1">Copilot Support Matrix</h2>
-            <p class="text-slate-400 text-xs max-w-[240px] leading-relaxed mb-6">System active. Submit any concerns straight to my WhatsApp DM.</p>
-            
-            <div class="w-full flex gap-2 items-center bg-slate-900/50 p-2 rounded-2xl border border-slate-800">
-                <input type="text" id="copilot-query-field" placeholder="Type your issue..." class="flex-1 bg-transparent px-3 py-2 text-xs text-slate-200 focus:outline-none placeholder-slate-600">
-                <button onclick="playSound('clickSound'); dispatchWhatsApp()" class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-sm active:scale-95 shadow-md">
-                    <i data-lucide="send" class="w-4 h-4"></i>
-                </button>
-            </div>
-        </div>
-        ${renderBottomNav()}
-    `;
-    lucide.createIcons();
-}
-
-function dispatchWhatsApp() {
-    const input = document.getElementById('copilot-query-field');
-    if (!input || !input.value.trim()) return;
-    const txt = encodeURIComponent("Revelators Pathfinder Query:\n" + input.value.trim());
-    window.open("https://wa.me/233549839735?text=" + txt, '_blank');
-    input.value = "";
-}
-
-function renderBottomNav() {
-    const isHome = state.view === 'home' ? 'text-indigo-400' : 'text-slate-600';
-    const isActivities = state.view === 'activities' ? 'text-indigo-400' : 'text-slate-600';
-    const isCopilot = state.view === 'copilot' ? 'text-indigo-400' : 'text-slate-600';
-
-    return `
-        <div class="absolute bottom-0 left-0 right-0 glass-panel border-t border-slate-900/80 z-50 p-3 pb-6 flex justify-around">
-            <button onclick="playSound('clickSound'); renderHome()" class="flex flex-col items-center gap-1.5 ${isHome} hover:text-indigo-400 transition active:scale-95 w-20">
-                <i data-lucide="layers" class="w-5 h-5"></i>
-                <span class="text-[9px] font-black tracking-widest">SECTORS</span>
-            </button>
-            <button onclick="playSound('clickSound'); renderActivities()" class="flex flex-col items-center gap-1.5 ${isActivities} hover:text-indigo-400 transition active:scale-95 w-20">
-                <i data-lucide="calendar" class="w-5 h-5"></i>
-                <span class="text-[9px] font-black tracking-widest">ACTIVITIES</span>
-            </button>
-            <button onclick="playSound('clickSound'); renderCopilot()" class="flex flex-col items-center gap-1.5 ${isCopilot} hover:text-indigo-400 transition active:scale-95 w-20">
-                <i data-lucide="bot" class="w-5 h-5"></i>
-                <span class="text-[9px] font-black tracking-widest">COPILOT</span>
-            </button>
-        </div>
-    `;
-}
-
-// --- GAME LOGIC ---
-function startQuiz() {
-    state.view = 'quiz';
-    state.activeEffects = { shielded: false };
-    executeNextQuestionCycle();
-}
-
-function executeNextQuestionCycle() {
-    const book = library.find(b => b.id === state.currentBookId);
-    
-    if (state.currentNode > book.totalNodes) {
-        playSound('correctSound');
-        showAlert("SECTOR COMPLETE", "You have successfully cleared all 50 nodes. 500 Coins awarded!", () => {
-            state.coins += 500;
-            saveState();
-            renderHome();
-        });
-        return;
-    }
-
-    currentActiveQuestion = book.questions[state.currentNode - 1];
-    let diff = currentActiveQuestion.difficulty;
-    if (state.currentBookId === 'mastery') diff = 'blitz';
-
-    if (diff === 'hard') initialSecondsAllowed = 10;
-    else if (diff === 'moderate') initialSecondsAllowed = 15;
-    else if (diff === 'blitz') initialSecondsAllowed = 5;
-    else initialSecondsAllowed = 20;
-
-    secondsRemaining = initialSecondsAllowed;
-    inputInteractionsBlocked = false;
-    
-    isFreezeActive = false;
-    document.getElementById('frost-frame').classList.remove('frost-active');
-    
-    renderActiveQuestionPort();
-    initiateQuestionCountdownTimer();
-}
-
-function renderActiveQuestionPort() {
-    const book = library.find(b => b.id === state.currentBookId);
-    let displayDiff = state.currentBookId === 'mastery' ? 'WAR ZONE' : currentActiveQuestion.difficulty.toUpperCase();
-    let diffColor = displayDiff === 'HARD' || displayDiff === 'WAR ZONE' ? 'text-red-400 border-red-500/30 bg-red-950/40' : displayDiff === 'MODERATE' ? 'text-amber-400 border-amber-500/30 bg-amber-950/40' : 'text-emerald-400 border-emerald-500/30 bg-emerald-950/40';
-
-    let htmlStr = `
-        <div class="p-4 flex justify-between items-center glass-panel z-10 pt-8 border-b border-slate-800">
-            <button onclick="playSound('clickSound'); renderHome()" class="p-2 text-slate-400 hover:text-white transition active:scale-90 bg-slate-900 rounded-full">
-                <i data-lucide="chevron-left" class="w-5 h-5"></i>
-            </button>
-            <div class="flex items-center gap-1.5 bg-amber-950/40 border border-amber-900/50 px-3 py-1 rounded-full">
-                <span class="text-amber-500 font-bold text-xs">🪙 ${state.coins}</span>
-            </div>
-        </div>
-
-        <div class="px-6 pt-4 question-bg-layer z-0 pb-4">
-            <div class="flex justify-between items-end mb-1.5 z-10 relative">
-                <div>
-                    <h2 class="text-[10px] font-black text-indigo-300 tracking-widest uppercase mb-1 drop-shadow-md">${book.title} • NODE ${state.currentNode}/${book.totalNodes}</h2>
-                    <span class="text-[8px] font-black tracking-widest px-2 py-0.5 rounded-full border inline-block ${diffColor}">${displayDiff}</span>
-                </div>
-                <div class="text-2xl font-black tracking-tighter tabular-nums text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]">
-                    00:<span id="clock-digit">${secondsRemaining < 10 ? '0'+secondsRemaining : secondsRemaining}</span>
-                </div>
-            </div>
-            <div class="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800 mt-2 z-10 relative shadow-xl">
-                <div id="countdown-progress-bar" class="h-full bg-emerald-400 w-full transition-all duration-1000 ease-linear rounded-full"></div>
-            </div>
-        </div>
-
-        <div id="quiz-interaction-area" class="px-6 flex-grow flex flex-col justify-center mt-2 mb-32 z-10 relative">
-            <div id="q-card" class="bg-[#0e122c]/90 backdrop-blur-md border border-slate-700/50 p-6 rounded-2xl shadow-2xl mb-5 min-h-[150px] flex flex-col items-center justify-center relative overflow-hidden">
-                ${state.activeEffects.shielded ? '<div class="absolute top-0 left-0 right-0 h-1 bg-amber-500 shadow-[0_2px_10px_rgba(245,158,11,0.5)]"></div>' : ''}
-                <p class="text-center text-slate-100 font-semibold leading-relaxed text-base z-10">${currentActiveQuestion.q}</p>
-            </div>
-
-            <div class="space-y-3" id="answers-container">
-                ${currentActiveQuestion.a.map((answer, index) => `
-                    <button id="ans-btn-${index}" onclick="submitAnswer(${index})" class="answer-selection-btn w-full text-left bg-[#080b1e]/80 backdrop-blur-sm hover:bg-[#0d1230] border border-slate-700 hover:border-slate-500 p-4 rounded-xl flex justify-between items-center transition-all group active:scale-[0.98]">
-                        <span class="text-xs font-bold text-slate-200 group-hover:text-white leading-snug">${answer}</span>
-                        <div class="w-4 h-4 rounded-full border border-slate-600 group-hover:border-slate-400 flex items-center justify-center text-[8px] flex-shrink-0 ml-3"></div>
-                    </button>
-                `).join('')}
-            </div>
-        </div>
-
-        <div class="absolute bottom-0 left-0 right-0 glass-panel border-t border-slate-800 z-50 p-4 pb-6">
-            <div class="flex gap-2 overflow-x-auto custom-scroll pb-1 items-center justify-center">
-                ${renderPerkBtn('freeze', 'Freeze', 'cyan')}
-                ${renderPerkBtn('half', '50/50', 'rose')}
-                ${renderPerkBtn('shield', 'Shield', 'amber')}
-                ${renderPerkBtn('skip', 'Skip', 'emerald')}
-            </div>
-        </div>
-    `;
-    document.getElementById('app-container').innerHTML = htmlStr;
-    lucide.createIcons();
-}
-
-function renderPerkBtn(id, label, color) {
-    const count = state.perks[id];
-    const cost = state.perkCosts[id];
-    const colorMap = {
-        cyan: 'bg-cyan-950/40 text-cyan-400 border-cyan-900/50',
-        rose: 'bg-rose-950/40 text-rose-400 border-rose-900/50',
-        amber: 'bg-amber-950/40 text-amber-400 border-amber-900/50',
-        emerald: 'bg-emerald-950/40 text-emerald-400 border-emerald-900/50',
-        indigo: 'bg-indigo-950/40 text-indigo-400 border-indigo-900/50'
-    };
-
-    return `
-        <button onclick="triggerPerk('${id}')" class="flex flex-col items-center gap-1.5 p-2 rounded-xl border ${count > 0 ? colorMap[color] : 'bg-slate-950/60 text-slate-600 border-slate-900'} transition active:scale-95 min-w-[70px]">
-            <span class="text-[9px] font-black uppercase tracking-wider">${label}</span>
-            <div class="flex items-center gap-1">
-                ${count > 0 
-                    ? `<span class="bg-black/50 px-2 py-0.5 rounded text-[10px] font-bold text-white">x${count}</span>` 
-                    : `<span class="bg-black/60 px-1.5 py-0.5 rounded text-[9px] text-amber-500 font-bold flex items-center gap-0.5">🪙${cost}</span>`
-                }
-            </div>
+    <div class="flex justify-between items-center p-4 z-20">
+        <button id="ambiance-toggle" class="glass-panel px-4 py-2 rounded-full text-xs font-bold text-[#00FF87] flex items-center gap-2 transition-all">
+            <div class="w-2 h-2 rounded-full bg-[#00FF87] animate-pulse"></div> AMBIANCE: ON
         </button>
-    `;
-}
+        <div class="glass-panel px-4 py-2 rounded-xl text-xs font-bold text-[#FFB000] flex items-center gap-2">
+            <i class="fa-solid fa-coins"></i> <span id="coin-balance">895</span>
+        </div>
+    </div>
 
-function initiateQuestionCountdownTimer() {
-    if (countdownTimerRef) clearInterval(countdownTimerRef);
-    const progressBar = document.getElementById('countdown-progress-bar');
-    
-    countdownTimerRef = setInterval(() => {
-        if (isFreezeActive || inputInteractionsBlocked) return;
-
-        secondsRemaining--;
-        let pct = Math.max(0, (secondsRemaining / initialSecondsAllowed) * 100);
+    <div id="main-content" class="flex-1 overflow-y-auto pb-28 z-10 px-4">
         
-        if (progressBar) {
-            progressBar.style.width = `${pct}%`;
-            if (pct <= 30) { progressBar.className = "h-full bg-red-500 rounded-full shadow-[0_0_15px_rgba(239,68,68,0.8)]"; }
-            else if (pct <= 60) { progressBar.className = "h-full bg-amber-400 rounded-full"; }
-        }
-        
-        const clockNode = document.getElementById('clock-digit');
-        if(clockNode) clockNode.innerText = secondsRemaining < 10 ? '0'+secondsRemaining : secondsRemaining;
-
-        if (secondsRemaining <= 0) executeFluidFailure();
-    }, 1000);
-}
-
-function submitAnswer(idx, isSkip = false) {
-    if (inputInteractionsBlocked) return;
-    inputInteractionsBlocked = true;
-    clearInterval(countdownTimerRef);
-
-    const btns = document.getElementsByClassName('answer-selection-btn');
-    
-    if (idx === currentActiveQuestion.correct || isSkip) {
-        playSound('correctSound');
-        let targetBtn = btns[isSkip ? currentActiveQuestion.correct : idx];
-        if (targetBtn) {
-            targetBtn.className = "w-full p-4 rounded-2xl text-left text-xs font-black flex items-center justify-between rainbow-correct";
-        }
-        
-        state.coins += 15;
-        saveState();
-
-        setTimeout(() => {
-            state.currentNode++;
-            executeNextQuestionCycle();
-        }, 1200);
-
-    } else {
-        playSound('wrongSound');
-        if (btns[idx]) {
-            btns[idx].className = "w-full p-4 rounded-2xl text-left text-xs font-black flex items-center justify-between animate-wrong";
-        }
-        setTimeout(() => { executeFluidFailure(); }, 600);
-    }
-}
-
-function executeFluidFailure() {
-    clearInterval(countdownTimerRef);
-    inputInteractionsBlocked = true;
-    playSound('wrongSound');
-    
-    if (state.activeEffects.shielded) {
-        state.activeEffects.shielded = false;
-        showAlert("SHIELD ACTIVATED", "Your Aegis shield protected your gold.", () => {
-            state.currentNode++;
-            executeNextQuestionCycle();
-        });
-        return;
-    }
-
-    state.coins = Math.max(0, state.coins - 20);
-    saveState();
-    
-    const uiBox = document.getElementById('quiz-interaction-area');
-    if(uiBox) uiBox.classList.add('vibrate-error-bag');
-
-    if(state.coins <= 0) {
-        setTimeout(() => {
-            showAlert("OUT OF GOLD", "Return to main menu to view tasks.", () => { renderHome(); });
-        }, 600);
-    } else {
-        setTimeout(() => { 
-            state.currentNode++;
-            executeNextQuestionCycle(); 
-        }, 800);
-    }
-}
-
-// --- SNOW ANIMATION SYSTEM ---
-function launchSnowstorm() {
-    const canvas = document.getElementById('snow-freeze-canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    canvas.style.opacity = 1;
-
-    let particles = [];
-    for(let i = 0; i < 75; i++) {
-        particles.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            r: Math.random() * 3 + 1, // radius
-            d: Math.random() * 50 // density
-        });
-    }
-
-    let angle = 0;
-    function renderSnow() {
-        if (!isFreezeActive) {
-            canvas.style.opacity = 0;
-            cancelAnimationFrame(snowAnimationId);
-            return;
-        }
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-        ctx.beginPath();
-        for(let i = 0; i < 75; i++) {
-            let p = particles[i];
-            ctx.moveTo(p.x, p.y);
-            ctx.arc(p.x, p.y, p.r, 0, Math.PI*2, true);
-        }
-        ctx.fill();
-        updateSnow();
-        snowAnimationId = requestAnimationFrame(renderSnow);
-    }
-
-    function updateSnow() {
-        angle += 0.01;
-        for(let i = 0; i < 75; i++) {
-            let p = particles[i];
-            p.y += Math.cos(angle + p.d) + 1 + p.r/2;
-            p.x += Math.sin(angle) * 2;
+        <div id="home-screen" class="space-y-4 animate-fade-in">
+            <div class="text-center mb-6 mt-4">
+                <h1 class="brand-text text-3xl text-[#4A90E2] tracking-widest uppercase mb-1">Revelators</h1>
+                <h2 class="brand-text text-xl text-[#3A7CA5] tracking-widest uppercase opacity-70">Pathfinders</h2>
+            </div>
             
-            // Sending particles back to top
-            if(p.x > canvas.width + 5 || p.x < -5 || p.y > canvas.height) {
-                if(i%3 > 0) { particles[i] = {x: Math.random()*canvas.width, y: -10, r: p.r, d: p.d}; } 
-                else {
-                    if(Math.sin(angle) > 0) particles[i] = {x: -5, y: Math.random()*canvas.height, r: p.r, d: p.d};
-                    else particles[i] = {x: canvas.width+5, y: Math.random()*canvas.height, r: p.r, d: p.d};
-                }
+            <p class="text-xs text-center text-gray-400 mb-4 font-bold tracking-widest uppercase">Select Book (50 Nodes Each)</p>
+
+            <div class="space-y-3">
+                <div onclick="startSector('NT', 'New Testament')" class="glass-panel rounded-2xl p-4 flex justify-between items-center border-l-4 border-l-[#0047FF] active:scale-95 transition-transform cursor-pointer">
+                    <div>
+                        <h3 class="font-bold text-[#A3C2FF]">NEW TESTAMENT</h3>
+                        <p class="text-xs text-gray-400">50 Questions Available</p>
+                    </div>
+                    <i class="fa-solid fa-play text-[#0047FF] text-xl"></i>
+                </div>
+                <div onclick="startSector('OT', 'Old Testament')" class="glass-panel rounded-2xl p-4 flex justify-between items-center border-l-4 border-l-[#FFB000] active:scale-95 transition-transform cursor-pointer">
+                    <div>
+                        <h3 class="font-bold text-[#FFE066]">OLD TESTAMENT</h3>
+                        <p class="text-xs text-gray-400">50 Questions Available</p>
+                    </div>
+                    <i class="fa-solid fa-play text-[#FFB000] text-xl"></i>
+                </div>
+                <div onclick="startSector('EGW', 'E.G. White Writings')" class="glass-panel rounded-2xl p-4 flex justify-between items-center border-l-4 border-l-[#FF007A] active:scale-95 transition-transform cursor-pointer">
+                    <div>
+                        <h3 class="font-bold text-[#FF66B2]">E.G. WHITE</h3>
+                        <p class="text-xs text-gray-400">50 Questions Available</p>
+                    </div>
+                    <i class="fa-solid fa-play text-[#FF007A] text-xl"></i>
+                </div>
+                <div onclick="startSector('SDA', 'SDA Teachings')" class="glass-panel rounded-2xl p-4 flex justify-between items-center border-l-4 border-l-[#00FF87] active:scale-95 transition-transform cursor-pointer">
+                    <div>
+                        <h3 class="font-bold text-[#66FFB2]">SDA TEACHINGS</h3>
+                        <p class="text-xs text-gray-400">50 Questions Available</p>
+                    </div>
+                    <i class="fa-solid fa-play text-[#00FF87] text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div id="activities-screen" class="hidden space-y-4">
+            <h1 class="brand-text text-2xl text-center text-white tracking-widest uppercase mb-4 mt-2">Daily Operations</h1>
+            <div id="daily-tasks-container" class="space-y-3">
+                </div>
+        </div>
+
+        <div id="quiz-screen" class="hidden flex-col h-full pt-2">
+            <div class="flex justify-between items-center mb-4">
+                <div class="text-xs font-bold tracking-widest text-gray-300">
+                    <span id="current-sector-title" class="text-[#A3C2FF]">SECTOR</span> • Q: <span id="current-node">1</span>/50
+                </div>
+                <div class="text-xl font-bold text-[#FFB000] font-['Orbitron'] bg-black/50 px-3 py-1 rounded-lg" id="timer">00:30</div>
+            </div>
+
+            <div class="glass-panel p-6 rounded-3xl mb-6 shadow-lg min-h-[140px] flex items-center justify-center text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gray-800">
+                    <div id="progress-bar" class="bg-[#00FF87] h-full transition-all duration-300" style="width: 2%"></div>
+                </div>
+                <h2 id="question-text" class="text-lg font-semibold leading-relaxed">Loading scriptural data...</h2>
+            </div>
+
+            <div id="options-container" class="space-y-3">
+                </div>
+        </div>
+    </div>
+
+    <div id="bag-button" class="hidden" onclick="togglePowerupMenu()">🎒</div>
+
+    <div id="powerup-menu" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end justify-center pb-24 px-4 opacity-0 transition-opacity duration-300">
+        <div class="glass-panel w-full max-w-md rounded-3xl p-6 border-t border-b border-[#FF007A]/50 transform translate-y-full transition-transform duration-300" id="powerup-panel">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl text-white font-['Orbitron']"><i class="fa-solid fa-backpack text-[#FF007A]"></i> Armory Bag</h3>
+                <button onclick="togglePowerupMenu()" class="text-gray-400 bg-white/10 w-8 h-8 rounded-full flex items-center justify-center active:scale-90"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="grid grid-cols-5 gap-y-6 gap-x-3" id="powerup-grid">
+                </div>
+        </div>
+    </div>
+
+    <div class="glass-panel fixed bottom-0 w-full flex justify-around items-center p-4 z-30 pb-6 rounded-t-3xl border-t border-white/10">
+        <div onclick="switchTab('home')" class="flex flex-col items-center gap-1 text-[#8B5CF6] cursor-pointer transition-colors" id="nav-home">
+            <i class="fa-solid fa-house text-xl"></i>
+            <span class="text-[10px] font-bold tracking-wider">HOME</span>
+        </div>
+        <div onclick="switchTab('activities')" class="flex flex-col items-center gap-1 text-gray-500 cursor-pointer transition-colors" id="nav-activities">
+            <i class="fa-solid fa-list-check text-xl"></i>
+            <span class="text-[10px] font-bold tracking-wider">ACTIVITIES</span>
+        </div>
+        <div class="flex flex-col items-center gap-1 text-gray-500 cursor-pointer transition-colors" id="nav-copilot">
+            <i class="fa-solid fa-robot text-xl"></i>
+            <span class="text-[10px] font-bold tracking-wider">COPILOT</span>
+        </div>
+    </div>
+
+    <script>
+        /* ==========================================
+           1. DATA STRUCTURES (50 Questions per book)
+           ========================================== */
+        
+        // Generator creating 50 valid question nodes per book
+        const generateQuestions = (bookName) => {
+            const arr = [];
+            for(let i = 1; i <= 50; i++) {
+                arr.push({
+                    q: `${bookName} Question ${i}: This is a placeholder for your actual scriptural question text. What is the answer?`,
+                    options: [
+                        `Correct Answer ${i}`, 
+                        `Wrong Option A`, 
+                        `Wrong Option B`, 
+                        `Wrong Option C`
+                    ],
+                    correctIndex: 0 // Index 0 is correct in this template (You should randomize this in production)
+                });
+            }
+            return arr;
+        };
+
+        const database = {
+            NT: generateQuestions("New Testament"),
+            OT: generateQuestions("Old Testament"),
+            EGW: generateQuestions("E.G. White"),
+            SDA: generateQuestions("SDA Teachings")
+        };
+
+        // 5 Tiered Daily Activities
+        const dailyActivities = [
+            { level: "EASY", desc: "Read 5 verses from the New Testament", reward: 50, color: "text-[#00FF87]" },
+            { level: "NORMAL", desc: "Complete 10 nodes in Old Testament", reward: 100, color: "text-[#4A90E2]" },
+            { level: "HARD", desc: "Get 5 questions correct in a row", reward: 250, color: "text-[#FFB000]" },
+            { level: "EXPERT", desc: "Use the Insight Power-up twice", reward: 500, color: "text-[#FF007A]" },
+            { level: "EXTREME", desc: "Finish a 50-question book flawlessly", reward: 1000, color: "text-[#FF0000]" }
+        ];
+
+        // 10 Cost-based Power-ups for the Bag
+        const powerups = [
+            { id: 1, name: "Freeze", icon: "fa-snowflake", cost: 50, color: "#00d2ff" },
+            { id: 2, name: "50/50", icon: "fa-scale-balanced", cost: 100, color: "#ff5e62" },
+            { id: 3, name: "Shield", icon: "fa-shield", cost: 150, color: "#f9d423" },
+            { id: 4, name: "Warp", icon: "fa-clock", cost: 200, color: "#8B5CF6" },
+            { id: 5, name: "Divine", icon: "fa-bolt", cost: 300, color: "#FFB000" },
+            { id: 6, name: "Reveal", icon: "fa-eye", cost: 350, color: "#00FF87" },
+            { id: 7, name: "Revive", icon: "fa-heart", cost: 400, color: "#FF007A" },
+            { id: 8, name: "Double", icon: "fa-xmark", cost: 450, color: "#4A90E2" },
+            { id: 9, name: "Insight", icon: "fa-book-bible", cost: 500, color: "#A3C2FF" },
+            { id: 10, name: "Skip", icon: "fa-forward-step", cost: 600, color: "#ff0844" }
+        ];
+
+        /* ==========================================
+           2. GAME STATE & AUDIO
+           ========================================== */
+        let currentCoins = 895;
+        let ambianceOn = true;
+        let activeSector = null;
+        let currentIndex = 0;
+        let snowInterval = null;
+
+        function init() {
+            renderActivities();
+            renderPowerups();
+            startSnow();
+            document.getElementById('bgMusic').volume = 0.2;
+            document.getElementById('sfxCorrect').volume = 0.6;
+            document.getElementById('sfxWrong').volume = 0.4;
+            document.getElementById('sfxPowerup').volume = 0.8;
+        }
+
+        /* ==========================================
+           3. UI NAVIGATION LOGIC
+           ========================================== */
+        function switchTab(tab) {
+            document.getElementById('home-screen').style.display = tab === 'home' ? 'block' : 'none';
+            document.getElementById('activities-screen').style.display = tab === 'activities' ? 'block' : 'none';
+            document.getElementById('quiz-screen').style.display = tab === 'quiz' ? 'flex' : 'none';
+            
+            // Show bag ONLY during quiz
+            document.getElementById('bag-button').style.display = tab === 'quiz' ? 'flex' : 'none';
+
+            // Update Nav colors
+            ['home', 'activities', 'copilot'].forEach(t => {
+                const el = document.getElementById(`nav-${t}`);
+                if(el) el.className = t === tab ? 
+                    'flex flex-col items-center gap-1 text-[#8B5CF6] cursor-pointer transition-colors' : 
+                    'flex flex-col items-center gap-1 text-gray-500 cursor-pointer transition-colors';
+            });
+
+            // Close powerup menu if open and switching tabs
+            if(tab !== 'quiz' && !document.getElementById('powerup-menu').classList.contains('hidden')) {
+                togglePowerupMenu();
             }
         }
-    }
-    renderSnow();
-}
 
-// --- POWERUP LOGIC ---
-function triggerPerk(id) {
-    if (inputInteractionsBlocked) return;
-    playSound('clickSound');
-
-    if (state.perks[id] <= 0) {
-        const cost = state.perkCosts[id];
-        if (state.coins >= cost) {
-            state.coins -= cost;
-            state.perks[id]++;
-            saveState();
-            renderActiveQuestionPort(); 
-        } else {
-            showAlert("Insufficient Funds", "Not enough gold to buy this perk.");
-        }
-        return;
-    }
-
-    const qArea = document.getElementById('quiz-interaction-area');
-
-    if (id === 'freeze') {
-        if(!isFreezeActive) {
-            state.perks[id]--;
-            isFreezeActive = true;
-            playSound('freezeSound');
-            document.getElementById('frost-frame').classList.add('frost-active');
-            launchSnowstorm();
-            renderActiveQuestionPort();
+        document.getElementById('ambiance-toggle').addEventListener('click', () => {
+            ambianceOn = !ambianceOn;
+            const btn = document.getElementById('ambiance-toggle');
+            const bgm = document.getElementById('bgMusic');
             
-            // Auto un-freeze after 10 seconds
+            if(ambianceOn) {
+                btn.innerHTML = `<div class="w-2 h-2 rounded-full bg-[#00FF87] animate-pulse"></div> AMBIANCE: ON`;
+                btn.classList.replace('text-gray-500', 'text-[#00FF87]');
+                bgm.play();
+                startSnow();
+            } else {
+                btn.innerHTML = `<div class="w-2 h-2 rounded-full bg-gray-600"></div> AMBIANCE: OFF`;
+                btn.classList.replace('text-[#00FF87]', 'text-gray-500');
+                bgm.pause();
+                stopSnow();
+            }
+        });
+
+        /* ==========================================
+           4. QUIZ & GAMEPLAY LOGIC
+           ========================================== */
+        function startSector(sectorCode, sectorTitle) {
+            activeSector = sectorCode;
+            currentIndex = 0;
+            switchTab('quiz');
+            document.getElementById('current-sector-title').innerText = sectorTitle.toUpperCase();
+            
+            // Interaction required to start audio on mobile
+            if(ambianceOn) document.getElementById('bgMusic').play().catch(e => console.log("Audio prep", e));
+            
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if(currentIndex >= 50) {
+                alert("Book Completed! Generating Rewards.");
+                switchTab('home');
+                return;
+            }
+
+            const data = database[activeSector][currentIndex];
+            document.getElementById('current-node').innerText = currentIndex + 1;
+            document.getElementById('progress-bar').style.width = `${((currentIndex + 1) / 50) * 100}%`;
+            document.getElementById('question-text').innerText = data.q;
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            // Randomize options for display
+            let displayOptions = [...data.options].map((opt, i) => ({ text: opt, isCorrect: i === data.correctIndex }));
+            displayOptions.sort(() => Math.random() - 0.5);
+
+            displayOptions.forEach((opt) => {
+                const btn = document.createElement('div');
+                btn.className = 'glass-panel p-4 rounded-xl flex justify-between items-center cursor-pointer transition-all hover:bg-white/5 active:scale-95';
+                btn.innerHTML = `<span class="font-semibold text-sm">${opt.text}</span> <div class="w-4 h-4 rounded-full border-2 border-gray-500"></div>`;
+                btn.onclick = () => selectAnswer(btn, opt.isCorrect);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function selectAnswer(element, isCorrect) {
+            // Lock inputs
+            document.querySelectorAll('#options-container > div').forEach(el => el.style.pointerEvents = 'none');
+            
+            if (isCorrect) {
+                element.classList.add('correct-answer-anim');
+                document.getElementById('sfxCorrect').play();
+                updateCoins(20); // Reward
+            } else {
+                element.style.backgroundColor = 'rgba(255, 0, 0, 0.2)';
+                element.style.borderColor = '#ff0000';
+                element.querySelector('div').style.backgroundColor = '#ff0000';
+                document.getElementById('sfxWrong').play();
+            }
+
+            // Advance node
             setTimeout(() => {
-                isFreezeActive = false;
-                document.getElementById('frost-frame').classList.remove('frost-active');
-            }, 10000);
+                currentIndex++;
+                loadQuestion();
+            }, 1800);
         }
-    }
-    else if (id === 'half') {
-        let eliminatedCount = 0;
-        for (let i = 0; i < currentActiveQuestion.a.length; i++) {
-            if (i !== currentActiveQuestion.correct && eliminatedCount < 2) {
-                const btn = document.getElementById(`ans-btn-${i}`);
-                if (btn && !btn.classList.contains('eliminated')) {
-                    btn.classList.add('eliminated');
-                    btn.disabled = true;
-                    eliminatedCount++;
-                }
+
+        function updateCoins(amount) {
+            currentCoins += amount;
+            document.getElementById('coin-balance').innerText = currentCoins;
+        }
+
+        /* ==========================================
+           5. POWER-UP & BAG LOGIC
+           ========================================== */
+        function togglePowerupMenu() {
+            const menu = document.getElementById('powerup-menu');
+            const panel = document.getElementById('powerup-panel');
+            
+            if(menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                setTimeout(() => {
+                    menu.classList.remove('opacity-0');
+                    panel.classList.remove('translate-y-full');
+                }, 10);
+            } else {
+                menu.classList.add('opacity-0');
+                panel.classList.add('translate-y-full');
+                setTimeout(() => {
+                    menu.classList.add('hidden');
+                }, 300);
             }
         }
-        state.perks[id]--;
-        qArea.classList.add('animate-powerup');
-        setTimeout(() => qArea.classList.remove('animate-powerup'), 400);
-        renderActiveQuestionPort();
-    } 
-    else if (id === 'shield') {
-        if (!state.activeEffects.shielded) {
-            state.activeEffects.shielded = true;
-            state.perks[id]--;
-            renderActiveQuestionPort(); 
+
+        function renderPowerups() {
+            const grid = document.getElementById('powerup-grid');
+            grid.innerHTML = powerups.map(p => `
+                <div onclick="activatePowerup(${p.id}, ${p.cost}, '${p.color}')" class="flex flex-col items-center gap-1 cursor-pointer group">
+                    <div class="glass-panel w-12 h-12 rounded-xl flex items-center justify-center relative overflow-hidden active:scale-90 transition-transform" id="pup-${p.id}">
+                        <i class="fa-solid ${p.icon} text-xl" style="color: ${p.color}"></i>
+                        <div class="absolute bottom-0 w-full bg-black/60 text-[8px] text-center font-bold py-[2px] text-white backdrop-blur-md">${p.cost}</div>
+                    </div>
+                    <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">${p.name}</span>
+                </div>
+            `).join('');
         }
-    }
-    else if (id === 'skip') {
-        state.perks[id]--;
-        submitAnswer(null, true);
-    }
-}
 
-// --- UTILS ---
-function requestVaultUnlock(id, cost, name) {
-    if (state.coins >= cost) { 
-        state.coins -= cost; 
-        state.unlockedBooks[id] = true; 
-        saveState(); 
-        showAlert("Sector Unlocked", `You have securely authorized access to ${name}.`, () => { renderHome(); });
-    } else { 
-        showAlert("Insufficient Funds", "You do not have enough gold to unlock this sector."); 
-    }
-}
+        function activatePowerup(id, cost, color) {
+            if (currentCoins >= cost) {
+                updateCoins(-cost);
+                document.getElementById('sfxPowerup').play();
+                
+                const element = document.getElementById(`pup-${id}`);
+                element.style.setProperty('--glow-color', color);
+                
+                // Trigger flash animation
+                element.classList.remove('powerup-active');
+                void element.offsetWidth; // force reflow
+                element.classList.add('powerup-active');
+                
+                setTimeout(() => { togglePowerupMenu(); }, 800); // Close bag automatically
+            } else {
+                alert("Insufficient Scriptural Coins for this Power-Up!");
+            }
+        }
 
-function showAlert(title, msg, callback = null) {
-    window.activePostAlertCallback = callback;
-    document.getElementById('alert-title').innerText = title;
-    document.getElementById('alert-msg').innerText = msg;
-    document.getElementById('game-alert-modal').classList.remove('hidden');
-}
+        /* ==========================================
+           6. RENDER ACTIVITIES
+           ========================================== */
+        function renderActivities() {
+            document.getElementById('daily-tasks-container').innerHTML = dailyActivities.map(task => `
+                <div class="glass-panel p-4 rounded-2xl flex justify-between items-center border-l-2 border-l-gray-600 active:scale-95 transition-transform">
+                    <div class="flex-1 pr-4">
+                        <span class="text-[10px] font-bold tracking-widest ${task.color} bg-white/5 px-2 py-1 rounded-md mb-1 inline-block">${task.level}</span>
+                        <p class="text-sm font-semibold text-gray-200 mt-1">${task.desc}</p>
+                    </div>
+                    <div class="flex items-center gap-1 text-[#FFB000] font-bold text-sm bg-black/40 px-3 py-2 rounded-xl border border-white/5">
+                        <i class="fa-solid fa-coins text-xs"></i> ${task.reward}
+                    </div>
+                </div>
+            `).join('');
+        }
 
-function dismissSystemModal(e) {
-    if(e) e.stopPropagation();
-    document.getElementById('game-alert-modal').classList.add('hidden');
-    if (window.activePostAlertCallback) { window.activePostAlertCallback(); window.activePostAlertCallback = null; }
-}
+        /* ==========================================
+           7. VISUAL EFFECTS (SNOW)
+           ========================================== */
+        function startSnow() {
+            if(snowInterval) clearInterval(snowInterval);
+            snowInterval = setInterval(() => {
+                if(!ambianceOn) return;
+                const snow = document.createElement('div');
+                snow.className = 'snowflake';
+                snow.style.left = Math.random() * 100 + 'vw';
+                snow.style.fontSize = (Math.random() * 20 + 10) + 'px';
+                snow.style.animationDuration = (Math.random() * 5 + 4) + 's'; // 4-9s fall
+                snow.style.opacity = Math.random() * 0.8 + 0.2;
+                snow.innerHTML = ['❄', '❅', '❆'][Math.floor(Math.random() * 3)];
+                
+                document.body.appendChild(snow);
+                setTimeout(() => { snow.remove(); }, 9000);
+            }, 300);
+        }
 
-window.addEventListener('DOMContentLoaded', () => { 
-    initApp(); 
-});
-</script>
+        function stopSnow() {
+            if(snowInterval) clearInterval(snowInterval);
+            document.querySelectorAll('.snowflake').forEach(el => el.remove());
+        }
+
+        // Boot
+        window.onload = init;
+    </script>
 </body>
 </html>
