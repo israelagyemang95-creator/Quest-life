@@ -24,7 +24,7 @@
         }
 
         @keyframes flash {
-            0%, 100% { opacity: 1; }
+            0%, 100__ { opacity: 1; }
             50% { opacity: 0.8; transform: scale(1.02); filter: brightness(1.5); }
         }
         @keyframes shake {
@@ -47,24 +47,21 @@
 <body class="flex justify-center items-center min-h-screen p-0 m-0">
 
     <div id="app-container" class="relative w-full max-w-md h-[100vh] bg-[#050714] flex flex-col overflow-hidden border-x border-slate-900">
-        <!-- Dynamic Views Inject Here -->
-    </div>
+        </div>
 
 <script>
-// --- GAME STATE ---
+// --- GAME SYSTEM STATE ---
 const state = {
     view: 'home', 
     coins: 1250,
     currentBookId: null,
     currentNode: 1,
-    difficulty: "NORMAL",
     perks: { half: 2, shield: 1, skip: 0, hint: 5 },
     perkCosts: { half: 200, shield: 250, skip: 300, hint: 100 },
-    activeEffects: { shielded: false },
-    mixedPool: [] // Holds procedural track lists
+    activeEffects: { shielded: false }
 };
 
-// --- DATABASE (50 Questions Per Core Category + Mixed/Mastery Nodes) ---
+// --- DATA MATRIX: 50 COMPLETE QUESTIONS PER CORE TRACK ---
 const library = [
     {
         id: "ot",
@@ -174,10 +171,10 @@ const library = [
             { q: "What is the shortest book in the New Testament?", a: ["2 John", "3 John", "Philemon", "Jude"], correct: 1 },
             { q: "Who was the young pastor to whom Paul wrote two personal letters?", a: ["Titus", "Timothy", "Philemon", "Silas"], correct: 1 },
             { q: "According to Hebrews, faith is the substance of things hoped for, the evidence of things...?", a: ["Seen", "Not seen", "Past", "Imagined"], correct: 1 },
-            { q: "Which book emphasizes that 'faith without works is dead'?", a: ["Romans", "Galatians", "James", "1 Peter"], correct: 2 },
+            { q: "Which book emphasizes that 'faith without works is dead'?", a: ["Romans", "Galatians", "James", "1 Paper"], correct: 2 },
             { q: "How many total letters in the NT are traditionally attributed to John?", a: ["1", "2", "3", "5"], correct: 2 },
             { q: "Who wrote the final prophetic book of Revelation?", a: ["Paul", "Peter", "John", "Jude"], correct: 2 },
-            { q: "On which island was John exiled when he received the visions?", a: ["Crete", "Cyprus", "Patmos", "Malta"], correct: 2 Goal: 50 },
+            { q: "On which island was John exiled when he received the visions?", a: ["Crete", "Cyprus", "Patmos", "Malta"], correct: 2 },
             { q: "How many churches are specifically addressed at the start of Revelation?", a: ["3", "7", "12", "24"], correct: 1 },
             { q: "What animal represents Jesus in the vision of the throne room?", a: ["An Eagle", "A Lion and a Lamb", "A Dove", "An Ox"], correct: 1 },
             { q: "How many gates are on the New Jerusalem?", a: ["4", "12", "7", "3"], correct: 1 },
@@ -266,7 +263,7 @@ const library = [
             { q: "What is the focal message of the First Angel of Revelation 14?", a: ["Babylon is fallen", "Fear God and give glory to Him, for the hour of His judgment has come", "Do not receive the mark of the beast", "Flee into the wilderness"], correct: 1 },
             { q: "What does the Second Angel declare fallen?", a: ["The Roman Empire", "Babylon", "The daily sacrifice", "The outer court"], correct: 1 },
             { q: "The Third Angel warns against receiving what identifying marker?", a: ["The sign of Jonah", "The mark of the beast", "The seal of the covenant", "The phylactery"], correct: 1 },
-            { q: "What method of water baptism is taught as biblical by the Adventist church?", a: ["Sprinkling water on the head", "Pouring from a sacred vessel", "Complete immersion", "Spiritual baptism without physical water"], correct: 2 Goal: 50 },
+            { q: "What method of water baptism is taught as biblical by the Adventist church?", a: ["Sprinkling water on the head", "Pouring from a sacred vessel", "Complete immersion", "Spiritual baptism without physical water"], correct: 2 },
             { q: "What ordinance is practiced immediately prior to celebrating the Lord's Supper?", a: ["The Ordinance of Foot Washing (Humility)", "Silent meditation for an hour", "A public confession of sins", "A congregational tithing loop"], correct: 0 },
             { q: "What is the sanctuary model in heaven called in Adventist theology?", a: ["The symbolic court", "The True Tabernacle built by God", "The allegorical palace", "The cloud array"], correct: 1 },
             { q: "Who serves as our Great High Priest in the heavenly sanctuary?", a: ["The Apostle Paul", "Melchizedek", "Jesus Christ", "The Angel Gabriel"], correct: 2 },
@@ -313,7 +310,7 @@ const library = [
         description: "A comprehensive assessment path that extracts dynamic nodes across all four core tracks simultaneously.",
         color: "from-slate-800 to-indigo-900",
         totalNodes: 50,
-        questions: [] // Populated programmatically on select
+        questions: []
     },
     {
         id: "mastery",
@@ -322,33 +319,29 @@ const library = [
         description: "An advanced track testing deep structural themes, combining history, prophecy, and scriptures.",
         color: "from-red-950 to-slate-900",
         totalNodes: 50,
-        questions: [] // Populated programmatically on select
+        questions: []
     }
 ];
 
-// --- APP CONTROLLER ---
+// --- APP CONTROLLER INTERFACE ---
 function initApp() {
+    buildDynamicPools();
     renderHome();
 }
 
-// Generate mixed questions dynamically from the core tracks
 function buildDynamicPools() {
     const cores = ['ot', 'nt', 'egw', 'at'].map(id => library.find(b => b.id === id));
     let allQs = [];
-    cores.forEach(c => { allQs = allQs.concat(c.questions); });
+    cores.forEach(c => { if(c && c.questions) allQs = allQs.concat(c.questions); });
     
-    // Shuffle helper
-    const shuffled = [...allQs].sort(() => 0.5 - Math.random());
+    const shuffledMixed = [...allQs].sort(() => 0.5 - Math.random());
+    const shuffledMastery = [...allQs].sort(() => 0.3 - Math.random());
     
-    // Assign 50 questions to Mixed and Mastery tracks
-    library.find(b => b.id === 'mixed').questions = shuffled.slice(0, 50);
-    library.find(b => b.id === 'mastery').questions = shuffled.slice(10, 60);
+    library.find(b => b.id === 'mixed').questions = shuffledMixed.slice(0, 50);
+    library.find(b => b.id === 'mastery').questions = shuffledMastery.slice(0, 50);
 }
-buildDynamicPools();
 
-// --- VIEWS ---
-
-// 1. Library Grid View
+// 1. Library Sector Grid View
 function renderHome() {
     state.view = 'home';
     const container = document.getElementById('app-container');
@@ -381,7 +374,7 @@ function renderHome() {
     lucide.createIcons();
 }
 
-// 2. Book Selection Hub (Preview Description Sheet)
+// 2. Intent Preview Sheet (Opens Book only when touched)
 function renderPreview(bookId) {
     const book = library.find(b => b.id === bookId);
     state.currentBookId = bookId;
@@ -410,8 +403,8 @@ function renderPreview(bookId) {
                     </div>
                     <div class="w-px h-8 bg-slate-900"></div>
                     <div class="text-center flex-1">
-                        <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold">Economy Variant</span>
-                        <span class="font-black text-lg text-amber-500">Coins Tracked</span>
+                        <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold">Variant</span>
+                        <span class="font-black text-lg text-amber-500">Pure Economy</span>
                     </div>
                 </div>
 
@@ -436,7 +429,7 @@ function closePreview() {
     setTimeout(() => modal.remove(), 300);
 }
 
-// 3. Quiz Mode Layout Engine
+// 3. Quiz Game Arena
 function startQuiz() {
     state.view = 'quiz';
     state.activeEffects = { shielded: false };
@@ -449,7 +442,6 @@ function renderQuiz() {
     
     const container = document.getElementById('app-container');
     container.innerHTML = `
-        <!-- Sticky Header Context Bar -->
         <div class="p-4 flex justify-between items-center glass-panel z-10 pt-10">
             <button onclick="renderHome()" class="p-2 text-slate-400 hover:text-white transition">
                 <i data-lucide="chevron-left" class="w-5 h-5"></i>
@@ -459,7 +451,6 @@ function renderQuiz() {
             </div>
         </div>
 
-        <!-- Node Progression Mapping Bar -->
         <div class="px-6 pt-4">
             <div class="flex justify-between items-end mb-1.5">
                 <h2 class="text-[10px] font-black text-indigo-400 tracking-widest uppercase">${book.title} • NODE ${state.currentNode}/${book.totalNodes}</h2>
@@ -469,14 +460,12 @@ function renderQuiz() {
             </div>
         </div>
 
-        <!-- Central Question Body Node Layout View -->
         <div id="quiz-interaction-area" class="px-6 flex-grow flex flex-col justify-center mt-2 mb-28">
             <div id="q-card" class="bg-gradient-to-b from-[#0e122c] to-[#040616] border border-slate-900 p-6 rounded-2xl shadow-2xl mb-5 min-h-[150px] flex flex-col items-center justify-center relative overflow-hidden">
                 ${state.activeEffects.shielded ? '<div class="absolute top-0 left-0 right-0 h-1 bg-amber-500 shadow-[0_2px_10px_rgba(245,158,11,0.5)]"></div>' : ''}
                 <p class="text-center text-slate-200 font-semibold leading-relaxed text-base z-10">${qData.q}</p>
             </div>
 
-            <!-- Vector Multi-Choice List Options -->
             <div class="space-y-2.5" id="answers-container">
                 ${qData.a.map((answer, index) => `
                     <button id="ans-btn-${index}" onclick="handleAnswer(${index}, ${qData.correct})" class="w-full text-left bg-[#080b1e]/90 hover:bg-[#0d1230] border border-slate-900 hover:border-slate-800 p-4 rounded-xl flex justify-between items-center transition-all group active:scale-[0.98]">
@@ -487,7 +476,6 @@ function renderQuiz() {
             </div>
         </div>
 
-        <!-- FIXED FOOTER SHELF: Eliminates rendering layout gaps completely -->
         <div class="absolute bottom-0 left-0 right-0 glass-panel border-t border-slate-900 z-50 p-4 pb-6">
             <div class="flex gap-2.5 overflow-x-auto custom-scroll pb-1 items-center justify-center">
                 ${renderPerkBtn('half', '50/50', 'rose')}
@@ -505,7 +493,7 @@ function renderPerkBtn(id, label, color) {
     const colorMap = {
         rose: 'bg-rose-950/40 text-rose-400 border-rose-900/50',
         amber: 'bg-amber-950/40 text-amber-400 border-amber-900/50',
-        emerald: 'bg-emerald-950/40 text-emerald-400 border-emerald-900/50',
+        emerald: 'bg-emerald-950/40 text-emerald-400 border-emerald-800/50',
         indigo: 'bg-indigo-950/40 text-indigo-400 border-indigo-900/50'
     };
 
@@ -522,7 +510,7 @@ function renderPerkBtn(id, label, color) {
     `;
 }
 
-// 4. Copilot Tab View Interface
+// 4. Copilot Tab Interface
 function renderCopilot() {
     state.view = 'copilot';
     const container = document.getElementById('app-container');
@@ -561,8 +549,7 @@ function renderBottomNav() {
     `;
 }
 
-// --- LOGIC ENGINE & ANIMATION MATRIX CONTROL ---
-
+// --- LOGIC MECHANICS & POWERUP MOTORS ---
 function handleAnswer(selectedIndex, correctIndex) {
     const btn = document.getElementById(`ans-btn-${selectedIndex}`);
     
@@ -599,7 +586,6 @@ function handleAnswer(selectedIndex, correctIndex) {
 }
 
 function triggerPerk(id) {
-    // Economy Conversion Check (Purchase if allocation is exhausted)
     if (state.perks[id] <= 0) {
         const cost = state.perkCosts[id];
         if (state.coins >= cost) {
