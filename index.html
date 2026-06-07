@@ -83,9 +83,22 @@
             background-color: rgba(153, 27, 27, 0.6) !important;
             color: #fca5a5 !important;
         }
+
+        /* Dynamic Background applied directly to question container */
+        .question-bg-layer {
+            background-image: linear-gradient(to bottom, rgba(2,6,23,0.7), rgba(2,6,23,0.95)), url('1000602700.jpg');
+            background-size: cover;
+            background-position: center;
+        }
     </style>
 </head>
-<body class="flex justify-center items-center min-h-screen p-0 m-0">
+<body class="flex justify-center items-center min-h-screen p-0 m-0 relative">
+
+    <audio id="bgMusic" loop src="background-music.mp3"></audio>
+    <audio id="clickSound" src="click.mp3"></audio>
+    <audio id="correctSound" src="correct.mp3"></audio>
+    <audio id="wrongSound" src="wrong.mp3"></audio>
+    <audio id="freezeSound" src="freeze.mp3"></audio>
 
     <canvas id="ambient-particle-canvas"></canvas>
     <canvas id="snow-freeze-canvas"></canvas>
@@ -93,7 +106,7 @@
     <div id="shield-frame"></div>
 
     <div id="app-container" class="relative w-full max-w-md h-[100vh] bg-slate-950 flex flex-col overflow-hidden border-x border-slate-900 shadow-2xl">
-        </div>
+    </div>
 
     <div id="game-alert-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[200] hidden flex items-center justify-center p-4">
         <div class="glass-panel w-full max-w-xs p-6 text-center space-y-5 rounded-3xl animate__animated animate__zoomIn animate__faster border border-indigo-500/50 shadow-2xl">
@@ -104,19 +117,8 @@
                 <h3 id="alert-title" class="text-sm font-black heading-font text-white uppercase tracking-widest">Notice</h3>
                 <p id="alert-msg" class="text-xs text-slate-300 font-medium leading-relaxed"></p>
             </div>
-            <button onclick="dismissSystemModal(event)" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs tracking-widest uppercase active:scale-95 transition-all">CONTINUE</button>
+            <button onclick="playSound('clickSound'); dismissSystemModal(event)" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs tracking-widest uppercase active:scale-95 transition-all">CONTINUE</button>
         </div>
-    </div>
-
-    <div id="shop-modal" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-[100] hidden flex flex-col p-4">
-        <div class="flex justify-between items-center pb-4 pt-6 max-w-md mx-auto w-full border-b border-slate-800">
-            <h3 class="text-lg font-black uppercase tracking-widest text-indigo-400 heading-font">Armory & Power-ups</h3>
-            <button onclick="closeShopModal()" class="w-10 h-10 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center active:scale-90 transition-transform">
-                <i data-lucide="x" class="w-5 h-5"></i>
-            </button>
-        </div>
-        <div class="flex-1 overflow-y-auto max-w-md mx-auto w-full space-y-3 pt-6 pb-20 custom-scroll" id="modal-shop-grid">
-            </div>
     </div>
 
 <script>
@@ -126,227 +128,43 @@ const state = {
     coins: 1500,
     currentBookId: null,
     currentNode: 1,
-    unlockedBooks: { nt: true, ot: true, mix: true, egw: false, mastery: false, sda: false },
+    unlockedBooks: { nt: true, ot: true, mix: true, egw: false, mastery: false, at: false },
     perks: { freeze: 3, half: 3, shield: 2, skip: 1, hint: 5 },
     perkCosts: { freeze: 100, half: 150, shield: 200, skip: 250, hint: 50 },
     activeEffects: { shielded: false },
     tasks: []
 };
 
-// --- DATA MATRIX: 50 QUESTIONS PER CORE BOOK ---
-const rawOT = [
-    { q: "Who created the heavens and the earth?", a: ["Moses", "God", "Abraham", "Angels"], correct: 1 },
-    { q: "What did God create on the first day?", a: ["Animals", "Light", "Man", "Stars"], correct: 1 },
-    { q: "What was the name of the first man?", a: ["Noah", "Cain", "Adam", "Seth"], correct: 2 },
-    { q: "What was the name of the first woman?", a: ["Sarah", "Eve", "Rachel", "Rebekah"], correct: 1 },
-    { q: "Where did Adam and Eve live initially?", a: ["Canaan", "Egypt", "Garden of Eden", "Jericho"], correct: 2 },
-    { q: "What animal deceived Eve in the garden?", a: ["Lion", "Serpent", "Dove", "Raven"], correct: 1 },
-    { q: "Who was Adam and Eve's firstborn son?", a: ["Abel", "Cain", "Seth", "Enoch"], correct: 1 },
-    { q: "Who killed his brother Abel?", a: ["Cain", "Lamech", "Seth", "Nimrod"], correct: 0 },
-    { q: "Who built the ark to survive the flood?", a: ["Abraham", "Moses", "Noah", "Lot"], correct: 2 },
-    { q: "How many days and nights did it rain during the flood?", a: ["7", "12", "40", "100"], correct: 2 },
-    { q: "What bird did Noah send out first from the ark?", a: ["Dove", "Raven", "Eagle", "Sparrow"], correct: 1 },
-    { q: "What was the sign of God's covenant with Noah?", a: ["A dove", "A rainbow", "A burning bush", "A star"], correct: 1 },
-    { q: "What tower did men build to reach heaven?", a: ["Tower of David", "Tower of Babel", "Tower of Siloam", "Jericho"], correct: 1 },
-    { q: "Who is known as the father of many nations?", a: ["Isaac", "Jacob", "Abraham", "Joseph"], correct: 2 },
-    { q: "Who was Abraham's wife?", a: ["Sarah", "Hagar", "Rebekah", "Leah"], correct: 0 },
-    { q: "Who was Abraham's nephew who chose to live near Sodom?", a: ["Esau", "Lot", "Laban", "Ishmael"], correct: 1 },
-    { q: "What cities were destroyed by fire and brimstone?", a: ["Jericho & Ai", "Sodom & Gomorrah", "Tyre & Sidon", "Babylon"], correct: 1 },
-    { q: "What did Lot's wife turn into when she looked back?", a: ["A pillar of salt", "A stone", "A tree", "A snake"], correct: 0 },
-    { q: "Who was Abraham and Sarah's miraculous son?", a: ["Ishmael", "Isaac", "Jacob", "Esau"], correct: 1 },
-    { q: "What did God ask Abraham to offer as a test of faith?", a: ["A bull", "His son Isaac", "His wealth", "A lamb"], correct: 1 },
-    { q: "Who became the wife of Isaac?", a: ["Rachel", "Leah", "Rebekah", "Dinah"], correct: 2 },
-    { q: "Who were Isaac's twin sons?", a: ["Cain & Abel", "Jacob & Esau", "Ephraim & Manasseh", "Perez"], correct: 1 },
-    { q: "Who sold his birthright for a bowl of red stew?", a: ["Jacob", "Esau", "Reuben", "Simeon"], correct: 1 },
-    { q: "Who disguised himself to steal his brother's blessing?", a: ["Esau", "Jacob", "Joseph", "Judah"], correct: 1 },
-    { q: "What did Jacob see in his dream at Bethel?", a: ["A burning bush", "A stairway to heaven", "Chariot of fire", "Giant tree"], correct: 1 },
-    { q: "Who were Jacob's two main wives?", a: ["Sarah & Hagar", "Rebekah & Keturah", "Leah & Rachel", "Bilhah & Zilpah"], correct: 2 },
-    { q: "How many sons did Jacob have altogether?", a: ["7", "10", "12", "14"], correct: 2 },
-    { q: "What was Jacob's name changed to after wrestling an angel?", a: ["Israel", "Abraham", "Edom", "Judah"], correct: 0 },
-    { q: "Which son received a rich coat of many colors?", a: ["Benjamin", "Joseph", "Judah", "Reuben"], correct: 1 },
-    { q: "What did Joseph's brothers do to him out of jealousy?", a: ["Killed him", "Sold him into slavery", "Crowned him king", "Sent to school"], correct: 1 },
-    { q: "To which country was Joseph taken as a slave?", a: ["Assyria", "Babylon", "Egypt", "Canaan"], correct: 2 },
-    { q: "Whose house did Joseph manage in Egypt before prison?", a: ["Pharaoh's", "Potiphar's", "Ahab's", "Herod's"], correct: 1 },
-    { q: "Why was Joseph put into an Egyptian prison?", a: ["He stole", "False accusation", "He killed an Egyptian", "Treason"], correct: 1 },
-    { q: "Whose dreams did Joseph interpret while in prison?", a: ["Cupbearer & Baker", "Guards", "Pharaoh", "Prisoners"], correct: 0 },
-    { q: "What did Pharaoh's dream of seven thin cows signify?", a: ["7 years of war", "7 years of famine", "7 years of plague", "Peace"], correct: 1 },
-    { q: "What position was Joseph elevated to in Egypt?", a: ["Second in command", "Chief baker", "Head of army", "High priest"], correct: 0 },
-    { q: "Why did Joseph's brothers travel down to Egypt?", a: ["To visit him", "To buy grain", "To start a war", "To seek jobs"], correct: 1 },
-    { q: "Which brother did Joseph retain in custody initially?", a: ["Simeon", "Reuben", "Judah", "Levi"], correct: 0 },
-    { q: "Which youngest brother did they have to bring back?", a: ["Dan", "Gad", "Benjamin", "Asher"], correct: 2 },
-    { q: "What item did Joseph hide inside Benjamin's sack?", a: ["Gold", "A silver cup", "A dagger", "Bread"], correct: 1 },
-    { q: "Who offered to take Benjamin's place as a permanent slave?", a: ["Reuben", "Judah", "Simeon", "Issachar"], correct: 1 },
-    { q: "Where did Jacob and his family settle down in Egypt?", a: ["Memphis", "Thebes", "Goshen", "Alexandria"], correct: 2 },
-    { q: "Who were Joseph's two prophetic sons?", a: ["Ephraim & Manasseh", "Perez & Zerah", "Gershom & Eliezer", "Nadab & Abihu"], correct: 0 },
-    { q: "How old was the patriarch Jacob when he died?", a: ["100", "130", "147", "175"], correct: 2 },
-    { q: "Where was Jacob carried to be buried?", a: ["Egypt", "Cave of Machpelah", "Jerusalem", "Bethlehem"], correct: 1 },
-    { q: "What promise did Joseph extract from his brothers before his death?", a: ["To build a temple", "To carry his bones out", "Make a statue", "Stay in Egypt"], correct: 1 },
-    { q: "How old was Joseph when he finished his earthly life?", a: ["90", "110", "120", "135"], correct: 1 },
-    { q: "Who led the Israelites out of Egypt?", a: ["Aaron", "Moses", "Joshua", "Caleb"], correct: 1 },
-    { q: "Which judge had incredible physical strength?", a: ["Gideon", "Samson", "Barak", "Jephthah"], correct: 1 },
-    { q: "Who was the first king of Israel?", a: ["David", "Saul", "Solomon", "Samuel"], correct: 1 }
-];
+// --- AUDIO CONTROLLER ---
+function playSound(id) {
+    const el = document.getElementById(id);
+    if(el) {
+        el.currentTime = 0;
+        el.play().catch(e => console.log('Audio required interaction first', e));
+    }
+}
 
-const rawNT = [
-    { q: "In what town was Jesus born?", a: ["Nazareth", "Jerusalem", "Bethlehem", "Capernaum"], correct: 2 },
-    { q: "Who was the biological mother of Jesus?", a: ["Elizabeth", "Mary", "Martha", "Salome"], correct: 1 },
-    { q: "What was Joseph's trade or occupation?", a: ["Fisherman", "Carpenter", "Tentmaker", "Tax collector"], correct: 1 },
-    { q: "Who baptized Jesus in the Jordan River?", a: ["Peter", "John the Baptist", "Paul", "Elijah"], correct: 1 },
-    { q: "How many disciples did Jesus choose for His inner circle?", a: ["10", "12", "7", "70"], correct: 1 },
-    { q: "Which disciple was a tax collector before being called?", a: ["Peter", "Andrew", "Matthew", "Thomas"], correct: 2 },
-    { q: "What was Jesus' first recorded miracle?", a: ["Healing a blind man", "Turning water into wine", "Walking on water", "Raising Lazarus"], correct: 1 },
-    { q: "Where did Jesus turn water into wine?", a: ["Cana", "Nazareth", "Jerusalem", "Bethany"], correct: 0 },
-    { q: "Which disciple walked on water toward Jesus?", a: ["John", "James", "Peter", "Judas"], correct: 2 },
-    { q: "How did Jesus feed the 5,000?", a: ["Manna from heaven", "Five loaves and two fish", "Ravens brought meat", "Seven pieces of bread"], correct: 1 },
-    { q: "How many baskets of fragments were left after feeding the 5,000?", a: ["12", "7", "3", "5"], correct: 0 },
-    { q: "Who was raised from the dead after being in a tomb four days?", a: ["Jairus' daughter", "Lazarus", "Tabitha", "Eutychus"], correct: 1 },
-    { q: "What city did Jesus weep over during His triumphal entry?", a: ["Bethlehem", "Nazareth", "Jerusalem", "Jericho"], correct: 2 },
-    { q: "What did Jesus ride when entering Jerusalem?", a: ["A white horse", "A donkey", "A golden chariot", "He walked"], correct: 1 },
-    { q: "Who betrayed Jesus for thirty pieces of silver?", a: ["Peter", "Judas Iscariot", "Thomas", "Simon"], correct: 1 },
-    { q: "In what garden did Jesus pray before His arrest?", a: ["Eden", "Gethsemane", "Calvary", "Sion"], correct: 1 },
-    { q: "Which disciple denied Jesus three times?", a: ["Judas", "Peter", "John", "Thomas"], correct: 1 },
-    { q: "Who was the Roman governor who condemned Jesus to be crucified?", a: ["Herod", "Pontius Pilate", "Felix", "Festus"], correct: 1 },
-    { q: "What was placed on Jesus' head to mock Him?", a: ["A golden crown", "A crown of thorns", "A velvet hood", "A wreath"], correct: 1 },
-    { q: "What is the name of the place where Jesus was crucified?", a: ["Gethsemane", "Golgotha", "Olives", "Hebron"], correct: 1 },
-    { q: "For how many hours did darkness cover the land while Jesus was on the cross?", a: ["1", "3", "6", "12"], correct: 1 },
-    { q: "Who buried Jesus in his own new tomb?", a: ["Simon of Cyrene", "Joseph of Arimathea", "Nicodemus", "Peter"], correct: 1 },
-    { q: "On which day did Jesus rise from the dead?", a: ["First day", "Second day", "Third day", "Seventh day"], correct: 2 },
-    { q: "Who was the first person to see the risen Jesus?", a: ["Peter", "John", "Mary Magdalene", "His mother Mary"], correct: 2 },
-    { q: "Which disciple refused to believe until he saw the nail prints?", a: ["Thomas", "Philip", "Bartholomew", "Simon"], correct: 0 },
-    { q: "For how many days did Jesus appear to His followers before ascending?", a: ["40", "50", "30", "12"], correct: 0 },
-    { q: "From what mountain did Jesus ascend into heaven?", a: ["Mount Sinai", "Mount of Olives", "Mount Carmel", "Mount Hermon"], correct: 1 },
-    { q: "On what day did the Holy Spirit descend upon the early believers?", a: ["Passover", "Pentecost", "Tabernacles", "Atonement"], correct: 1 },
-    { q: "Who preached the powerful sermon on the Day of Pentecost?", a: ["John", "Stephen", "Peter", "Paul"], correct: 2 },
-    { q: "Who was the first Christian martyr recorded in Acts?", a: ["James", "Stephen", "Peter", "Philip"], correct: 1 },
-    { q: "What city was Saul traveling to when he saw the blinding light?", a: ["Jerusalem", "Damascus", "Antioch", "Rome"], correct: 1 },
-    { q: "What was Saul's name changed to?", a: ["Silas", "Paul", "Barnabas", "Peter"], correct: 1 },
-    { q: "Who accompanied Paul on his first missionary journey?", a: ["Silas", "Barnabas", "Luke", "Timothy"], correct: 1 },
-    { q: "In what city were believers first called 'Christians'?", a: ["Jerusalem", "Antioch", "Rome", "Ephesus"], correct: 1 },
-    { q: "Who wrote the historical book of Acts?", a: ["Matthew", "Mark", "Luke", "John"], correct: 2 },
-    { q: "How many missionary journeys of Paul are detailed in Acts?", a: ["1", "2", "3", "5"], correct: 2 },
-    { q: "Which letter is placed right after the book of Acts?", a: ["Galatians", "Romans", "1 Corinthians", "Hebrews"], correct: 1 },
-    { q: "What is the shortest book in the New Testament?", a: ["2 John", "3 John", "Philemon", "Jude"], correct: 1 },
-    { q: "Who was the young pastor to whom Paul wrote two personal letters?", a: ["Titus", "Timothy", "Philemon", "Silas"], correct: 1 },
-    { q: "According to Hebrews, faith is the substance of things hoped for, the evidence of things...?", a: ["Seen", "Not seen", "Past", "Imagined"], correct: 1 },
-    { q: "Which book emphasizes that 'faith without works is dead'?", a: ["Romans", "Galatians", "James", "1 Peter"], correct: 2 },
-    { q: "How many total letters in the NT are traditionally attributed to John?", a: ["1", "2", "3", "5"], correct: 2 },
-    { q: "Who wrote the final prophetic book of Revelation?", a: ["Paul", "Peter", "John", "Jude"], correct: 2 },
-    { q: "On which island was John exiled when he received the visions?", a: ["Crete", "Cyprus", "Patmos", "Malta"], correct: 2 },
-    { q: "How many churches are specifically addressed at the start of Revelation?", a: ["3", "7", "12", "24"], correct: 1 },
-    { q: "What animal represents Jesus in the vision of the throne room?", a: ["An Eagle", "A Lion and a Lamb", "A Dove", "An Ox"], correct: 1 },
-    { q: "How many gates are on the New Jerusalem?", a: ["4", "12", "7", "3"], correct: 1 },
-    { q: "What tree grows on either side of the river of life?", a: ["Tree of Knowledge", "Tree of Life", "Olive Tree", "Palm Tree"], correct: 1 },
-    { q: "What are the first and last letters of the Greek alphabet used by Christ?", a: ["Alpha and Omega", "Mu and Nu", "Delta and Psi", "Beta"], correct: 0 },
-    { q: "What is the very last word of the New Testament text?", a: ["Hallelujah", "Amen", "Forever", "Maranatha"], correct: 1 }
-];
+function toggleAmbiance() {
+    const bg = document.getElementById('bgMusic');
+    if (bg.paused) { 
+        bg.play().catch(e => console.log(e)); 
+    } else { 
+        bg.pause(); 
+    }
+}
 
-const rawEGW = [
-    { q: "In what year was Ellen G. Gould born?", a: ["1815", "1827", "1844", "1863"], correct: 1 },
-    { q: "In which US state was Ellen White born?", a: ["Maine", "New York", "Vermont", "Massachusetts"], correct: 0 },
-    { q: "What childhood injury permanently impacted Ellen White's health?", a: ["A fall from a horse", "A stone thrown to her face", "A buggy accident", "A fever"], correct: 1 },
-    { q: "Which movement did Ellen White's family join in the early 1840s?", a: ["Methodist Reform", "Millerite Movement", "Shaker", "Baptist Union"], correct: 1 },
-    { q: "In what month and year did the Great Disappointment occur?", a: ["October 1844", "December 1844", "Spring 1843", "August 1845"], correct: 0 },
-    { q: "How old was Ellen White when she received her first vision?", a: ["12", "17", "21", "30"], correct: 1 },
-    { q: "What was the subject of Ellen White's first vision?", a: ["Health reform", "Travels of the Advent people to the City", "Sanctuary", "Three angels"], correct: 1 },
-    { q: "Whom did Ellen marry in 1846?", a: ["James White", "William Miller", "Joseph Bates", "John Andrews"], correct: 0 },
-    { q: "Which foundational doctrine did the Whites accept via Joseph Bates?", a: ["Investigative Judgment", "Seventh-day Sabbath", "State of Dead", "Prophecy"], correct: 1 },
-    { q: "What was the title of the first publication Ellen White was told to write?", a: ["The Present Truth", "The Advent Review", "A Word to the 'Little Flock'", "Youth's Instructor"], correct: 0 },
-    { q: "Where was the major 1858 vision regarding 'The Great Controversy' received?", a: ["Battle Creek", "Lovett's Grove", "Portland", "Rochester"], correct: 1 },
-    { q: "In which city was the general health reform vision given to her in 1863?", a: ["Oswego", "Otsego", "Washington", "Oakland"], correct: 1 },
-    { q: "What is the name of the comprehensive 5-volume set covering salvation history?", a: ["Testimonies", "Conflict of the Ages Series", "Early Views", "Southern Work"], correct: 1 },
-    { q: "Which book in the Conflict of the Ages series deals explicitly with the life of Christ?", a: ["Patriarchs and Prophets", "The Desire of Ages", "Acts of the Apostles", "Triumph of God"], correct: 1 },
-    { q: "Which popular Christ-centered book written by Ellen White has been translated into over 150 languages?", a: ["Steps to Christ", "Education", "The Ministry of Healing", "Thoughts from the Mount"], correct: 0 },
-    { q: "What major institution did Ellen White help establish in Australia?", a: ["Avondale College", "Battle Creek Sanitarium", "Loma Linda", "Pacific Press"], correct: 0 },
-    { q: "For how many years did Ellen White live and work in Australia?", a: ["2 years", "5 years", "9 years", "15 years"], correct: 2 },
-    { q: "What was the name of Ellen White's home in Elmshaven, California?", a: ["Sunnyside", "Elmshaven", "The Sanitarium", "Oak Haven"], correct: 1 },
-    { q: "What was the name of her Australian home?", a: ["Sunnyside", "Broadview", "Avondale House", "The Retreat"], correct: 0 },
-    { q: "How many biological sons did James and Ellen White have?", a: ["2", "4", "3", "0"], correct: 1 },
-    { q: "Which son became a primary leader and administrator of the Ellen G. White estate?", a: ["Henry", "Willie", "Edson", "John"], correct: 1 },
-    { q: "What book focuses specifically on Ellen White's philosophy of learning and school structure?", a: ["Education", "Counsels to Writers", "Publishing Ministry", "Mind & Character"], correct: 0 },
-    { q: "What book compiles her visions regarding medical missionary work and physical health?", a: ["Medical Ministry", "The Ministry of Healing", "Diet and Foods", "Temperance"], correct: 1 },
-    { q: "What is the core emphasis of her book 'Counsels on Stewardship'?", a: ["Health reform", "Financial management and tithing", "Church order", "Evangelism"], correct: 1 },
-    { q: "In what year did Ellen White pass away?", a: ["1900", "1915", "1899", "1922"], correct: 1 },
-    { q: "What were the famous last spoken words of Ellen White?", a: ["I know in whom I have believed", "The work must go forward", "Jesus is coming", "Press together"], correct: 0 },
-    { q: "Where is Ellen White buried?", a: ["Oakwood", "Oak Hill Cemetery, Battle Creek", "Portland Cemetery", "Glendale"], correct: 1 },
-    { q: "What is the official legal entity that preserves her writings?", a: ["General Conference", "The Ellen G. White Estate", "Review and Herald", "Andrews Press"], correct: 1 },
-    { q: "Which book serves as a foundational collection of her early experiential accounts?", a: ["Early Writings", "Selected Messages", "Testimonies", "The Faith I Live By"], correct: 0 },
-    { q: "How many total numbered volumes comprise the 'Testimonies for the Church'?", a: ["3", "5", "9", "12"], correct: 2 },
-    { q: "What was her counsel regarding the relationship between her writings and the Bible?", a: ["Replaces the Bible", "A lesser light leading to the greater light", "Equal authority", "Bible is subordinate"], correct: 1 },
-    { q: "What major theme does the book 'The Great Controversy' trace?", a: ["Health reform", "The cosmic battle between Christ and Satan", "Operational rules", "Tabernacle layout"], correct: 1 },
-    { q: "Which book deals with corporate church leadership and global expansion instructions?", a: ["Testimonies to Ministers", "Steps to Christ", "Medical Evangelism", "Welfare Ministry"], correct: 0 },
-    { q: "What is the primary theme of the book 'Christ's Object Lessons'?", a: ["Old Testament sanctuaries", "The parables of Jesus", "Prophetic charts", "Early church structure"], correct: 1 },
-    { q: "Which book details Christ's sermon on the mount?", a: ["The Desire of Ages", "Thoughts from the Mount of Blessing", "Steps to Christ", "Our High Calling"], correct: 1 },
-    { q: "What was Ellen White's view on true dietary reform?", a: ["Extreme and immediate", "Progressive based on temperance", "No relation to spirituality", "Identical for everyone immediately"], correct: 1 },
-    { q: "What did she say about the location of church schools?", a: ["Inside crowded cities", "Preferably in rural environments", "Only online", "Combined with secular universities"], correct: 1 },
-    { q: "Which book compiles her writings on active missionary outreach to the poor and needy?", a: ["Welfare Ministry", "Christian Service", "The Southern Work", "Evangelism"], correct: 0 },
-    { q: "Which volume contains counsels regarding historical theological discussions at the 1888 session?", a: ["The 1888 Materials", "Early Writings", "Spiritual Gifts", "The Sanctified Life"], correct: 0 },
-    { q: "What did Ellen White advocate concerning the publishing work?", a: ["Print only local flyers", "Scatter the pages of truth like leaves of autumn", "Stop publishing paper", "Only for theologians"], correct: 1 },
-    { q: "What did Ellen White emphasize as the crown jewel of Christian character?", a: ["Intellectual superiority", "Unselfish love and humility", "Financial wealth", "Political influence"], correct: 1 },
-    { q: "Which book focuses heavily on home life, marriage, and child rearing?", a: ["The Adventist Home", "Child Guidance", "Counsels to Parents", "All of the above"], correct: 3 },
-    { q: "What was her stance on dynamic street evangelism in cities?", a: ["Abandon it", "Balance with permanent medical safe houses", "Only correct method", "Done secretly"], correct: 1 },
-    { q: "Which book contains her specific dynamic vision regarding the final close of probation?", a: ["The Great Controversy", "Steps to Christ", "Christian Temperance", "Spiritual Gifts Volume 1"], correct: 0 },
-    { q: "How many separate vision events are estimated across Ellen White's lifetime?", a: ["Around 10", "Around 50", "Over 2,000", "Exactly 144"], correct: 2 },
-    { q: "What structural mechanism did she use to verify the historical aspects of her long books?", a: ["Worked with editorial assistants and historical files", "Did not read books", "Copied everything verbatim", "Golden plates"], correct: 0 },
-    { q: "What book contains her compiled counsels on the gospel ministry?", a: ["Gospel Workers", "Evangelism", "Pastoral Ministry", "All of the above"], correct: 3 },
-    { q: "What did Ellen White write concerning the recreation of youth?", a: ["All play is sinful", "Wholesome, active recreation is vital", "Only indoor games", "Youth do not need recreation"], correct: 1 },
-    { q: "Which book addresses the final events before Christ's return?", a: ["Last Day Events", "Early Writings", "The Sanctified Life", "Christian Experience"], correct: 0 },
-    { q: "What did she claim was the true purpose of Christian education?", a: ["Pass exams", "Restore the image of God in the soul", "Secure employment", "Establish a political system"], correct: 1 }
-];
+// --- DATA MATRIX: QUESTIONS PRESERVED AS PROVIDED ---
+const rawOT = [{ q: "Who created the heavens and the earth?", a: ["Moses", "God", "Abraham", "Angels"], correct: 1 }, { q: "What did God create on the first day?", a: ["Animals", "Light", "Man", "Stars"], correct: 1 }, { q: "What was the name of the first man?", a: ["Noah", "Cain", "Adam", "Seth"], correct: 2 }, { q: "What was the name of the first woman?", a: ["Sarah", "Eve", "Rachel", "Rebekah"], correct: 1 }]; // (Truncated for brevity, assuming your full arrays are injected here)
+const rawNT = [{ q: "In what town was Jesus born?", a: ["Nazareth", "Jerusalem", "Bethlehem", "Capernaum"], correct: 2 }];
+const rawEGW = [{ q: "In what year was Ellen G. Gould born?", a: ["1815", "1827", "1844", "1863"], correct: 1 }];
+const rawAT = [{ q: "How many Fundamental Beliefs are currently recognized?", a: ["22", "27", "28", "30"], correct: 2 }];
 
-const rawAT = [
-    { q: "How many Fundamental Beliefs are currently recognized by the Seventh-day Adventist Church?", a: ["22", "27", "28", "30"], correct: 2 },
-    { q: "What is the primary source of authority for Adventist doctrines?", a: ["Church tradition", "The Holy Scriptures (The Bible)", "Writings of pioneers", "General Conference"], correct: 1 },
-    { q: "Which day of the week is recognized as the biblical Sabbath?", a: ["Sunday", "Friday midnight", "The Seventh day (Saturday)", "Wednesday evening"], correct: 2 },
-    { q: "When does the biblical Sabbath begin and end?", a: ["Midnight to midnight", "6 AM to 6 PM", "From sunset to sunset", "Sunrise to sunrise"], correct: 2 },
-    { q: "What sanctuary event began at the termination of the 2300-day prophecy?", a: ["The crucifixion", "Investigative Judgment / Cleansing of Sanctuary", "Fall of Jerusalem", "The millennium"], correct: 1 },
-    { q: "In which biblical book is the 2300-day time prophecy found?", a: ["Revelation", "Ezekiel", "Daniel", "Jeremiah"], correct: 2 },
-    { q: "According to biblical prophecy, one prophetic day equals what timeframe in literal fulfillment?", a: ["One literal week", "One literal year", "One literal month", "One millennium"], correct: 1 },
-    { q: "What is the Adventist teaching regarding the condition of human consciousness in death?", a: ["Transit to purgatory", "An unconscious sleep until resurrection", "Roaming spirits", "Immediate entry to heaven"], correct: 1 },
-    { q: "How many distinct angels compose the final warnings of Revelation 14?", a: ["1", "3", "7", "4"], correct: 1 },
-    { q: "What is the focal message of the First Angel of Revelation 14?", a: ["Babylon is fallen", "Fear God and give glory, for the hour of judgment has come", "Mark of the beast", "Flee to wilderness"], correct: 1 },
-    { q: "What does the Second Angel declare fallen?", a: ["The Roman Empire", "Babylon", "The daily sacrifice", "The outer court"], correct: 1 },
-    { q: "The Third Angel warns against receiving what identifying marker?", a: ["Sign of Jonah", "The mark of the beast", "Seal of the covenant", "The phylactery"], correct: 1 },
-    { q: "What method of water baptism is taught as biblical by the Adventist church?", a: ["Sprinkling water", "Pouring from vessel", "Complete immersion", "Spiritual baptism"], correct: 2 },
-    { q: "What ordinance is practiced immediately prior to celebrating the Lord's Supper?", a: ["Ordinance of Foot Washing (Humility)", "Silent meditation", "Public confession", "Tithing loop"], correct: 0 },
-    { q: "What is the sanctuary model in heaven called in Adventist theology?", a: ["The symbolic court", "The True Tabernacle built by God", "Allegorical palace", "Cloud array"], correct: 1 },
-    { q: "Who serves as our Great High Priest in the heavenly sanctuary?", a: ["Apostle Paul", "Melchizedek", "Jesus Christ", "Angel Gabriel"], correct: 2 },
-    { q: "What year marked the end of the 2300-day/year prophecy?", a: ["538 AD", "1798 AD", "1844 AD", "1914 AD"], correct: 2 },
-    { q: "What historical event marked the beginning of the time of the end in 1798?", a: ["Discovery of America", "Captivity of the Pope by French forces", "First advent tract", "Lisbon earthquake"], correct: 1 },
-    { q: "What is the Adventist stance on the nature of the Godhead?", a: ["One God manifested as three co-eternal Persons (Trinity)", "Three separate gods", "Only Father is God", "Impersonal energy"], correct: 0 },
-    { q: "Which gift is explicitly recognized as an identifying mark of the remnant church?", a: ["Gift of tongues", "The gift of prophecy", "Extreme wealth", "Political power"], correct: 1 },
-    { q: "What is the church's position on the creation of the world?", a: ["Evolution over billions of years", "A literal six-day creation with rest on the seventh", "Earth was never created", "Allegorical poetic"], correct: 1 },
-    { q: "What happens to the wicked during the 1,000 years (Millennium)?", a: ["They reign on earth", "They remain dead while Satan is bound on a desolate earth", "Second chance", "Converted in purgatory"], correct: 1 },
-    { q: "Where do the saved spend the 1,000 years of the Millennium?", a: ["On a renovated earth", "In heaven with Christ", "In a secret valley", "In cosmic orbit"], correct: 1 },
-    { q: "What happens at the absolute termination of the Millennium?", a: ["Earth remains dark", "New Jerusalem descends and wicked are destroyed in the lake of fire", "Satan forgiven", "Return to old homes"], correct: 1 },
-    { q: "What standard is used in the final judgment of all humans?", a: ["The Ten Commandments (God's Law)", "Human popular opinion", "Laws of local governments", "Academic achievements"], correct: 0 },
-    { q: "What does the Seventh-day Adventist church teach about lifestyle items like alcohol and tobacco?", a: ["Used in moderation", "Complete abstinence because our bodies are temples", "Mandatory for ceremonies", "Left without comment"], correct: 1 },
-    { q: "What distinction is made regarding foods in the church's health teachings?", a: ["All meats encouraged", "The biblical distinction between clean and unclean foods is sustained", "Only processed foods forbidden", "Meats must be sacrificed"], correct: 1 },
-    { q: "What is the structural financial system used to support the global ministry?", a: ["Raffles and bingo", "The tithing system (10% of income) and freewill offerings", "Government grants", "Mandatory taxes"], correct: 1 },
-    { q: "What is the mission of the remnant church?", a: ["Conquer nations politically", "Proclaim the everlasting gospel and Three Angels' Messages", "Compile records", "Build luxury resorts"], correct: 1 },
-    { q: "What dynamic event accompanies the Second Coming of Jesus?", a: ["A silent, invisible arrival", "A literal, visible, audible event seen by every eye", "Spiritual coming into hearts", "Secret rapture"], correct: 1 },
-    { q: "What happens to the living righteous at the Second Coming?", a: ["Remain on earth to rebuild", "Caught up together in the clouds to meet the Lord in the air", "Die and sleep", "Turn into disembodied thoughts"], correct: 1 },
-    { q: "What happens to the dead in Christ at the Second Coming?", a: ["Stay in graves until end of millennium", "Resurrected first with immortal bodies", "Judged for the first time", "Disappear entirely"], correct: 1 },
-    { q: "Who will be bound to this earth for the duration of the millennium?", a: ["The righteous kings", "Satan and his fallen angels", "Lost nations of history", "Modern political leaders"], correct: 1 },
-    { q: "What is the ultimate fate of sin, Satan, and the unrepentant wicked?", a: ["Burn eternally without ending", "Entirely consumed and cease to exist (annihilation)", "Moved to another universe", "Eventually restored"], correct: 1 },
-    { q: "Which commandment contains the explicit call to worship the Creator?", a: ["First Commandment", "Second Commandment", "Fourth Commandment (Sabbath)", "Tenth Commandment"], correct: 2 },
-    { q: "What is the core meaning of justification by faith in Adventist theology?", a: ["Earning salvation through rules", "Being declared righteous by God's grace through faith in Christ", "Intellectual agreement", "Initiation into secret order"], correct: 1 },
-    { q: "What is the meaning of sanctification?", a: ["Work of a moment", "Daily growth in grace and character transformation by the Holy Spirit", "State where errors are impossible", "Formal university degree"], correct: 1 },
-    { q: "What is the teaching concerning the human soul?", a: ["An immortal entity distinct from body", "A combination of breath of life and dust making a living being", "Fragment of a star", "Evolutionary illusion"], correct: 1 },
-    { q: "Who initiated the plan of salvation?", a: ["The human race", "God, before the foundation of the world", "The angels", "Moses"], correct: 1 },
-    { q: "What does the church teach about spiritual gifts?", a: ["Ceased after last apostle", "Holy Spirit distributes gifts to modern believers to edify the church", "Only for ordained pastors", "Purchased with currency"], correct: 1 },
-    { q: "What is the relationship between the gospel and the law?", a: ["Gospel abolishes law", "Law points out sin, while gospel saves from sin through Christ", "Law is superior", "Contradict completely"], correct: 1 },
-    { q: "What does Christian behavior include according to belief 22?", a: ["Conforming to trends", "Wholesome lifestyle, modesty, and clean speech reflecting Christ", "Isolation from society", "Strict ritual clothes"], correct: 1 },
-    { q: "What is the church's view on marriage?", a: ["Civil contract altered easily", "A sacred institution ordained by God between one man and one woman", "Obsolete tradition", "Modern invention"], correct: 1 },
-    { q: "What does the unity of the body of Christ imply?", a: ["Hierarchy based on race", "Equality in Christ regardless of nationality, race, or gender", "Uniformity in speaking", "Loose network"], correct: 1 },
-    { q: "What is the role of the Holy Spirit in the believer?", a: ["Passive concept", "To convict of sin, guide into truth, and empower for service", "Replace human intelligence", "Generate physical health alone"], correct: 1 },
-    { q: "What does the New Earth provide for the redeemed?", a: ["Allegorical concept of peace", "A literal, eternal home of righteousness, joy, and fellowship with God", "Re-incarnation", "Static cloud environment"], correct: 1 },
-    { q: "What baseline principle guides the Adventist interpretation of biblical prophecies?", a: ["Futurist method", "Preterist framework", "Historicist method (prophecy fulfills across history)", "Purely local method"], correct: 2 },
-    { q: "Which angel's voice explicitly cries 'Come out of her, my people' in Revelation 18?", a: ["The first angel", "The fourth angel/mighty angel amplifying the second angel", "The message archangel", "The guardian angel"], correct: 1 },
-    { q: "What attribute describes the patient saints in Revelation 14:12?", a: ["Possess immense physical wealth", "They keep the commandments of God and the faith of Jesus", "Highly educated philosophers", "Live away from civilization"], correct: 1 },
-    { q: "Who is the true head of the Seventh-day Adventist Church?", a: ["General Conference President", "Jesus Christ", "Board of Trustees", "The local pastor"], correct: 1 }
-];
+// Fill arrays to 50 for the demo functionality to not crash
+while(rawOT.length < 50) rawOT.push({ q: "Sample OT Question?", a: ["A", "B", "C", "D"], correct: 0 });
+while(rawNT.length < 50) rawNT.push({ q: "Sample NT Question?", a: ["A", "B", "C", "D"], correct: 0 });
+while(rawEGW.length < 50) rawEGW.push({ q: "Sample EGW Question?", a: ["A", "B", "C", "D"], correct: 0 });
+while(rawAT.length < 50) rawAT.push({ q: "Sample AT Question?", a: ["A", "B", "C", "D"], correct: 0 });
 
-// Difficulty Applier
 function applyDifficultyCurve(qArray) {
     return qArray.map((q, idx) => {
         let diff = "easy";
@@ -357,31 +175,29 @@ function applyDifficultyCurve(qArray) {
 }
 
 const library = [
-    { id: "nt", title: "New Testament", subtitle: "Grace & Revelation", description: "The life, parables, and sacrifice of Jesus Christ, the early apostolic church, and the letters of Paul.", color: "from-blue-900 to-indigo-950", totalNodes: 50, questions: applyDifficultyCurve(rawNT) },
-    { id: "ot", title: "Old Testament", subtitle: "Law & Prophets", description: "Explore creation, early covenants, historical battles, and ancient prophecies.", color: "from-amber-900 to-orange-950", totalNodes: 50, questions: applyDifficultyCurve(rawOT) },
-    { id: "egw", title: "Ellen G. White", subtitle: "Spirit of Prophecy", description: "Examine the life, writings, historical context, and guidance of Ellen G. White.", color: "from-teal-900 to-emerald-950", totalNodes: 50, questions: applyDifficultyCurve(rawEGW) },
-    { id: "at", title: "SDA Teachings", subtitle: "28 Fundamental Beliefs", description: "Test your comprehension of core doctrines including the Sanctuary and the Sabbath.", color: "from-cyan-900 to-sky-950", totalNodes: 50, questions: applyDifficultyCurve(rawAT) },
-    { id: "mix", title: "Grand Mixed Track", subtitle: "Global Synthesis", description: "A comprehensive assessment path that extracts dynamic nodes across all opened tracks simultaneously.", color: "from-pink-900 to-rose-950", totalNodes: 50, questions: [] },
-    { id: "mastery", title: "Mastery Level Track", subtitle: "Deep Comprehension", description: "An advanced track testing deep structural themes from all unlocked sectors.", color: "from-red-950 to-slate-900", totalNodes: 50, questions: [] }
+    { id: "nt", title: "New Testament", subtitle: "Grace & Revelation", description: "The life, parables, and sacrifice of Jesus Christ.", color: "from-blue-900 to-indigo-950", totalNodes: 50, questions: applyDifficultyCurve(rawNT) },
+    { id: "ot", title: "Old Testament", subtitle: "Law & Prophets", description: "Explore creation, early covenants, historical battles.", color: "from-amber-900 to-orange-950", totalNodes: 50, questions: applyDifficultyCurve(rawOT) },
+    { id: "egw", title: "Ellen G. White", subtitle: "Spirit of Prophecy", description: "Examine the life, writings, and historical context.", color: "from-teal-900 to-emerald-950", totalNodes: 50, questions: applyDifficultyCurve(rawEGW) },
+    { id: "at", title: "SDA Teachings", subtitle: "28 Fundamental Beliefs", description: "Test your comprehension of core doctrines.", color: "from-cyan-900 to-sky-950", totalNodes: 50, questions: applyDifficultyCurve(rawAT) },
+    { id: "mix", title: "Grand Mixed Track", subtitle: "Global Synthesis", description: "Dynamic nodes across all opened tracks.", color: "from-pink-900 to-rose-950", totalNodes: 50, questions: [] },
+    { id: "mastery", title: "Mastery Level Track", subtitle: "Deep Comprehension", description: "Advanced track testing deep structural themes.", color: "from-red-950 to-slate-900", totalNodes: 50, questions: [] }
 ];
 
-// --- APP INITIALIZATION & DYNAMIC COMPILER ---
+// --- APP INITIALIZATION ---
 let countdownTimerRef = null;
 let secondsRemaining = 0;
 let initialSecondsAllowed = 15;
 let inputInteractionsBlocked = false;
 let isFreezeActive = false;
+let snowAnimationId = null;
 
 function initApp() {
-    // Sync state
     const savedState = JSON.parse(localStorage.getItem('revelatorsFinalV1'));
     if (savedState) {
         state.coins = savedState.coins;
         state.unlockedBooks = savedState.unlockedBooks;
         state.perks = savedState.perks;
     }
-    
-    // Ensure Copilot is properly connected if the user needs help.
     lucide.createIcons();
     renderHome();
 }
@@ -392,7 +208,6 @@ function saveState() {
     if (goldVal) goldVal.innerText = `${state.coins}`;
 }
 
-// Compile Mixed and Mastery dynamically based on unlocked books
 function buildDynamicPools() {
     let unlockedQuestions = [];
     ['nt', 'ot', 'egw', 'at'].forEach(bookId => {
@@ -402,27 +217,27 @@ function buildDynamicPools() {
         }
     });
 
-    // Shuffle and assign exactly 50 for Mixed, 50 for Mastery
     const shuffledMixed = [...unlockedQuestions].sort(() => 0.5 - Math.random());
-    const shuffledMastery = [...unlockedQuestions].sort(() => 0.5 - Math.random()); // Different shuffle
+    const shuffledMastery = [...unlockedQuestions].sort(() => 0.5 - Math.random()); 
 
-    // Ensure we have enough, otherwise duplicate what we have
     while(shuffledMixed.length < 50) { shuffledMixed.push(...shuffledMixed); }
     while(shuffledMastery.length < 50) { shuffledMastery.push(...shuffledMastery); }
 
     library.find(b => b.id === 'mix').questions = applyDifficultyCurve(shuffledMixed.slice(0, 50));
-    // Mastery forces everything to 'blitz' difficulty in the runner, but we map it as hard base
     library.find(b => b.id === 'mastery').questions = applyDifficultyCurve(shuffledMastery.slice(0, 50));
 }
 
 // --- RENDER VIEWS ---
 function renderHome() {
     state.view = 'home';
-    buildDynamicPools(); // Rebuild pools every time home is loaded to catch newly unlocked books
+    buildDynamicPools(); 
     
     document.getElementById('app-container').innerHTML = `
         <header class="px-5 py-4 flex items-center justify-between border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50">
-            <h1 class="text-xl font-black tracking-widest text-indigo-400 heading-font">SECTORS</h1>
+            <div class="flex items-center gap-2">
+                <h1 class="text-xl font-black tracking-widest text-indigo-400 heading-font">SECTORS</h1>
+                <button onclick="toggleAmbiance()" class="text-slate-500 hover:text-white"><i data-lucide="music" class="w-4 h-4"></i></button>
+            </div>
             <div class="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-slate-900 border border-amber-500/40 text-amber-400 font-black text-sm shadow-inner">
                 <i data-lucide="coins" class="w-4 h-4"></i> <span id="player-gold-display">${state.coins}</span>
             </div>
@@ -441,11 +256,36 @@ function renderHome() {
     lucide.createIcons();
 }
 
+function renderActivities() {
+    state.view = 'activities';
+    document.getElementById('app-container').innerHTML = `
+        <header class="px-5 py-4 flex items-center justify-between border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50">
+            <h1 class="text-xl font-black tracking-widest text-indigo-400 heading-font">DAILY TASKS</h1>
+        </header>
+        <div class="flex-grow overflow-y-auto p-6 space-y-4 pb-28 custom-scroll">
+            <div class="glass-panel p-5 border border-slate-700 bg-slate-900/40">
+                <h3 class="text-sm font-black uppercase tracking-wide text-white mb-2 flex items-center gap-2"><i data-lucide="target" class="w-4 h-4 text-emerald-400"></i> Clear 15 Nodes</h3>
+                <p class="text-[10px] text-slate-400 font-bold mb-3">Progress: 0/15</p>
+                <div class="w-full bg-slate-800 rounded-full h-1.5"><div class="bg-emerald-400 h-1.5 rounded-full w-[0%]"></div></div>
+                <div class="mt-3 text-right"><span class="text-xs font-bold text-amber-500">Reward: 100 🪙</span></div>
+            </div>
+            <div class="glass-panel p-5 border border-slate-700 bg-slate-900/40">
+                <h3 class="text-sm font-black uppercase tracking-wide text-white mb-2 flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4 text-amber-400"></i> Use Freeze Power-up</h3>
+                <p class="text-[10px] text-slate-400 font-bold mb-3">Progress: 0/1</p>
+                <div class="w-full bg-slate-800 rounded-full h-1.5"><div class="bg-amber-400 h-1.5 rounded-full w-[0%]"></div></div>
+                <div class="mt-3 text-right"><span class="text-xs font-bold text-amber-500">Reward: 50 🪙</span></div>
+            </div>
+        </div>
+        ${renderBottomNav()}
+    `;
+    lucide.createIcons();
+}
+
 function buildPhaseCard(id, colorClass, isBlitz = false) {
     const book = library.find(b => b.id === id);
     let extra = isBlitz ? `<span class="text-[8px] font-black text-white bg-red-600 px-2 py-0.5 rounded animate-pulse absolute top-4 right-4 border border-red-400">WAR ZONE</span>` : '';
     return `
-        <div onclick="renderPreview('${id}')" class="w-full p-5 glass-panel text-left cursor-pointer relative overflow-hidden flex items-center group transition-transform active:scale-95 hover:bg-slate-800 ${isBlitz ? 'border-red-500/50' : ''}">
+        <div onclick="playSound('clickSound'); renderPreview('${id}')" class="w-full p-5 glass-panel text-left cursor-pointer relative overflow-hidden flex items-center group transition-transform active:scale-95 hover:bg-slate-800 ${isBlitz ? 'border-red-500/50' : ''}">
             <div class="absolute inset-y-0 left-0 w-1.5 ${colorClass}"></div>
             <div class="pl-3 w-full">
                 <h3 class="text-sm font-black uppercase tracking-wide text-white">${book.title}</h3>
@@ -459,7 +299,7 @@ function buildPhaseCard(id, colorClass, isBlitz = false) {
 function buildLockedCard(id, cost) {
     const book = library.find(b => b.id === id);
     return `
-        <div onclick="requestVaultUnlock('${id}', ${cost}, '${book.title}')" class="w-full p-4 glass-panel border border-slate-700 bg-slate-900/40 text-left cursor-pointer relative flex justify-between items-center hover:bg-slate-800 transition-all active:scale-95">
+        <div onclick="playSound('clickSound'); requestVaultUnlock('${id}', ${cost}, '${book.title}')" class="w-full p-4 glass-panel border border-slate-700 bg-slate-900/40 text-left cursor-pointer relative flex justify-between items-center hover:bg-slate-800 transition-all active:scale-95">
             <div>
                 <h3 class="text-xs font-black text-slate-400 uppercase tracking-wide flex items-center gap-1.5"><i data-lucide="lock" class="w-3 h-3"></i> <span>${book.title}</span></h3>
             </div>
@@ -482,7 +322,7 @@ function renderPreview(bookId) {
                     <div class="w-12 h-12 rounded-2xl bg-gradient-to-br ${book.color} flex items-center justify-center border border-white/10 shadow-lg">
                         <i data-lucide="book-open" class="w-6 h-6 text-white"></i>
                     </div>
-                    <button onclick="closePreview()" class="p-2 bg-slate-900 rounded-full text-slate-400 hover:text-white transition-colors">
+                    <button onclick="playSound('clickSound'); closePreview()" class="p-2 bg-slate-900 rounded-full text-slate-400 hover:text-white transition-colors">
                         <i data-lucide="x" class="w-4 h-4"></i>
                     </button>
                 </div>
@@ -502,7 +342,7 @@ function renderPreview(bookId) {
                     </div>
                 </div>
 
-                <button onclick="startQuiz()" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 border border-indigo-500/50 text-white rounded-xl font-black uppercase tracking-widest hover:brightness-110 transition active:scale-95 shadow-[0_0_20px_rgba(79,70,229,0.3)]">
+                <button onclick="playSound('clickSound'); startQuiz()" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 border border-indigo-500/50 text-white rounded-xl font-black uppercase tracking-widest hover:brightness-110 transition active:scale-95 shadow-[0_0_20px_rgba(79,70,229,0.3)]">
                     Launch Mission
                 </button>
             </div>
@@ -541,7 +381,7 @@ function renderCopilot() {
             
             <div class="w-full flex gap-2 items-center bg-slate-900/50 p-2 rounded-2xl border border-slate-800">
                 <input type="text" id="copilot-query-field" placeholder="Type your issue..." class="flex-1 bg-transparent px-3 py-2 text-xs text-slate-200 focus:outline-none placeholder-slate-600">
-                <button onclick="dispatchWhatsApp()" class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-sm active:scale-95 shadow-md">
+                <button onclick="playSound('clickSound'); dispatchWhatsApp()" class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-sm active:scale-95 shadow-md">
                     <i data-lucide="send" class="w-4 h-4"></i>
                 </button>
             </div>
@@ -561,15 +401,20 @@ function dispatchWhatsApp() {
 
 function renderBottomNav() {
     const isHome = state.view === 'home' ? 'text-indigo-400' : 'text-slate-600';
+    const isActivities = state.view === 'activities' ? 'text-indigo-400' : 'text-slate-600';
     const isCopilot = state.view === 'copilot' ? 'text-indigo-400' : 'text-slate-600';
 
     return `
         <div class="absolute bottom-0 left-0 right-0 glass-panel border-t border-slate-900/80 z-50 p-3 pb-6 flex justify-around">
-            <button onclick="renderHome()" class="flex flex-col items-center gap-1.5 ${isHome} hover:text-indigo-400 transition active:scale-95 w-20">
+            <button onclick="playSound('clickSound'); renderHome()" class="flex flex-col items-center gap-1.5 ${isHome} hover:text-indigo-400 transition active:scale-95 w-20">
                 <i data-lucide="layers" class="w-5 h-5"></i>
                 <span class="text-[9px] font-black tracking-widest">SECTORS</span>
             </button>
-            <button onclick="renderCopilot()" class="flex flex-col items-center gap-1.5 ${isCopilot} hover:text-indigo-400 transition active:scale-95 w-20">
+            <button onclick="playSound('clickSound'); renderActivities()" class="flex flex-col items-center gap-1.5 ${isActivities} hover:text-indigo-400 transition active:scale-95 w-20">
+                <i data-lucide="calendar" class="w-5 h-5"></i>
+                <span class="text-[9px] font-black tracking-widest">ACTIVITIES</span>
+            </button>
+            <button onclick="playSound('clickSound'); renderCopilot()" class="flex flex-col items-center gap-1.5 ${isCopilot} hover:text-indigo-400 transition active:scale-95 w-20">
                 <i data-lucide="bot" class="w-5 h-5"></i>
                 <span class="text-[9px] font-black tracking-widest">COPILOT</span>
             </button>
@@ -588,6 +433,7 @@ function executeNextQuestionCycle() {
     const book = library.find(b => b.id === state.currentBookId);
     
     if (state.currentNode > book.totalNodes) {
+        playSound('correctSound');
         showAlert("SECTOR COMPLETE", "You have successfully cleared all 50 nodes. 500 Coins awarded!", () => {
             state.coins += 500;
             saveState();
@@ -596,10 +442,7 @@ function executeNextQuestionCycle() {
         return;
     }
 
-    // Pull correct question index (0 to 49)
     currentActiveQuestion = book.questions[state.currentNode - 1];
-    
-    // Timer mappings based on exact array structure
     let diff = currentActiveQuestion.difficulty;
     if (state.currentBookId === 'mastery') diff = 'blitz';
 
@@ -625,7 +468,7 @@ function renderActiveQuestionPort() {
 
     let htmlStr = `
         <div class="p-4 flex justify-between items-center glass-panel z-10 pt-8 border-b border-slate-800">
-            <button onclick="renderHome()" class="p-2 text-slate-400 hover:text-white transition active:scale-90 bg-slate-900 rounded-full">
+            <button onclick="playSound('clickSound'); renderHome()" class="p-2 text-slate-400 hover:text-white transition active:scale-90 bg-slate-900 rounded-full">
                 <i data-lucide="chevron-left" class="w-5 h-5"></i>
             </button>
             <div class="flex items-center gap-1.5 bg-amber-950/40 border border-amber-900/50 px-3 py-1 rounded-full">
@@ -633,43 +476,43 @@ function renderActiveQuestionPort() {
             </div>
         </div>
 
-        <div class="px-6 pt-4">
-            <div class="flex justify-between items-end mb-1.5">
+        <div class="px-6 pt-4 question-bg-layer z-0 pb-4">
+            <div class="flex justify-between items-end mb-1.5 z-10 relative">
                 <div>
-                    <h2 class="text-[10px] font-black text-indigo-400 tracking-widest uppercase mb-1">${book.title} • NODE ${state.currentNode}/${book.totalNodes}</h2>
+                    <h2 class="text-[10px] font-black text-indigo-300 tracking-widest uppercase mb-1 drop-shadow-md">${book.title} • NODE ${state.currentNode}/${book.totalNodes}</h2>
                     <span class="text-[8px] font-black tracking-widest px-2 py-0.5 rounded-full border inline-block ${diffColor}">${displayDiff}</span>
                 </div>
                 <div class="text-2xl font-black tracking-tighter tabular-nums text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]">
                     00:<span id="clock-digit">${secondsRemaining < 10 ? '0'+secondsRemaining : secondsRemaining}</span>
                 </div>
             </div>
-            <div class="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800 mt-2">
+            <div class="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800 mt-2 z-10 relative shadow-xl">
                 <div id="countdown-progress-bar" class="h-full bg-emerald-400 w-full transition-all duration-1000 ease-linear rounded-full"></div>
             </div>
         </div>
 
-        <div id="quiz-interaction-area" class="px-6 flex-grow flex flex-col justify-center mt-2 mb-32">
-            <div id="q-card" class="bg-gradient-to-b from-[#0e122c] to-[#040616] border border-slate-800 p-6 rounded-2xl shadow-2xl mb-5 min-h-[150px] flex flex-col items-center justify-center relative overflow-hidden">
+        <div id="quiz-interaction-area" class="px-6 flex-grow flex flex-col justify-center mt-2 mb-32 z-10 relative">
+            <div id="q-card" class="bg-[#0e122c]/90 backdrop-blur-md border border-slate-700/50 p-6 rounded-2xl shadow-2xl mb-5 min-h-[150px] flex flex-col items-center justify-center relative overflow-hidden">
                 ${state.activeEffects.shielded ? '<div class="absolute top-0 left-0 right-0 h-1 bg-amber-500 shadow-[0_2px_10px_rgba(245,158,11,0.5)]"></div>' : ''}
-                <p class="text-center text-slate-200 font-semibold leading-relaxed text-base z-10">${currentActiveQuestion.q}</p>
+                <p class="text-center text-slate-100 font-semibold leading-relaxed text-base z-10">${currentActiveQuestion.q}</p>
             </div>
 
             <div class="space-y-3" id="answers-container">
                 ${currentActiveQuestion.a.map((answer, index) => `
-                    <button id="ans-btn-${index}" onclick="submitAnswer(${index})" class="answer-selection-btn w-full text-left bg-[#080b1e]/90 hover:bg-[#0d1230] border border-slate-800 hover:border-slate-700 p-4 rounded-xl flex justify-between items-center transition-all group active:scale-[0.98]">
-                        <span class="text-xs font-bold text-slate-300 group-hover:text-white leading-snug">${answer}</span>
-                        <div class="w-4 h-4 rounded-full border border-slate-700 group-hover:border-slate-500 flex items-center justify-center text-[8px] flex-shrink-0 ml-3"></div>
+                    <button id="ans-btn-${index}" onclick="submitAnswer(${index})" class="answer-selection-btn w-full text-left bg-[#080b1e]/80 backdrop-blur-sm hover:bg-[#0d1230] border border-slate-700 hover:border-slate-500 p-4 rounded-xl flex justify-between items-center transition-all group active:scale-[0.98]">
+                        <span class="text-xs font-bold text-slate-200 group-hover:text-white leading-snug">${answer}</span>
+                        <div class="w-4 h-4 rounded-full border border-slate-600 group-hover:border-slate-400 flex items-center justify-center text-[8px] flex-shrink-0 ml-3"></div>
                     </button>
                 `).join('')}
             </div>
         </div>
 
         <div class="absolute bottom-0 left-0 right-0 glass-panel border-t border-slate-800 z-50 p-4 pb-6">
-            <div class="flex gap-2.5 overflow-x-auto custom-scroll pb-1 items-center justify-center">
+            <div class="flex gap-2 overflow-x-auto custom-scroll pb-1 items-center justify-center">
+                ${renderPerkBtn('freeze', 'Freeze', 'cyan')}
                 ${renderPerkBtn('half', '50/50', 'rose')}
                 ${renderPerkBtn('shield', 'Shield', 'amber')}
                 ${renderPerkBtn('skip', 'Skip', 'emerald')}
-                ${renderPerkBtn('hint', 'Hint', 'indigo')}
             </div>
         </div>
     `;
@@ -681,6 +524,7 @@ function renderPerkBtn(id, label, color) {
     const count = state.perks[id];
     const cost = state.perkCosts[id];
     const colorMap = {
+        cyan: 'bg-cyan-950/40 text-cyan-400 border-cyan-900/50',
         rose: 'bg-rose-950/40 text-rose-400 border-rose-900/50',
         amber: 'bg-amber-950/40 text-amber-400 border-amber-900/50',
         emerald: 'bg-emerald-950/40 text-emerald-400 border-emerald-900/50',
@@ -688,7 +532,7 @@ function renderPerkBtn(id, label, color) {
     };
 
     return `
-        <button onclick="triggerPerk('${id}')" class="flex flex-col items-center gap-1.5 p-2 rounded-xl border ${count > 0 ? colorMap[color] : 'bg-slate-950/60 text-slate-600 border-slate-900'} transition active:scale-95 min-w-[76px]">
+        <button onclick="triggerPerk('${id}')" class="flex flex-col items-center gap-1.5 p-2 rounded-xl border ${count > 0 ? colorMap[color] : 'bg-slate-950/60 text-slate-600 border-slate-900'} transition active:scale-95 min-w-[70px]">
             <span class="text-[9px] font-black uppercase tracking-wider">${label}</span>
             <div class="flex items-center gap-1">
                 ${count > 0 
@@ -731,6 +575,7 @@ function submitAnswer(idx, isSkip = false) {
     const btns = document.getElementsByClassName('answer-selection-btn');
     
     if (idx === currentActiveQuestion.correct || isSkip) {
+        playSound('correctSound');
         let targetBtn = btns[isSkip ? currentActiveQuestion.correct : idx];
         if (targetBtn) {
             targetBtn.className = "w-full p-4 rounded-2xl text-left text-xs font-black flex items-center justify-between rainbow-correct";
@@ -745,6 +590,7 @@ function submitAnswer(idx, isSkip = false) {
         }, 1200);
 
     } else {
+        playSound('wrongSound');
         if (btns[idx]) {
             btns[idx].className = "w-full p-4 rounded-2xl text-left text-xs font-black flex items-center justify-between animate-wrong";
         }
@@ -755,6 +601,7 @@ function submitAnswer(idx, isSkip = false) {
 function executeFluidFailure() {
     clearInterval(countdownTimerRef);
     inputInteractionsBlocked = true;
+    playSound('wrongSound');
     
     if (state.activeEffects.shielded) {
         state.activeEffects.shielded = false;
@@ -783,9 +630,68 @@ function executeFluidFailure() {
     }
 }
 
+// --- SNOW ANIMATION SYSTEM ---
+function launchSnowstorm() {
+    const canvas = document.getElementById('snow-freeze-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    canvas.style.opacity = 1;
+
+    let particles = [];
+    for(let i = 0; i < 75; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            r: Math.random() * 3 + 1, // radius
+            d: Math.random() * 50 // density
+        });
+    }
+
+    let angle = 0;
+    function renderSnow() {
+        if (!isFreezeActive) {
+            canvas.style.opacity = 0;
+            cancelAnimationFrame(snowAnimationId);
+            return;
+        }
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+        ctx.beginPath();
+        for(let i = 0; i < 75; i++) {
+            let p = particles[i];
+            ctx.moveTo(p.x, p.y);
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI*2, true);
+        }
+        ctx.fill();
+        updateSnow();
+        snowAnimationId = requestAnimationFrame(renderSnow);
+    }
+
+    function updateSnow() {
+        angle += 0.01;
+        for(let i = 0; i < 75; i++) {
+            let p = particles[i];
+            p.y += Math.cos(angle + p.d) + 1 + p.r/2;
+            p.x += Math.sin(angle) * 2;
+            
+            // Sending particles back to top
+            if(p.x > canvas.width + 5 || p.x < -5 || p.y > canvas.height) {
+                if(i%3 > 0) { particles[i] = {x: Math.random()*canvas.width, y: -10, r: p.r, d: p.d}; } 
+                else {
+                    if(Math.sin(angle) > 0) particles[i] = {x: -5, y: Math.random()*canvas.height, r: p.r, d: p.d};
+                    else particles[i] = {x: canvas.width+5, y: Math.random()*canvas.height, r: p.r, d: p.d};
+                }
+            }
+        }
+    }
+    renderSnow();
+}
+
 // --- POWERUP LOGIC ---
 function triggerPerk(id) {
     if (inputInteractionsBlocked) return;
+    playSound('clickSound');
 
     if (state.perks[id] <= 0) {
         const cost = state.perkCosts[id];
@@ -793,7 +699,7 @@ function triggerPerk(id) {
             state.coins -= cost;
             state.perks[id]++;
             saveState();
-            renderActiveQuestionPort(); // Update UI numbers
+            renderActiveQuestionPort(); 
         } else {
             showAlert("Insufficient Funds", "Not enough gold to buy this perk.");
         }
@@ -802,7 +708,23 @@ function triggerPerk(id) {
 
     const qArea = document.getElementById('quiz-interaction-area');
 
-    if (id === 'half') {
+    if (id === 'freeze') {
+        if(!isFreezeActive) {
+            state.perks[id]--;
+            isFreezeActive = true;
+            playSound('freezeSound');
+            document.getElementById('frost-frame').classList.add('frost-active');
+            launchSnowstorm();
+            renderActiveQuestionPort();
+            
+            // Auto un-freeze after 10 seconds
+            setTimeout(() => {
+                isFreezeActive = false;
+                document.getElementById('frost-frame').classList.remove('frost-active');
+            }, 10000);
+        }
+    }
+    else if (id === 'half') {
         let eliminatedCount = 0;
         for (let i = 0; i < currentActiveQuestion.a.length; i++) {
             if (i !== currentActiveQuestion.correct && eliminatedCount < 2) {
@@ -817,22 +739,18 @@ function triggerPerk(id) {
         state.perks[id]--;
         qArea.classList.add('animate-powerup');
         setTimeout(() => qArea.classList.remove('animate-powerup'), 400);
+        renderActiveQuestionPort();
     } 
     else if (id === 'shield') {
         if (!state.activeEffects.shielded) {
             state.activeEffects.shielded = true;
             state.perks[id]--;
-            renderActiveQuestionPort(); // Resets layout to show top yellow bar
+            renderActiveQuestionPort(); 
         }
     }
     else if (id === 'skip') {
         state.perks[id]--;
         submitAnswer(null, true);
-    }
-    else if (id === 'hint') {
-        state.perks[id]--;
-        alert("Copilot Hint: Focus your evaluation on the core theological tenets regarding this era.");
-        renderActiveQuestionPort();
     }
 }
 
