@@ -2,501 +2,78 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Revelators Pathfinders</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@500;600;700&display=swap');
-
-        :root {
-            --bg-color: #0A0A1A;
-            --glow-color: #00FF87;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: white;
-            font-family: 'Rajdhani', sans-serif;
-            overflow-x: hidden;
-            background-image: radial-gradient(circle at 50% 0%, #1a1a3a 0%, #0a0a1a 100%);
-            touch-action: manipulation;
-        }
-
-        h1, h2, h3, .brand-text { font-family: 'Orbitron', sans-serif; }
-
-        /* Glassmorphism */
-        .glass-panel {
-            background: rgba(16, 20, 43, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.05);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        }
-
-        /* Rainbow Animation for Correct Answers */
-        @keyframes rainbow-bg {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .correct-answer-anim {
-            background: linear-gradient(270deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
-            background-size: 1400% 1400%;
-            animation: rainbow-bg 1.5s ease infinite;
-            border-color: transparent !important;
-            color: white !important;
-            transform: scale(1.02);
-            transition: transform 0.3s ease;
-        }
-
-        /* Dramatic Power-up Animation */
-        @keyframes dramatic-powerup {
-            0% { filter: brightness(1) scale(1); box-shadow: 0 0 0 transparent; }
-            50% { filter: brightness(2) scale(1.15); box-shadow: 0 0 40px var(--glow-color); z-index: 50; }
-            100% { filter: brightness(1) scale(1); box-shadow: 0 0 0 transparent; }
-        }
-        
-        .powerup-active {
-            animation: dramatic-powerup 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-        }
-
-        /* Ambient Snow */
-        .snowflake {
-            position: absolute;
-            top: -20px;
-            z-index: 5;
-            pointer-events: none;
-            color: #C0E8FF;
-            text-shadow: 0 0 15px rgba(255, 255, 255, 0.9), 0 0 30px rgba(0, 210, 255, 0.6);
-            animation: fall linear forwards;
-        }
-
-        @keyframes fall {
-            0% { transform: translateY(-20px) rotate(0deg); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
-        }
-
-        ::-webkit-scrollbar { display: none; }
-        
-        /* Power-Up Bag Button */
-        #bag-button {
-            position: fixed;
-            bottom: 90px;
-            right: 20px;
-            background: linear-gradient(135deg, #FF007A, #7928CA);
-            border-radius: 50%;
-            width: 65px;
-            height: 65px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            box-shadow: 0 0 25px rgba(121, 40, 202, 0.6);
-            z-index: 40;
-            transition: transform 0.2s;
-            cursor: pointer;
-        }
-        #bag-button:active { transform: scale(0.9); }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;600&display=swap');
+        body { font-family: 'Rajdhani', sans-serif; background: #05050a; color: #e2e8f0; }
+        .glass { background: rgba(20, 20, 35, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .locked { opacity: 0.6; filter: grayscale(1); }
     </style>
 </head>
-<body class="h-screen flex flex-col relative">
+<body class="min-h-screen flex flex-col">
 
-    <audio id="bgMusic" loop src="https://actions.google.com/sounds/v1/ambiences/space_ship_hum.ogg"></audio>
-    <audio id="sfxCorrect" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
-    <audio id="sfxWrong" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
-    <audio id="sfxPowerup" src="https://actions.google.com/sounds/v1/science_fiction/power_up.ogg"></audio>
+    <audio id="sfxCorrect" src="https://actions.google.com/sounds/v1/musical/bell_pluck_correct_answer.ogg"></audio>
 
-    <div class="flex justify-between items-center p-4 z-20">
-        <button id="ambiance-toggle" class="glass-panel px-4 py-2 rounded-full text-xs font-bold text-[#00FF87] flex items-center gap-2 transition-all">
-            <div class="w-2 h-2 rounded-full bg-[#00FF87] animate-pulse"></div> AMBIANCE: ON
-        </button>
-        <div class="glass-panel px-4 py-2 rounded-xl text-xs font-bold text-[#FFB000] flex items-center gap-2">
-            <i class="fa-solid fa-coins"></i> <span id="coin-balance">895</span>
-        </div>
+    <div class="p-4 flex justify-between items-center glass">
+        <h1 class="font-bold text-lg tracking-widest text-cyan-400">REVELATORS</h1>
+        <div id="coin-display" class="text-yellow-400 font-bold">💰 500</div>
     </div>
 
-    <div id="main-content" class="flex-1 overflow-y-auto pb-28 z-10 px-4">
-        
-        <div id="home-screen" class="space-y-4 animate-fade-in">
-            <div class="text-center mb-6 mt-4">
-                <h1 class="brand-text text-3xl text-[#4A90E2] tracking-widest uppercase mb-1">Revelators</h1>
-                <h2 class="brand-text text-xl text-[#3A7CA5] tracking-widest uppercase opacity-70">Pathfinders</h2>
-            </div>
-            
-            <p class="text-xs text-center text-gray-400 mb-4 font-bold tracking-widest uppercase">Select Book (50 Nodes Each)</p>
+    <main id="app" class="flex-1 p-4 space-y-4">
+        </main>
 
-            <div class="space-y-3">
-                <div onclick="startSector('NT', 'New Testament')" class="glass-panel rounded-2xl p-4 flex justify-between items-center border-l-4 border-l-[#0047FF] active:scale-95 transition-transform cursor-pointer">
-                    <div>
-                        <h3 class="font-bold text-[#A3C2FF]">NEW TESTAMENT</h3>
-                        <p class="text-xs text-gray-400">50 Questions Available</p>
-                    </div>
-                    <i class="fa-solid fa-play text-[#0047FF] text-xl"></i>
-                </div>
-                <div onclick="startSector('OT', 'Old Testament')" class="glass-panel rounded-2xl p-4 flex justify-between items-center border-l-4 border-l-[#FFB000] active:scale-95 transition-transform cursor-pointer">
-                    <div>
-                        <h3 class="font-bold text-[#FFE066]">OLD TESTAMENT</h3>
-                        <p class="text-xs text-gray-400">50 Questions Available</p>
-                    </div>
-                    <i class="fa-solid fa-play text-[#FFB000] text-xl"></i>
-                </div>
-                <div onclick="startSector('EGW', 'E.G. White Writings')" class="glass-panel rounded-2xl p-4 flex justify-between items-center border-l-4 border-l-[#FF007A] active:scale-95 transition-transform cursor-pointer">
-                    <div>
-                        <h3 class="font-bold text-[#FF66B2]">E.G. WHITE</h3>
-                        <p class="text-xs text-gray-400">50 Questions Available</p>
-                    </div>
-                    <i class="fa-solid fa-play text-[#FF007A] text-xl"></i>
-                </div>
-                <div onclick="startSector('SDA', 'SDA Teachings')" class="glass-panel rounded-2xl p-4 flex justify-between items-center border-l-4 border-l-[#00FF87] active:scale-95 transition-transform cursor-pointer">
-                    <div>
-                        <h3 class="font-bold text-[#66FFB2]">SDA TEACHINGS</h3>
-                        <p class="text-xs text-gray-400">50 Questions Available</p>
-                    </div>
-                    <i class="fa-solid fa-play text-[#00FF87] text-xl"></i>
-                </div>
-            </div>
-        </div>
-
-        <div id="activities-screen" class="hidden space-y-4">
-            <h1 class="brand-text text-2xl text-center text-white tracking-widest uppercase mb-4 mt-2">Daily Operations</h1>
-            <div id="daily-tasks-container" class="space-y-3">
-                </div>
-        </div>
-
-        <div id="quiz-screen" class="hidden flex-col h-full pt-2">
-            <div class="flex justify-between items-center mb-4">
-                <div class="text-xs font-bold tracking-widest text-gray-300">
-                    <span id="current-sector-title" class="text-[#A3C2FF]">SECTOR</span> • Q: <span id="current-node">1</span>/50
-                </div>
-                <div class="text-xl font-bold text-[#FFB000] font-['Orbitron'] bg-black/50 px-3 py-1 rounded-lg" id="timer">00:30</div>
-            </div>
-
-            <div class="glass-panel p-6 rounded-3xl mb-6 shadow-lg min-h-[140px] flex items-center justify-center text-center relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-full h-1 bg-gray-800">
-                    <div id="progress-bar" class="bg-[#00FF87] h-full transition-all duration-300" style="width: 2%"></div>
-                </div>
-                <h2 id="question-text" class="text-lg font-semibold leading-relaxed">Loading scriptural data...</h2>
-            </div>
-
-            <div id="options-container" class="space-y-3">
-                </div>
-        </div>
-    </div>
-
-    <div id="bag-button" class="hidden" onclick="togglePowerupMenu()">🎒</div>
-
-    <div id="powerup-menu" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end justify-center pb-24 px-4 opacity-0 transition-opacity duration-300">
-        <div class="glass-panel w-full max-w-md rounded-3xl p-6 border-t border-b border-[#FF007A]/50 transform translate-y-full transition-transform duration-300" id="powerup-panel">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl text-white font-['Orbitron']"><i class="fa-solid fa-backpack text-[#FF007A]"></i> Armory Bag</h3>
-                <button onclick="togglePowerupMenu()" class="text-gray-400 bg-white/10 w-8 h-8 rounded-full flex items-center justify-center active:scale-90"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="grid grid-cols-5 gap-y-6 gap-x-3" id="powerup-grid">
-                </div>
-        </div>
-    </div>
-
-    <div class="glass-panel fixed bottom-0 w-full flex justify-around items-center p-4 z-30 pb-6 rounded-t-3xl border-t border-white/10">
-        <div onclick="switchTab('home')" class="flex flex-col items-center gap-1 text-[#8B5CF6] cursor-pointer transition-colors" id="nav-home">
-            <i class="fa-solid fa-house text-xl"></i>
-            <span class="text-[10px] font-bold tracking-wider">HOME</span>
-        </div>
-        <div onclick="switchTab('activities')" class="flex flex-col items-center gap-1 text-gray-500 cursor-pointer transition-colors" id="nav-activities">
-            <i class="fa-solid fa-list-check text-xl"></i>
-            <span class="text-[10px] font-bold tracking-wider">ACTIVITIES</span>
-        </div>
-        <div class="flex flex-col items-center gap-1 text-gray-500 cursor-pointer transition-colors" id="nav-copilot">
-            <i class="fa-solid fa-robot text-xl"></i>
-            <span class="text-[10px] font-bold tracking-wider">COPILOT</span>
-        </div>
-    </div>
+    <nav class="glass flex justify-around p-4">
+        <button onclick="renderView('home')">🏠 Home</button>
+        <button onclick="renderView('tasks')">📋 Tasks</button>
+        <button onclick="renderView('copilot')">🤖 Copilot</button>
+    </nav>
 
     <script>
-        /* ==========================================
-           1. DATA STRUCTURES (50 Questions per book)
-           ========================================== */
-        
-        // Generator creating 50 valid question nodes per book
-        const generateQuestions = (bookName) => {
-            const arr = [];
-            for(let i = 1; i <= 50; i++) {
-                arr.push({
-                    q: `${bookName} Question ${i}: This is a placeholder for your actual scriptural question text. What is the answer?`,
-                    options: [
-                        `Correct Answer ${i}`, 
-                        `Wrong Option A`, 
-                        `Wrong Option B`, 
-                        `Wrong Option C`
-                    ],
-                    correctIndex: 0 // Index 0 is correct in this template (You should randomize this in production)
-                });
-            }
-            return arr;
+        let gameState = JSON.parse(localStorage.getItem('gameData')) || {
+            coins: 500,
+            unlocked: ['NT', 'OT', 'MIX']
         };
 
-        const database = {
-            NT: generateQuestions("New Testament"),
-            OT: generateQuestions("Old Testament"),
-            EGW: generateQuestions("E.G. White"),
-            SDA: generateQuestions("SDA Teachings")
+        function save() { localStorage.setItem('gameData', JSON.stringify(gameState)); }
+
+        const books = {
+            NT: { title: "New Testament", cost: 0 },
+            OT: { title: "Old Testament", cost: 0 },
+            MIX: { title: "Grand Mixture", cost: 0 },
+            EGW: { title: "E.G. White", cost: 1000 },
+            BLITZ: { title: "Mastery Blitz", cost: 500 },
+            SDA: { title: "SDA Teachings", cost: 1500 }
         };
 
-        // 5 Tiered Daily Activities
-        const dailyActivities = [
-            { level: "EASY", desc: "Read 5 verses from the New Testament", reward: 50, color: "text-[#00FF87]" },
-            { level: "NORMAL", desc: "Complete 10 nodes in Old Testament", reward: 100, color: "text-[#4A90E2]" },
-            { level: "HARD", desc: "Get 5 questions correct in a row", reward: 250, color: "text-[#FFB000]" },
-            { level: "EXPERT", desc: "Use the Insight Power-up twice", reward: 500, color: "text-[#FF007A]" },
-            { level: "EXTREME", desc: "Finish a 50-question book flawlessly", reward: 1000, color: "text-[#FF0000]" }
-        ];
-
-        // 10 Cost-based Power-ups for the Bag
-        const powerups = [
-            { id: 1, name: "Freeze", icon: "fa-snowflake", cost: 50, color: "#00d2ff" },
-            { id: 2, name: "50/50", icon: "fa-scale-balanced", cost: 100, color: "#ff5e62" },
-            { id: 3, name: "Shield", icon: "fa-shield", cost: 150, color: "#f9d423" },
-            { id: 4, name: "Warp", icon: "fa-clock", cost: 200, color: "#8B5CF6" },
-            { id: 5, name: "Divine", icon: "fa-bolt", cost: 300, color: "#FFB000" },
-            { id: 6, name: "Reveal", icon: "fa-eye", cost: 350, color: "#00FF87" },
-            { id: 7, name: "Revive", icon: "fa-heart", cost: 400, color: "#FF007A" },
-            { id: 8, name: "Double", icon: "fa-xmark", cost: 450, color: "#4A90E2" },
-            { id: 9, name: "Insight", icon: "fa-book-bible", cost: 500, color: "#A3C2FF" },
-            { id: 10, name: "Skip", icon: "fa-forward-step", cost: 600, color: "#ff0844" }
-        ];
-
-        /* ==========================================
-           2. GAME STATE & AUDIO
-           ========================================== */
-        let currentCoins = 895;
-        let ambianceOn = true;
-        let activeSector = null;
-        let currentIndex = 0;
-        let snowInterval = null;
-
-        function init() {
-            renderActivities();
-            renderPowerups();
-            startSnow();
-            document.getElementById('bgMusic').volume = 0.2;
-            document.getElementById('sfxCorrect').volume = 0.6;
-            document.getElementById('sfxWrong').volume = 0.4;
-            document.getElementById('sfxPowerup').volume = 0.8;
-        }
-
-        /* ==========================================
-           3. UI NAVIGATION LOGIC
-           ========================================== */
-        function switchTab(tab) {
-            document.getElementById('home-screen').style.display = tab === 'home' ? 'block' : 'none';
-            document.getElementById('activities-screen').style.display = tab === 'activities' ? 'block' : 'none';
-            document.getElementById('quiz-screen').style.display = tab === 'quiz' ? 'flex' : 'none';
-            
-            // Show bag ONLY during quiz
-            document.getElementById('bag-button').style.display = tab === 'quiz' ? 'flex' : 'none';
-
-            // Update Nav colors
-            ['home', 'activities', 'copilot'].forEach(t => {
-                const el = document.getElementById(`nav-${t}`);
-                if(el) el.className = t === tab ? 
-                    'flex flex-col items-center gap-1 text-[#8B5CF6] cursor-pointer transition-colors' : 
-                    'flex flex-col items-center gap-1 text-gray-500 cursor-pointer transition-colors';
-            });
-
-            // Close powerup menu if open and switching tabs
-            if(tab !== 'quiz' && !document.getElementById('powerup-menu').classList.contains('hidden')) {
-                togglePowerupMenu();
-            }
-        }
-
-        document.getElementById('ambiance-toggle').addEventListener('click', () => {
-            ambianceOn = !ambianceOn;
-            const btn = document.getElementById('ambiance-toggle');
-            const bgm = document.getElementById('bgMusic');
-            
-            if(ambianceOn) {
-                btn.innerHTML = `<div class="w-2 h-2 rounded-full bg-[#00FF87] animate-pulse"></div> AMBIANCE: ON`;
-                btn.classList.replace('text-gray-500', 'text-[#00FF87]');
-                bgm.play();
-                startSnow();
-            } else {
-                btn.innerHTML = `<div class="w-2 h-2 rounded-full bg-gray-600"></div> AMBIANCE: OFF`;
-                btn.classList.replace('text-[#00FF87]', 'text-gray-500');
-                bgm.pause();
-                stopSnow();
-            }
-        });
-
-        /* ==========================================
-           4. QUIZ & GAMEPLAY LOGIC
-           ========================================== */
-        function startSector(sectorCode, sectorTitle) {
-            activeSector = sectorCode;
-            currentIndex = 0;
-            switchTab('quiz');
-            document.getElementById('current-sector-title').innerText = sectorTitle.toUpperCase();
-            
-            // Interaction required to start audio on mobile
-            if(ambianceOn) document.getElementById('bgMusic').play().catch(e => console.log("Audio prep", e));
-            
-            loadQuestion();
-        }
-
-        function loadQuestion() {
-            if(currentIndex >= 50) {
-                alert("Book Completed! Generating Rewards.");
-                switchTab('home');
-                return;
-            }
-
-            const data = database[activeSector][currentIndex];
-            document.getElementById('current-node').innerText = currentIndex + 1;
-            document.getElementById('progress-bar').style.width = `${((currentIndex + 1) / 50) * 100}%`;
-            document.getElementById('question-text').innerText = data.q;
-            
-            const optionsContainer = document.getElementById('options-container');
-            optionsContainer.innerHTML = '';
-            
-            // Randomize options for display
-            let displayOptions = [...data.options].map((opt, i) => ({ text: opt, isCorrect: i === data.correctIndex }));
-            displayOptions.sort(() => Math.random() - 0.5);
-
-            displayOptions.forEach((opt) => {
-                const btn = document.createElement('div');
-                btn.className = 'glass-panel p-4 rounded-xl flex justify-between items-center cursor-pointer transition-all hover:bg-white/5 active:scale-95';
-                btn.innerHTML = `<span class="font-semibold text-sm">${opt.text}</span> <div class="w-4 h-4 rounded-full border-2 border-gray-500"></div>`;
-                btn.onclick = () => selectAnswer(btn, opt.isCorrect);
-                optionsContainer.appendChild(btn);
-            });
-        }
-
-        function selectAnswer(element, isCorrect) {
-            // Lock inputs
-            document.querySelectorAll('#options-container > div').forEach(el => el.style.pointerEvents = 'none');
-            
-            if (isCorrect) {
-                element.classList.add('correct-answer-anim');
-                document.getElementById('sfxCorrect').play();
-                updateCoins(20); // Reward
-            } else {
-                element.style.backgroundColor = 'rgba(255, 0, 0, 0.2)';
-                element.style.borderColor = '#ff0000';
-                element.querySelector('div').style.backgroundColor = '#ff0000';
-                document.getElementById('sfxWrong').play();
-            }
-
-            // Advance node
-            setTimeout(() => {
-                currentIndex++;
-                loadQuestion();
-            }, 1800);
-        }
-
-        function updateCoins(amount) {
-            currentCoins += amount;
-            document.getElementById('coin-balance').innerText = currentCoins;
-        }
-
-        /* ==========================================
-           5. POWER-UP & BAG LOGIC
-           ========================================== */
-        function togglePowerupMenu() {
-            const menu = document.getElementById('powerup-menu');
-            const panel = document.getElementById('powerup-panel');
-            
-            if(menu.classList.contains('hidden')) {
-                menu.classList.remove('hidden');
-                setTimeout(() => {
-                    menu.classList.remove('opacity-0');
-                    panel.classList.remove('translate-y-full');
-                }, 10);
-            } else {
-                menu.classList.add('opacity-0');
-                panel.classList.add('translate-y-full');
-                setTimeout(() => {
-                    menu.classList.add('hidden');
-                }, 300);
-            }
-        }
-
-        function renderPowerups() {
-            const grid = document.getElementById('powerup-grid');
-            grid.innerHTML = powerups.map(p => `
-                <div onclick="activatePowerup(${p.id}, ${p.cost}, '${p.color}')" class="flex flex-col items-center gap-1 cursor-pointer group">
-                    <div class="glass-panel w-12 h-12 rounded-xl flex items-center justify-center relative overflow-hidden active:scale-90 transition-transform" id="pup-${p.id}">
-                        <i class="fa-solid ${p.icon} text-xl" style="color: ${p.color}"></i>
-                        <div class="absolute bottom-0 w-full bg-black/60 text-[8px] text-center font-bold py-[2px] text-white backdrop-blur-md">${p.cost}</div>
+        function renderView(view) {
+            const app = document.getElementById('app');
+            if(view === 'home') {
+                app.innerHTML = Object.entries(books).map(([id, b]) => `
+                    <div onclick="unlock('${id}')" class="glass p-5 rounded-xl cursor-pointer ${gameState.unlocked.includes(id) ? '' : 'locked'}">
+                        <h2 class="font-bold text-xl">${b.title}</h2>
+                        <p class="text-sm text-gray-400">${b.cost > 0 ? 'Cost: ' + b.cost + ' 💰' : 'Unlocked'}</p>
                     </div>
-                    <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">${p.name}</span>
-                </div>
-            `).join('');
-        }
-
-        function activatePowerup(id, cost, color) {
-            if (currentCoins >= cost) {
-                updateCoins(-cost);
-                document.getElementById('sfxPowerup').play();
-                
-                const element = document.getElementById(`pup-${id}`);
-                element.style.setProperty('--glow-color', color);
-                
-                // Trigger flash animation
-                element.classList.remove('powerup-active');
-                void element.offsetWidth; // force reflow
-                element.classList.add('powerup-active');
-                
-                setTimeout(() => { togglePowerupMenu(); }, 800); // Close bag automatically
-            } else {
-                alert("Insufficient Scriptural Coins for this Power-Up!");
+                `).join('');
+            } else if(view === 'copilot') {
+                app.innerHTML = `<div class="glass p-6 rounded-xl"><h2 class="text-cyan-400 font-bold">COPILOT ACTIVE</h2><p class="mt-2">System initialized. Awaiting input...</p><input class="w-full mt-4 bg-black p-2 rounded" placeholder="Transmit query..."></div>`;
             }
         }
 
-        /* ==========================================
-           6. RENDER ACTIVITIES
-           ========================================== */
-        function renderActivities() {
-            document.getElementById('daily-tasks-container').innerHTML = dailyActivities.map(task => `
-                <div class="glass-panel p-4 rounded-2xl flex justify-between items-center border-l-2 border-l-gray-600 active:scale-95 transition-transform">
-                    <div class="flex-1 pr-4">
-                        <span class="text-[10px] font-bold tracking-widest ${task.color} bg-white/5 px-2 py-1 rounded-md mb-1 inline-block">${task.level}</span>
-                        <p class="text-sm font-semibold text-gray-200 mt-1">${task.desc}</p>
-                    </div>
-                    <div class="flex items-center gap-1 text-[#FFB000] font-bold text-sm bg-black/40 px-3 py-2 rounded-xl border border-white/5">
-                        <i class="fa-solid fa-coins text-xs"></i> ${task.reward}
-                    </div>
-                </div>
-            `).join('');
+        function unlock(id) {
+            if(gameState.unlocked.includes(id)) return alert("Loading Sector...");
+            if(gameState.coins >= books[id].cost) {
+                gameState.coins -= books[id].cost;
+                gameState.unlocked.push(id);
+                save();
+                renderView('home');
+            } else {
+                alert("Insufficient coins!");
+            }
         }
 
-        /* ==========================================
-           7. VISUAL EFFECTS (SNOW)
-           ========================================== */
-        function startSnow() {
-            if(snowInterval) clearInterval(snowInterval);
-            snowInterval = setInterval(() => {
-                if(!ambianceOn) return;
-                const snow = document.createElement('div');
-                snow.className = 'snowflake';
-                snow.style.left = Math.random() * 100 + 'vw';
-                snow.style.fontSize = (Math.random() * 20 + 10) + 'px';
-                snow.style.animationDuration = (Math.random() * 5 + 4) + 's'; // 4-9s fall
-                snow.style.opacity = Math.random() * 0.8 + 0.2;
-                snow.innerHTML = ['❄', '❅', '❆'][Math.floor(Math.random() * 3)];
-                
-                document.body.appendChild(snow);
-                setTimeout(() => { snow.remove(); }, 9000);
-            }, 300);
-        }
-
-        function stopSnow() {
-            if(snowInterval) clearInterval(snowInterval);
-            document.querySelectorAll('.snowflake').forEach(el => el.remove());
-        }
-
-        // Boot
-        window.onload = init;
+        renderView('home');
     </script>
 </body>
 </html>
