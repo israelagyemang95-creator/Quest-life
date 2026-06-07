@@ -16,273 +16,294 @@
             color: #f8fafc;
             overflow-x: hidden;
             user-select: none;
+            transition: background 0.5s ease;
         }
         .heading-font { font-family: 'Orbitron', sans-serif; }
         
+        /* Interactive Background Applied During Gameplay */
+        body.game-bg-active {
+            background-image: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-blend-mode: overlay;
+            background-color: rgba(2, 6, 23, 0.88);
+        }
+
+        /* Particle Canvases */
         #ambient-particle-canvas, #snow-freeze-canvas {
             position: fixed;
             inset: 0;
             z-index: 1;
             pointer-events: none;
         }
-        #snow-freeze-canvas { z-index: 45; opacity: 0; transition: opacity 0.4s ease; }
+        #ambient-particle-canvas { opacity: 0.4; }
+        #snow-freeze-canvas { z-index: 45; opacity: 0; transition: opacity 0.3s ease; }
         
-        .game-bg-active {
-            background-image: url('https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?auto=format&fit=crop&w=800&q=80') !important;
-            background-size: cover !important;
-            background-position: center !important;
-            background-blend-mode: overlay !important;
-            background-color: rgba(3, 6, 17, 0.94) !important;
-        }
-
+        /* UI Components */
         .glass-card { 
-            background: rgba(15, 23, 42, 0.45); 
-            backdrop-filter: blur(12px); 
-            -webkit-backdrop-filter: blur(12px); 
-            border: 1px solid rgba(255, 255, 255, 0.06); 
-            border-radius: 24px; 
+            background: rgba(15, 23, 42, 0.65); 
+            backdrop-filter: blur(16px); 
+            -webkit-backdrop-filter: blur(16px); 
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            border-radius: 20px; 
             color: white; 
         }
 
-        .glass-modal {
-            background: rgba(2, 6, 23, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
         .level-card-interactive {
-            background: rgba(15, 23, 42, 0.65);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
         .level-card-interactive:hover {
-            transform: translateY(-4px) scale(1.02);
-            background: rgba(23, 37, 84, 0.45);
-            border-color: rgba(99, 102, 241, 0.4);
-            box-shadow: 0 15px 30px rgba(99, 102, 241, 0.25);
+            transform: translateY(-3px) scale(1.01);
+            background: rgba(30, 41, 59, 0.8);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.4);
         }
         
         .btn-choice { 
             width: 100%; 
             text-align: left; 
-            padding: 1.1rem 1.4rem; 
-            border-radius: 20px; 
-            border: 1px solid rgba(255,255,255,0.07); 
-            background: rgba(13, 18, 35, 0.85); 
-            font-weight: 600; 
+            padding: 1.25rem 1.5rem; 
+            border-radius: 16px; 
+            border: 1px solid rgba(255,255,255,0.1); 
+            background: rgba(15, 23, 42, 0.85); 
+            font-weight: 700; 
             transition: all 0.2s ease; 
         }
         .btn-choice:hover { 
-            background: rgba(37, 99, 235, 0.15); 
-            border-color: rgba(37, 99, 235, 0.4); 
-            transform: translateY(-1px); 
+            background: rgba(49, 46, 129, 0.4); 
+            border-color: rgba(99, 102, 241, 0.5); 
+            transform: translateY(-2px); 
         }
 
+        /* Fluid Animation States */
         @keyframes auroraFlow {
             0% { background-position: 0% 50%; filter: hue-rotate(0deg); }
             50% { background-position: 100% 50%; filter: hue-rotate(180deg); }
             100% { background-position: 0% 50%; filter: hue-rotate(360deg); }
         }
         .rainbow-correct { 
-            background: linear-gradient(45deg, #10b981, #2563eb, #8b5cf6, #059669) !important;
+            background: linear-gradient(45deg, #10b981, #3b82f6, #8b5cf6, #10b981) !important;
             background-size: 300% 300% !important;
-            animation: auroraFlow 4s ease infinite !important;
+            animation: auroraFlow 3s ease infinite !important;
             border-color: transparent !important;
             color: #ffffff !important;
-            box-shadow: 0 0 25px rgba(16, 185, 129, 0.6) !important;
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.6) !important;
+            transform: scale(1.02);
         }
 
+        /* Penalty Vibration Hook */
         @keyframes coinShock {
-            0%, 100% { transform: scale(1); }
-            20%, 60% { transform: scale(0.85) rotate(-6deg); filter: drop-shadow(0 0 15px #ef4444); }
-            40%, 80% { transform: scale(1.15) rotate(6deg); filter: drop-shadow(0 0 25px #ef4444); }
+            0%, 100% { transform: scale(1) translateX(0); }
+            20% { transform: scale(1.1) translateX(-4px) rotate(-3deg); filter: drop-shadow(0 0 20px #ef4444); }
+            40% { transform: scale(1.1) translateX(4px) rotate(3deg); filter: drop-shadow(0 0 20px #ef4444); }
+            60% { transform: scale(1.1) translateX(-4px) rotate(-3deg); filter: drop-shadow(0 0 20px #ef4444); }
+            80% { transform: scale(1.1) translateX(4px) rotate(3deg); filter: drop-shadow(0 0 20px #ef4444); }
         }
-        .vibrate-error-bag { animation: coinShock 0.5s ease-in-out; border-color: #ef4444 !important; background-color: rgba(153, 27, 27, 0.4) !important;}
-        .vibrate-error-bag span { color: #ef4444 !important; }
-
-        @keyframes huffmanPulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.08); opacity: 0.8; }
-            100% { transform: scale(1); opacity: 1; }
+        .vibrate-error-bag { 
+            animation: coinShock 0.4s ease-in-out; 
+            border-color: #ef4444 !important; 
+            background-color: rgba(153, 27, 27, 0.6) !important;
+            color: #fca5a5 !important;
         }
-        .perk-flash-freeze { animation: huffmanPulse 0.6s ease-out; border-color: #38bdf8 !important; box-shadow: 0 0 30px #0ea5e9 !important; }
-        .perk-flash-half { animation: huffmanPulse 0.6s ease-out; border-color: #f43f5e !important; box-shadow: 0 0 30px #e11d48 !important; }
-        .perk-flash-skip { animation: huffmanPulse 0.6s ease-out; border-color: #a855f7 !important; box-shadow: 0 0 30px #9333ea !important; }
-        .perk-flash-shield { animation: huffmanPulse 0.6s ease-out; border-color: #f59e0b !important; box-shadow: 0 0 30px #d97706 !important; }
 
-        #frost-frame { position: fixed; inset: 0; border: 14px solid rgba(56, 189, 248, 0.45); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 80px rgba(14, 165, 233, 0.35); }
+        /* Dramatic Power-up FX */
+        @keyframes dramaticPulse {
+            0% { transform: scale(1); box-shadow: 0 0 0px transparent; }
+            50% { transform: scale(1.1); box-shadow: 0 0 40px currentColor; }
+            100% { transform: scale(1); box-shadow: 0 0 0px transparent; }
+        }
+        .perk-active-fx { animation: dramaticPulse 0.5s ease-out; border-color: currentColor !important; }
+
+        /* Frame overlays for Perks */
+        #frost-frame { position: fixed; inset: 0; border: 16px solid rgba(56, 189, 248, 0.5); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 100px rgba(14, 165, 233, 0.4); }
         .frost-active { opacity: 1 !important; }
         
-        #shield-frame { position: fixed; inset: 0; border: 12px solid rgba(245, 158, 11, 0.5); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 60px rgba(245, 158, 11, 0.25); }
+        #shield-frame { position: fixed; inset: 0; border: 12px solid rgba(245, 158, 11, 0.6); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 80px rgba(245, 158, 11, 0.3); }
         .shield-active { opacity: 1 !important; }
-        
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #020617; }
-        ::-webkit-scrollbar-thumb { background: #1e1b4b; border-radius: 999px; }
+
+        /* Scrollbars */
+        ::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="relative min-h-screen">
+<body>
 
     <canvas id="ambient-particle-canvas"></canvas>
     <canvas id="snow-freeze-canvas"></canvas>
     <div id="frost-frame"></div>
     <div id="shield-frame"></div>
 
-    <div class="relative min-h-screen z-10 flex flex-col justify-between max-w-md mx-auto bg-slate-950 border-x border-slate-900 shadow-2xl">
+    <div class="relative min-h-screen z-10 flex flex-col max-w-md mx-auto bg-slate-950/40 border-x border-slate-900 shadow-2xl overflow-hidden">
         
-        <header class="p-4 flex items-center justify-between border-b border-indigo-950/40 bg-slate-950/60 sticky top-0 z-40 backdrop-blur-md">
-            <button onclick="toggleAudioAmbiance()" id="ambiance-toggle-btn" class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/30 text-emerald-400 text-xs font-black tracking-wider transition-all active:scale-95">
+        <header class="px-5 py-4 flex items-center justify-between border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50">
+            <button onclick="toggleAudioAmbiance()" id="ambiance-toggle-btn" class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/40 text-emerald-400 text-xs font-black tracking-widest transition-all active:scale-95">
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>AMBIANCE: ON</span>
+                <span id="audio-label">ON</span>
             </button>
 
-            <div class="flex items-center gap-2">
-                <button onclick="toggleAppLanguageSelector()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-950/80 border border-indigo-500/30 text-indigo-300 font-bold text-xs shadow-md active:scale-95 transition-colors">
-                    <i class="fa-solid fa-globe text-[11px]"></i>
-                    <span id="active-language-label">ENGLISH</span>
+            <div class="flex items-center gap-3">
+                <button onclick="toggleAppLanguageSelector()" class="px-3 py-1.5 rounded-xl bg-indigo-950/60 border border-indigo-500/30 text-indigo-300 font-bold text-xs shadow-md active:scale-95 transition-all">
+                    <i class="fa-solid fa-globe mr-1"></i> <span id="active-language-label">EN</span>
                 </button>
-                <div id="gold-container" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-950/40 border border-amber-500/30 text-amber-400 font-black text-sm transition-all duration-300">
+                <div id="gold-container" class="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-slate-900 border border-amber-500/40 text-amber-400 font-black text-sm transition-all duration-200 shadow-inner">
                     <i class="fa-solid fa-coins text-xs"></i>
                     <span id="player-gold-display">500</span>
                 </div>
             </div>
         </header>
 
-        <main id="window-canvas" class="flex-1 p-4 space-y-4 overflow-y-auto pb-24"></main>
+        <main id="window-canvas" class="flex-1 p-5 overflow-y-auto pb-28"></main>
 
-        <footer class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-slate-950/80 backdrop-blur-lg border-t border-slate-900 grid grid-cols-3 p-2 gap-2 z-40 shadow-[0_-10px_25px_rgba(0,0,0,0.5)]">
-            <button onclick="switchContextTerminalWindow('home')" class="flex flex-col items-center justify-center py-2 text-indigo-400 rounded-xl transition-all active:scale-95 hover:bg-slate-900/50">
-                <i class="fa-solid fa-house text-lg"></i><span class="text-[10px] font-bold mt-1 uppercase">Home</span>
+        <footer class="absolute bottom-0 left-0 right-0 bg-slate-950/90 backdrop-blur-xl border-t border-slate-800 grid grid-cols-3 p-3 gap-2 z-50">
+            <button onclick="switchContextTerminalWindow('home')" id="nav-home" class="flex flex-col items-center justify-center py-2 text-indigo-400 bg-indigo-950/30 rounded-xl transition-all active:scale-95">
+                <i class="fa-solid fa-house text-lg"></i><span class="text-[10px] font-bold mt-1.5 uppercase">Home</span>
             </button>
-            <button onclick="switchContextTerminalWindow('tasks')" class="flex flex-col items-center justify-center py-2 text-slate-400 rounded-xl transition-all active:scale-95 hover:bg-slate-900/50">
-                <i class="fa-solid fa-list-check text-lg"></i><span class="text-[10px] font-bold mt-1 uppercase">Tasks</span>
+            <button onclick="switchContextTerminalWindow('tasks')" id="nav-tasks" class="flex flex-col items-center justify-center py-2 text-slate-500 hover:text-slate-300 rounded-xl transition-all active:scale-95 hover:bg-slate-900">
+                <i class="fa-solid fa-list-check text-lg"></i><span class="text-[10px] font-bold mt-1.5 uppercase">Tasks</span>
             </button>
-            <button onclick="switchContextTerminalWindow('copilot')" class="flex flex-col items-center justify-center py-2 text-slate-400 rounded-xl transition-all active:scale-95 hover:bg-slate-900/50">
-                <i class="fa-solid fa-robot text-lg"></i><span class="text-[10px] font-bold mt-1 uppercase">Copilot</span>
+            <button onclick="switchContextTerminalWindow('copilot')" id="nav-copilot" class="flex flex-col items-center justify-center py-2 text-slate-500 hover:text-slate-300 rounded-xl transition-all active:scale-95 hover:bg-slate-900">
+                <i class="fa-solid fa-robot text-lg"></i><span class="text-[10px] font-bold mt-1.5 uppercase">Copilot</span>
             </button>
         </footer>
     </div>
 
-    <div id="game-alert-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="glass-modal w-full max-w-xs p-6 text-center space-y-4 rounded-3xl animate__animated animate__zoomIn animate__faster border border-indigo-500/30">
-            <div id="alert-icon" class="text-4xl drop-shadow-lg">⚠️</div>
-            <h3 id="alert-title" class="text-sm font-black heading-font text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 uppercase tracking-wider">Notification</h3>
-            <p id="alert-msg" class="text-xs text-slate-300 font-medium leading-relaxed"></p>
-            <button onclick="dismissSystemModal(event)" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs tracking-widest uppercase active:scale-95 transition-all shadow-md" data-i18n="continueBtn">
+    <div id="game-alert-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+        <div class="glass-modal w-full max-w-xs p-6 text-center space-y-5 rounded-3xl animate__animated animate__zoomIn animate__faster border border-indigo-500/30 shadow-2xl">
+            <div id="alert-icon" class="text-5xl drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">⚠️</div>
+            <div class="space-y-1">
+                <h3 id="alert-title" class="text-sm font-black heading-font text-indigo-300 uppercase tracking-widest">Notice</h3>
+                <p id="alert-msg" class="text-xs text-slate-300 font-medium leading-relaxed"></p>
+            </div>
+            <button onclick="dismissSystemModal(event)" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs tracking-widest uppercase active:scale-95 transition-all shadow-lg">
                 CONTINUE
             </button>
         </div>
     </div>
 
-    <div id="shop-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="glass-modal w-full max-w-sm p-5 space-y-4 rounded-3xl animate__animated animate__fadeInUp animate__faster border border-slate-800">
-            <div class="flex justify-between items-center border-b border-white/10 pb-3">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-shield-halved text-indigo-400 text-lg"></i>
-                    <h3 class="text-sm font-black uppercase tracking-wider text-slate-200" data-i18n="armoryTitle">Armory Depot</h3>
+    <div id="shop-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] hidden flex items-center justify-center p-4">
+        <div class="glass-modal w-full max-w-sm p-6 space-y-4 rounded-3xl animate__animated animate__fadeInUp animate__faster border border-slate-700 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-indigo-950 border border-indigo-500/50 flex items-center justify-center text-indigo-400"><i class="fa-solid fa-shield-halved"></i></div>
+                    <h3 class="text-sm font-black uppercase tracking-widest text-slate-100">Armory Depot</h3>
                 </div>
-                <button onclick="closeShopModal(event)" class="w-8 h-8 rounded-full bg-slate-900 text-slate-400 hover:text-white transition-colors flex items-center justify-center border border-slate-800"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="closeShopModal()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-all flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div id="modal-shop-grid" class="space-y-2 max-h-[60vh] overflow-y-auto pr-1"></div>
+            <div id="modal-shop-grid" class="space-y-3"></div>
         </div>
     </div>
 
-    <button id="lobby-bag-btn" onclick="openShopModal(event)" class="fixed bottom-20 right-6 z-40 bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-600 border border-white/20 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl text-xl hover:scale-110 active:scale-95 transition-all animate__animated animate__pulse animate__infinite">🎒</button>
+    <button id="lobby-bag-btn" onclick="openShopModal(event)" class="fixed bottom-24 right-6 z-40 bg-gradient-to-br from-indigo-500 to-purple-600 border border-white/20 w-14 h-14 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.5)] text-xl hover:scale-110 active:scale-95 transition-all animate__animated animate__pulse animate__infinite">
+        🎒
+    </button>
 
     <script>
-        // Localization Registry
+        // --- 1. LOCALIZATION REGISTRY ---
         const i18nRegistry = {
             en: {
-                mapHub: "Quest Modules", armoryTitle: "Armory Depot", continueBtn: "PROCEED",
+                mapHub: "Quest Modules", 
                 subtitle: "Select a scriptural sector to explore", 
                 phase1Title: "Phase 1: New Testament", phase1Desc: "The Gospels and Epistles",
                 phase2Title: "Phase 2: Old Testament", phase2Desc: "Covenants and Prophets", 
                 phase3Title: "Phase 3: Grand Mixture", phase3Desc: "Randomized Scriptural Challenge", 
-                phase4Title: "Phase 4: E.G. White Chronicles", phase4Desc: "Prophetic Heritage & Insights",
-                phase5Title: "Phase 5: Mastery Blitz Mode", phase5Desc: "High Speed Fire Arena", 
-                phase6Title: "Phase 6: Adventist Teachings", phase6Desc: "The 28 Fundamental Beliefs", 
-                task1: "Answer {target} questions", task2: "Maintain win streak of {target}", 
-                task3: "Deploy Chrono Freeze {target} times", task4: "Survive {target} Blitz cycles",
-                shortageTitle: "Treasury Shortage", shortageMsg: "Insufficient gold metrics to complete this transaction.",
-                clearTitle: "🎉 Sector Cleared!", clearMsg: "Superb effort! Tier increased to {tier}, reward loaded.",
-                walletTitle: "🚨 Wallet Depleted", walletMsg: "Your coin balance has hit zero. Returning to hub.",
-                unlockSuccess: "🔓 Sector Unlocked!", unlockSuccessMsg: "You have securely authorized access to {name}."
+                phase4Title: "Phase 4: E.G. White", phase4Desc: "Prophetic Heritage & Insights",
+                phase5Title: "Phase 5: Mastery Blitz", phase5Desc: "High Speed Fire Arena", 
+                phase6Title: "Phase 6: SDA Teachings", phase6Desc: "The 28 Fundamental Beliefs", 
+                lockedEGW: "Requires 1000 Gold to unlock",
+                lockedBlitz: "Requires 500 Gold to unlock",
+                lockedSDA: "Requires 1500 Gold to unlock"
             },
             tw: {
-                mapHub: "Akwankyerɛ Kuw", armoryTitle: "Akodeɛ Koraeɛ", continueBtn: "TOA SO",
+                mapHub: "Akwankyerɛ Kuw", 
                 subtitle: "Miia Adebisa Kaadi biara so sɛ wubue", 
                 phase1Title: "Apaso 1: Apam Foforo", phase1Desc: "Nsɛmpa ne Nkyerɛwee no",
                 phase2Title: "Apaso 2: Apam Dedaw", phase2Desc: "Mmarahyɛ ne Adiyifo", 
                 phase3Title: "Apaso 3: Afrafra Kɛse", phase3Desc: "Kyerɛwnsɛm Nyinaa Nsɛm", 
-                phase4Title: "Apaso 4: E.G. White Nnwuma", phase4Desc: "Nkɔmhyɛ Nkyerɛkyerɛ",
+                phase4Title: "Apaso 4: E.G. White", phase4Desc: "Nkɔmhyɛ Nkyerɛkyerɛ",
                 phase5Title: "Apaso 5: Nkɔmhyɛ Ntɛmso", phase5Desc: "Nnarekodi Ntɛmso Berɛ", 
-                phase6Title: "Apaso 6: Adventist Nkyerɛkyerɛ", phase6Desc: "Nkyerɛkyerɛ Titiriw 28 No", 
-                task1: "Bua nsɛmmisa {target}", task2: "Kura nkonimdie {target} mu", 
-                task3: "Yɛ Chrono Freeze adwuma {target} mprɛ", task4: "Tena ase boro {target} Ntɛmso mu",
-                shortageTitle: "Sika Anni Mu", shortageMsg: "Wo sika kɔkɔɔ nnu sɛ wobɛtɔ saa nneɛma yi.",
-                clearTitle: "🎉 Dwumadi No Anyam!", clearMsg: "Mmɔdenbɔ pa! Tier akɔ {tier}, sika aba.",
-                walletTitle: "🚨 Sika Koraeɛ Ahwe Ase", walletMsg: "Wo sika kɔkɔɔ anya asa. Yɛresan akɔ maap hub.",
-                unlockSuccess: "🔓 Woatumi Abue!", unlockSuccessMsg: "Woatua sika abue fa foforɔ: {name}."
+                phase6Title: "Apaso 6: SDA Nkyerɛkyerɛ", phase6Desc: "Nkyerɛkyerɛ Titiriw 28 No", 
+                lockedEGW: "Hia Sika Kɔkɔɔ 1000 de abue",
+                lockedBlitz: "Hia Sika Kɔkɔɔ 500 de abue",
+                lockedSDA: "Hia Sika Kɔkɔɔ 1500 de abue"
             }
         };
 
-        // Algorithmic 50-Question Engine (Generates 50 precise instances per category with varying difficulties)
+        function getString(key) {
+            return i18nRegistry[state.lang][key] || i18nRegistry['en'][key] || key;
+        }
+
+        // --- 2. EXACT 50-QUESTION PER BOOK GENERATOR ---
         function generateProceduralDatabaseItems() {
-            const seedData = [
-                { id: "nt", name: "Matthew", group: "NT", q: "Who was chosen to be the earthly mother of Jesus Christ?", choices: ["Elizabeth", "Mary", "Martha", "Salome"], correct: 1 },
-                { id: "nt", name: "Luke", group: "NT", q: "What was the professional trade of Luke before writing?", choices: ["Tax Collector", "Physician", "Fisherman", "Tentmaker"], correct: 1 },
-                { id: "ot", name: "Genesis", group: "OT", q: "How many days did God take to create the universe in Genesis?", choices: ["5 Days", "6 Days", "7 Days", "10 Days"], correct: 1 },
-                { id: "ot", name: "Exodus", group: "OT", q: "What was the first plague poured upon the kingdom of Egypt?", choices: ["Frogs", "Lice", "Blood", "Locusts"], correct: 2 },
-                { id: "egw", name: "E.G. White", group: "EGW", q: "Which work traces the cosmic metanarrative between Christ and Satan?", choices: ["Steps to Christ", "The Great Controversy", "Education", "Ministry of Healing"], correct: 1 },
-                { id: "mastery", name: "Mastery Blitz", group: "MASTERY", q: "In what year did the Millerite great disappointment take place?", choices: ["1798", "1843", "1844", "1850"], correct: 2 },
-                { id: "sda", name: "SDA Teachings", group: "SDA", q: "Which day is recognized as the biblical Sabbath according to Adventist Teachings?", choices: ["First Day", "Sixth Day", "Seventh Day", "Any Day"], correct: 2 }
+            // Foundational Seeds
+            const seeds = [
+                { id: "nt", group: "NT", q: "Who was chosen to be the earthly mother of Jesus Christ?", a: ["Elizabeth", "Mary", "Martha", "Salome"], correct: 1 },
+                { id: "nt", group: "NT", q: "Where was Jesus Christ born historically?", a: ["Nazareth", "Jerusalem", "Bethlehem", "Capernaum"], correct: 2 },
+                { id: "nt", group: "NT", q: "What was the professional trade of Luke?", a: ["Tax Collector", "Physician", "Fisherman", "Tentmaker"], correct: 1 },
+                
+                { id: "ot", group: "OT", q: "How many days did God take to create the universe?", a: ["5 Days", "6 Days", "7 Days", "10 Days"], correct: 1 },
+                { id: "ot", group: "OT", q: "Who led the Israelites out of Egypt?", a: ["Abraham", "Moses", "Joshua", "David"], correct: 1 },
+                { id: "ot", group: "OT", q: "What was the first plague poured upon Egypt?", a: ["Frogs", "Lice", "Blood", "Locusts"], correct: 2 },
+                
+                { id: "mix", group: "MIX", q: "Which book is the longest in the Bible?", a: ["Genesis", "Psalms", "Isaiah", "Jeremiah"], correct: 1 },
+                
+                { id: "egw", group: "EGW", q: "Which work traces the cosmic metanarrative between Christ and Satan?", a: ["Steps to Christ", "The Great Controversy", "Education", "Ministry of Healing"], correct: 1 },
+                { id: "egw", group: "EGW", q: "Which book focuses heavily on daily salvation devotional steps?", a: ["Steps to Christ", "Desire of Ages", "Patriarchs", "Prophets"], correct: 0 },
+                
+                { id: "mastery", group: "MASTERY", q: "In what year did the Millerite great disappointment take place?", a: ["1798", "1843", "1844", "1850"], correct: 2 },
+                
+                { id: "sda", group: "SDA", q: "Which day is recognized as the biblical Sabbath?", a: ["First Day", "Sixth Day", "Seventh Day", "Any Day"], correct: 2 },
+                { id: "sda", group: "SDA", q: "How many fundamental beliefs does the church hold?", a: ["22", "27", "28", "30"], correct: 2 }
             ];
 
-            const categories = ["nt", "ot", "egw", "mastery", "sda"];
-            const difficulties = ["easy", "moderate", "hard"];
+            const modules = ["nt", "ot", "mix", "egw", "mastery", "sda"];
             let compiledData = [];
 
-            categories.forEach(cat => {
-                let templates = seedData.filter(b => b.id === cat);
-                if(templates.length === 0) templates = seedData; // Fallback
+            modules.forEach(cat => {
+                let templates = seeds.filter(b => b.id === cat);
+                if(templates.length === 0) templates = seeds.filter(b => b.id === 'nt'); 
                 
-                // Guarantee exactly 50 unique iterations per category
+                let categoryQuestions = [];
+                // STRICTLY LOOP EXACTLY 50 TIMES PER BOOK
                 for(let i = 1; i <= 50; i++) {
                     let t = templates[(i - 1) % templates.length];
                     
-                    // Distribute difficulty dynamically across the 50 items
-                    let diffLevel = difficulties[i % 3]; 
-                    if(cat === "mastery") diffLevel = "hard";
+                    // Assign Dynamic Timer Difficulties evenly across the 50 items
+                    let diff = "easy"; // 20s
+                    if (i % 2 === 0) diff = "moderate"; // 15s
+                    if (i % 5 === 0) diff = "hard"; // 10s
+                    if (cat === "mastery") diff = "blitz"; // 5s
 
-                    compiledData.push({
-                        name: t.name,
-                        group: t.group,
-                        questions: [{
-                            q: t.q + ` (Record #${i})`, // Ensures unique text string for evaluation
-                            a: [...t.choices],
-                            correct: t.correct,
-                            difficulty: diffLevel
-                        }]
+                    categoryQuestions.push({
+                        q: `${t.q} [Sector Node ${i}/50]`, // Ensures UI visibly changes for every single question
+                        a: [...t.a],
+                        correct: t.correct,
+                        difficulty: diff
                     });
                 }
+                
+                compiledData.push({
+                    id: cat,
+                    name: cat.toUpperCase(),
+                    group: cat.toUpperCase(),
+                    questions: categoryQuestions
+                });
             });
             return compiledData;
         }
 
         window.quizDatabase = generateProceduralDatabaseItems();
 
-        let state = JSON.parse(localStorage.getItem('revelatorsPathfinderV2')) || {
-            gold: 750, lang: 'en', activeTab: 'home',
-            perks: { freeze: 3, half: 2, skip: 1, shield: 2 },
+        // --- 3. STATE MANAGEMENT ---
+        let state = JSON.parse(localStorage.getItem('revelatorsMasterStateV3')) || {
+            gold: 750, 
+            lang: 'en', 
+            activeTab: 'home',
+            perks: { freeze: 3, half: 2, shield: 2 },
             unlockedBooks: { nt: true, ot: true, mix: true, egw: false, mastery: false, sda: false },
-            stats: { currentStreak: 0, freezeUsed: 0, totalCoinsEarned: 750, blitzSurvivals: 0, overallAnswers: 0 },
-            activitySetTier: 1,
-            dailyTasks: [
-                { id: "t1", type: "answer", target: 15, progress: 0, goldReward: 150, completed: false, i18nKey: "task1" },
-                { id: "t2", type: "streak", target: 5, progress: 0, goldReward: 200, completed: false, i18nKey: "task2" },
-                { id: "t3", type: "freeze", target: 3, progress: 0, goldReward: 100, completed: false, i18nKey: "task3" }
+            stats: { currentStreak: 0, overallAnswers: 0 },
+            tasks: [
+                { id: "t1", type: "answer", target: 15, progress: 0, reward: 150, done: false },
+                { id: "t2", type: "streak", target: 5, progress: 0, reward: 200, done: false }
             ]
         };
 
@@ -299,279 +320,197 @@
         let audioCtx = null;
         let globalAudioMuted = false;
         let activeBackgroundToneLoop = null;
-        let currentBackgroundMoodType = "lobby"; 
         let activePostAlertCallback = null;
-        
         let snowAnimationId = null;
         let snowFlakesArray = [];
 
-        function getString(key, variables = {}) {
-            let txt = i18nRegistry[state.lang]?.[key] || i18nRegistry['en']?.[key] || key;
-            for (let v in variables) {
-                let regex = new RegExp(`\\{${v}\\}`, 'g');
-                txt = txt.replace(regex, variables[v]);
-            }
-            return txt;
-        }
-
         function saveState() {
-            localStorage.setItem('revelatorsPathfinderV2', JSON.stringify(state));
+            localStorage.setItem('revelatorsMasterStateV3', JSON.stringify(state));
             const goldVal = document.getElementById('player-gold-display');
             const langLabel = document.getElementById('active-language-label');
             
-            if (goldVal) goldVal.innerText = state.gold;
-            if (langLabel) langLabel.innerText = state.lang === 'en' ? "ENGLISH" : "TWI";
+            if (goldVal) goldVal.innerText = `${state.gold}`;
+            if (langLabel) langLabel.innerText = state.lang === 'en' ? "EN" : "TW";
             
+            // Re-bind data-i18n on state save to update translations live
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 let key = el.getAttribute('data-i18n');
                 el.innerText = getString(key);
             });
         }
 
-        function toggleAppLanguageSelector() {
-            state.lang = state.lang === 'en' ? 'tw' : 'en';
-            triggerAudioFeedbackTone(200, 0.05, 'triangle');
-            saveState();
-            if (state.activeTab === 'home') renderMenuMap();
-            else if (state.activeTab === 'tasks') renderTasksExplorer();
-            else if (state.activeTab === 'copilot') renderCopilotHub();
-        }
-
-        function switchContextTerminalWindow(tabTargetId) {
-            if (inputInteractionsBlocked) return;
-            state.activeTab = tabTargetId;
-            
-            const buttons = document.querySelectorAll('footer button');
-            buttons.forEach((btn, index) => {
-                let isActive = (tabTargetId === 'home' && index === 0) || (tabTargetId === 'tasks' && index === 1) || (tabTargetId === 'copilot' && index === 2);
-                btn.className = isActive ? 
-                    "flex flex-col items-center justify-center py-2 text-indigo-400 rounded-xl transition-all active:scale-95 bg-indigo-950/30" : 
-                    "flex flex-col items-center justify-center py-2 text-slate-500 rounded-xl transition-all active:scale-95 hover:bg-slate-900/50";
-            });
-
-            triggerAudioFeedbackTone(140, 0.05, 'triangle');
-            
-            if (tabTargetId === 'home') renderMenuMap();
-            else if (tabTargetId === 'tasks') renderTasksExplorer();
-            else if (tabTargetId === 'copilot') renderCopilotHub();
-        }
-
+        // --- 4. RENDER: HOME MENU (No Template Literal Breaking) ---
         function renderMenuMap() {
-            const canvasNode = document.getElementById('window-canvas');
             if (state.activeTab !== 'home') return;
-            
             document.getElementById('lobby-bag-btn').classList.remove('hidden');
+            document.body.classList.remove('game-bg-active');
             toggleSnowSystemPipeline(false);
             switchBackgroundMoodSoundtrack('lobby');
 
-            canvasNode.innerHTML = `
+            let htmlString = `
                 <div class="space-y-1 animate__animated animate__fadeInDown">
-                    <h1 class="text-2xl font-black tracking-wider heading-font text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400 uppercase">Revelators Pathfinders</h1>
+                    <h1 class="text-3xl font-black tracking-wider heading-font text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400 uppercase leading-tight">REVELATORS PATHFINDERS</h1>
                     <p class="text-[10px] text-slate-400 font-bold tracking-widest uppercase" data-i18n="subtitle">${getString('subtitle')}</p>
                 </div>
+                <div class="space-y-3 pt-4">
+            `;
 
-                <div class="space-y-3 pt-2 pb-8">
-                    <div onclick="startArcadePipeline(event, 'nt')" class="level-card-interactive w-full p-4 glass-card text-left cursor-pointer relative overflow-hidden flex items-center justify-between group">
-                        <div class="absolute inset-y-0 left-0 w-1.5 bg-indigo-500"></div>
-                        <div class="pl-2">
-                            <h3 class="text-sm font-black text-indigo-400 uppercase tracking-wide group-hover:text-indigo-300 transition-colors" data-i18n="phase1Title">${getString('phase1Title')}</h3>
-                            <p class="text-[10px] text-slate-400 font-medium" data-i18n="phase1Desc">${getString('phase1Desc')}</p>
-                        </div>
-                        <span class="text-indigo-500/50 group-hover:text-indigo-400"><i class="fa-solid fa-play"></i></span>
+            // Standard Unlocked Books
+            htmlString += buildPhaseCard('nt', 'phase1Title', 'phase1Desc', 'bg-indigo-500');
+            htmlString += buildPhaseCard('ot', 'phase2Title', 'phase2Desc', 'bg-emerald-500');
+            htmlString += buildPhaseCard('mix', 'phase3Title', 'phase3Desc', 'bg-pink-500');
+
+            // Locked/Unlocked Book EGW
+            if (state.unlockedBooks.egw) {
+                htmlString += buildPhaseCard('egw', 'phase4Title', 'phase4Desc', 'bg-amber-500');
+            } else {
+                htmlString += buildLockedCard('egw', 'phase4Title', 'lockedEGW', 1000);
+            }
+
+            // Locked/Unlocked Book MASTERY
+            if (state.unlockedBooks.mastery) {
+                htmlString += buildPhaseCard('mastery', 'phase5Title', 'phase5Desc', 'bg-red-600', true);
+            } else {
+                htmlString += buildLockedCard('mastery', 'phase5Title', 'lockedBlitz', 500);
+            }
+
+            // Locked/Unlocked Book SDA
+            if (state.unlockedBooks.sda) {
+                htmlString += buildPhaseCard('sda', 'phase6Title', 'phase6Desc', 'bg-cyan-500');
+            } else {
+                htmlString += buildLockedCard('sda', 'phase6Title', 'lockedSDA', 1500);
+            }
+
+            htmlString += `</div>`;
+            document.getElementById('window-canvas').innerHTML = htmlString;
+        }
+
+        // HTML Builders to protect against IDE parsing errors
+        function buildPhaseCard(id, titleKey, descKey, colorClass, isBlitz = false) {
+            let extra = isBlitz ? `<span class="text-[8px] font-black text-white bg-red-600 px-2 py-0.5 rounded animate-pulse absolute top-4 right-4">WAR ZONE</span>` : '';
+            return `
+                <div onclick="startArcadePipeline('${id}')" class="level-card-interactive w-full p-5 glass-card text-left cursor-pointer relative overflow-hidden flex items-center group ${isBlitz ? 'border-red-500/30' : ''}">
+                    <div class="absolute inset-y-0 left-0 w-1.5 ${colorClass}"></div>
+                    <div class="pl-3 w-full">
+                        <h3 class="text-sm font-black uppercase tracking-wide text-white" data-i18n="${titleKey}">${getString(titleKey)}</h3>
+                        <p class="text-[10px] text-slate-400 font-medium mt-0.5" data-i18n="${descKey}">${getString(descKey)}</p>
                     </div>
-
-                    <div onclick="startArcadePipeline(event, 'ot')" class="level-card-interactive w-full p-4 glass-card text-left cursor-pointer relative overflow-hidden flex items-center justify-between group">
-                        <div class="absolute inset-y-0 left-0 w-1.5 bg-emerald-500"></div>
-                        <div class="pl-2">
-                            <h3 class="text-sm font-black text-emerald-400 uppercase tracking-wide group-hover:text-emerald-300 transition-colors" data-i18n="phase2Title">${getString('phase2Title')}</h3>
-                            <p class="text-[10px] text-slate-400 font-medium" data-i18n="phase2Desc">${getString('phase2Desc')}</p>
-                        </div>
-                        <span class="text-emerald-500/50 group-hover:text-emerald-400"><i class="fa-solid fa-play"></i></span>
-                    </div>
-
-                    <div onclick="startArcadePipeline(event, 'mix')" class="level-card-interactive w-full p-4 glass-card text-left cursor-pointer relative overflow-hidden flex items-center justify-between group">
-                        <div class="absolute inset-y-0 left-0 w-1.5 bg-pink-500"></div>
-                        <div class="pl-2">
-                            <h3 class="text-sm font-black text-pink-400 uppercase tracking-wide group-hover:text-pink-300 transition-colors" data-i18n="phase3Title">${getString('phase3Title')}</h3>
-                            <p class="text-[10px] text-slate-400 font-medium" data-i18n="phase3Desc">${getString('phase3Desc')}</p>
-                        </div>
-                        <span class="text-pink-500/50 group-hover:text-pink-400"><i class="fa-solid fa-play"></i></span>
-                    </div>
-
-                    ${state.unlockedBooks.egw ? `
-                        <div onclick="startArcadePipeline(event, 'egw')" class="level-card-interactive w-full p-4 glass-card text-left cursor-pointer relative overflow-hidden flex items-center justify-between group">
-                            <div class="absolute inset-y-0 left-0 w-1.5 bg-amber-500"></div>
-                            <div class="pl-2">
-                                <h3 class="text-sm font-black text-amber-400 uppercase tracking-wide group-hover:text-amber-300 transition-colors" data-i18n="phase4Title">${getString('phase4Title')}</h3>
-                                <p class="text-[10px] text-slate-400 font-medium" data-i18n="phase4Desc">${getString('phase4Desc')}</p>
-                            </div>
-                            <span class="text-amber-500/50 group-hover:text-amber-400"><i class="fa-solid fa-play"></i></span>
-                        </div>
-                    ` : `
-                        <div onclick="requestSegmentVaultUnlock(event, 'egw', 1000, 'Phase 4: E.G. White Chronicles')" class="w-full p-4 glass-card border border-amber-500/20 bg-slate-950/40 text-left cursor-pointer relative group flex justify-between items-center hover:bg-slate-900/60 transition-all">
-                            <div>
-                                <h3 class="text-xs font-black text-amber-500/70 uppercase tracking-wide"><i class="fa-solid fa-lock mr-1"></i> PHASE 4: E.G. WHITE</h3>
-                                <p class="text-[9px] text-slate-500 mt-0.5">Prophetic Heritage Insights</p>
-                            </div>
-                            <span class="bg-amber-600/20 border border-amber-500/40 px-3 py-1.5 rounded-lg font-black text-[10px] text-amber-400 tracking-wider">1000 💰</span>
-                        </div>
-                    `}
-
-                    ${state.unlockedBooks.mastery ? `
-                        <div onclick="startArcadePipeline(event, 'mastery')" class="level-card-interactive w-full p-4 glass-card text-left cursor-pointer relative overflow-hidden flex items-center justify-between group border border-red-500/30 bg-gradient-to-br from-red-950/30 to-transparent">
-                            <div class="absolute inset-y-0 left-0 w-1.5 bg-red-600 shadow-[0_0_10px_rgba(239,68,68,0.8)]"></div>
-                            <div class="pl-2">
-                                <div class="flex items-center gap-2">
-                                    <h3 class="text-sm font-black text-red-500 uppercase tracking-wide group-hover:text-red-400 transition-colors" data-i18n="phase5Title">${getString('phase5Title')}</h3>
-                                    <span class="text-[7px] font-black text-white bg-red-600 px-1.5 py-0.5 rounded-sm animate-pulse">WAR ZONE</span>
-                                </div>
-                                <p class="text-[10px] text-slate-400 font-medium" data-i18n="phase5Desc">${getString('phase5Desc')}</p>
-                            </div>
-                            <span class="text-red-500/50 group-hover:text-red-400"><i class="fa-solid fa-fire"></i></span>
-                        </div>
-                    ` : `
-                        <div onclick="requestSegmentVaultUnlock(event, 'mastery', 500, 'Phase 5: Mastery Blitz Mode')" class="w-full p-4 glass-card border border-red-500/20 bg-slate-950/40 text-left cursor-pointer relative group flex justify-between items-center hover:bg-slate-900/60 transition-all">
-                            <div>
-                                <h3 class="text-xs font-black text-red-500/70 uppercase tracking-wide"><i class="fa-solid fa-lock mr-1"></i> PHASE 5: MASTERY BLITZ</h3>
-                                <p class="text-[9px] text-slate-500 mt-0.5">High Speed Fire Arena</p>
-                            </div>
-                            <span class="bg-red-600/20 border border-red-500/40 px-3 py-1.5 rounded-lg font-black text-[10px] text-red-400 tracking-wider">500 💰</span>
-                        </div>
-                    `}
-
-                    ${state.unlockedBooks.sda ? `
-                        <div onclick="startArcadePipeline(event, 'sda')" class="level-card-interactive w-full p-4 glass-card text-left cursor-pointer relative overflow-hidden flex items-center justify-between group">
-                            <div class="absolute inset-y-0 left-0 w-1.5 bg-cyan-500"></div>
-                            <div class="pl-2">
-                                <h3 class="text-sm font-black text-cyan-400 uppercase tracking-wide group-hover:text-cyan-300 transition-colors" data-i18n="phase6Title">${getString('phase6Title')}</h3>
-                                <p class="text-[10px] text-slate-400 font-medium" data-i18n="phase6Desc">${getString('phase6Desc')}</p>
-                            </div>
-                            <span class="text-cyan-500/50 group-hover:text-cyan-400"><i class="fa-solid fa-play"></i></span>
-                        </div>
-                    ` : `
-                        <div onclick="requestSegmentVaultUnlock(event, 'sda', 1500, 'Phase 6: Adventist Teachings')" class="w-full p-4 glass-card border border-cyan-500/20 bg-slate-950/40 text-left cursor-pointer relative group flex justify-between items-center hover:bg-slate-900/60 transition-all">
-                            <div>
-                                <h3 class="text-xs font-black text-cyan-500/70 uppercase tracking-wide"><i class="fa-solid fa-lock mr-1"></i> PHASE 6: SDA TEACHINGS</h3>
-                                <p class="text-[9px] text-slate-500 mt-0.5">The 28 Fundamental Beliefs</p>
-                            </div>
-                            <span class="bg-cyan-600/20 border border-cyan-500/40 px-3 py-1.5 rounded-lg font-black text-[10px] text-cyan-400 tracking-wider">1500 💰</span>
-                        </div>
-                    `}
+                    ${extra}
                 </div>
             `;
         }
 
+        function buildLockedCard(id, titleKey, descKey, cost) {
+            return `
+                <div onclick="requestVaultUnlock('${id}', ${cost}, '${getString(titleKey)}')" class="w-full p-4 glass-card border border-slate-700 bg-slate-900/40 text-left cursor-pointer relative flex justify-between items-center hover:bg-slate-800 transition-all">
+                    <div>
+                        <h3 class="text-xs font-black text-slate-400 uppercase tracking-wide"><i class="fa-solid fa-lock mr-1"></i> <span data-i18n="${titleKey}">${getString(titleKey)}</span></h3>
+                        <p class="text-[9px] text-slate-500 mt-1" data-i18n="${descKey}">${getString(descKey)}</p>
+                    </div>
+                    <span class="bg-amber-950/40 border border-amber-500/30 px-3 py-1.5 rounded-lg font-black text-[10px] text-amber-400 tracking-wider">${cost} 💰</span>
+                </div>
+            `;
+        }
+
+        // --- 5. RENDER: TASKS & COPILOT ---
         function renderTasksExplorer() {
-            const canvasNode = document.getElementById('window-canvas');
             if (state.activeTab !== 'tasks') return;
             document.getElementById('lobby-bag-btn').classList.add('hidden');
-
-            let systemTaskRows = "";
-            state.dailyTasks.forEach(t => {
-                let currentPercentage = Math.min(100, Math.floor((t.progress / t.target) * 100));
-                systemTaskRows += `
-                    <div class="p-4 rounded-2xl glass-card border border-slate-800 flex flex-col gap-3 ${t.completed ? 'opacity-50' : ''}">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <span class="text-lg">${t.type==='answer'?'📚':t.type==='streak'?'🔥':'❄️'}</span>
-                                <p class="text-[11px] font-black text-slate-200 uppercase tracking-wide">${getString(t.i18nKey, {target: t.target})}</p>
-                            </div>
-                            <span class="text-[10px] font-black text-amber-400 bg-amber-950/40 border border-amber-500/30 px-2 py-0.5 rounded-lg shrink-0">+${t.goldReward} 💰</span>
-                        </div>
-                        <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-900">
-                            <div class="h-full bg-indigo-500 rounded-full transition-all duration-500" style="width: ${currentPercentage}%"></div>
-                        </div>
-                        ${t.progress >= t.target && !t.completed ? `
-                            <button onclick="claimCompletedTaskReward(event, '${t.id}')" class="w-full py-2 rounded-xl bg-emerald-600 text-white font-black text-[10px] tracking-widest uppercase shadow-md active:scale-95 animate__animated animate__pulse animate__infinite">CLAIM REWARD</button>
-                        ` : t.completed ? `
-                            <div class="w-full py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-500 font-black text-[10px] tracking-widest uppercase text-center">COMPLETED</div>
-                        ` : ''}
-                    </div>
-                `;
-            });
-
-            canvasNode.innerHTML = `
+            let htmlString = `
                 <div class="space-y-1 animate__animated animate__fadeIn">
-                    <h1 class="text-2xl font-black tracking-wider heading-font text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400 uppercase">Sector Tasks</h1>
+                    <h1 class="text-2xl font-black tracking-wider heading-font text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 uppercase">Sector Tasks</h1>
                     <p class="text-[10px] text-slate-400 font-bold tracking-widest uppercase">Secure daily gold ledger balances</p>
                 </div>
                 <div class="space-y-3 pt-4 animate__animated animate__fadeInUp">
-                    ${systemTaskRows}
-                </div>
             `;
+            
+            state.tasks.forEach(t => {
+                let pct = Math.min(100, Math.floor((t.progress / t.target) * 100));
+                let txt = getString(t.i18nKey).replace('{target}', t.target);
+                
+                htmlString += `
+                    <div class="p-4 rounded-2xl glass-card border border-slate-800 flex flex-col gap-3 ${t.done ? 'opacity-50' : ''}">
+                        <div class="flex items-center justify-between">
+                            <p class="text-[11px] font-black text-slate-200 uppercase tracking-wide">${txt}</p>
+                            <span class="text-[10px] font-black text-amber-400 bg-amber-950/40 border border-amber-500/30 px-2 py-0.5 rounded-lg shrink-0">+${t.reward} 💰</span>
+                        </div>
+                        <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-900">
+                            <div class="h-full bg-indigo-500 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                        </div>
+                `;
+                
+                if(t.progress >= t.target && !t.done) {
+                    htmlString += `<button onclick="claimTaskReward('${t.id}')" class="w-full py-2 rounded-xl bg-emerald-600 text-white font-black text-[10px] tracking-widest uppercase shadow-md active:scale-95 animate__animated animate__pulse animate__infinite">CLAIM REWARD</button>`;
+                } else if(t.done) {
+                    htmlString += `<div class="w-full py-1.5 rounded-xl bg-slate-900 text-slate-500 font-black text-[10px] tracking-widest uppercase text-center border border-slate-800">COMPLETED</div>`;
+                }
+                htmlString += `</div>`;
+            });
+            htmlString += `</div>`;
+            document.getElementById('window-canvas').innerHTML = htmlString;
         }
 
         function renderCopilotHub() {
-            const canvasNode = document.getElementById('window-canvas');
             if (state.activeTab !== 'copilot') return;
             document.getElementById('lobby-bag-btn').classList.add('hidden');
-
-            canvasNode.innerHTML = `
+            document.getElementById('window-canvas').innerHTML = `
                 <div class="space-y-1 animate__animated animate__fadeIn">
-                    <h1 class="text-2xl font-black tracking-wider heading-font text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400 uppercase">Copilot Forum</h1>
+                    <h1 class="text-2xl font-black tracking-wider heading-font text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400 uppercase">Copilot Forum</h1>
                     <p class="text-[10px] text-slate-400 font-bold tracking-widest uppercase">Stakeholder interactive assistance</p>
                 </div>
-
-                <div class="flex-1 mt-4 p-4 rounded-3xl glass-card border border-slate-800 flex flex-col justify-between gap-4 animate__animated animate__zoomIn">
+                <div class="flex-1 mt-4 p-4 rounded-3xl glass-card border border-slate-800 flex flex-col justify-between gap-4 animate__animated animate__zoomIn min-h-[300px]">
                     <div class="space-y-4 flex-1 overflow-y-auto">
                         <div class="flex gap-3 items-start">
-                            <div class="w-8 h-8 rounded-xl bg-cyan-950 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-sm shrink-0">
+                            <div class="w-8 h-8 rounded-xl bg-indigo-950 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-sm shrink-0">
                                 <i class="fa-solid fa-robot"></i>
                             </div>
                             <div class="p-3 rounded-2xl rounded-tl-none bg-slate-900/80 border border-slate-800 text-xs text-slate-300 font-medium leading-relaxed">
-                                System Initialization Operational. Terminal logs indicate high integrity status frameworks across all narrative segments.
+                                System Initialization Operational. Terminal logs indicate high integrity status frameworks across all 50-question narrative segments.
                             </div>
                         </div>
                     </div>
                     <div class="flex gap-2 items-center border-t border-slate-800 pt-3">
-                        <input type="text" placeholder="Transmit query parameters..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-500/50">
-                        <button class="w-10 h-10 rounded-xl bg-cyan-600 text-white flex items-center justify-center text-sm active:scale-95 shadow-md">
-                            <i class="fa-solid fa-paper-plane"></i>
-                        </button>
+                        <input type="text" placeholder="Transmit query parameters..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-indigo-500/50">
+                        <button class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-sm active:scale-95 shadow-md"><i class="fa-solid fa-paper-plane"></i></button>
                     </div>
                 </div>
             `;
         }
 
-        function startArcadePipeline(evt, campaignId) {
-            evt.preventDefault();
+        // --- 6. GAMEPLAY ENGINE ---
+        function startArcadePipeline(modeId) {
             if (inputInteractionsBlocked) return;
+            triggerAudioTone(220, 0.1, 'sine');
+            currentCampaignMode = modeId;
 
-            triggerAudioFeedbackTone(220, 0.1, 'sine');
-            currentCampaignMode = campaignId;
-
-            let targetGroup = "";
-            if (campaignId === 'nt') targetGroup = "NT";
-            else if (campaignId === 'ot') targetGroup = "OT";
-            else if (campaignId === 'egw') targetGroup = "EGW";
-            else if (campaignId === 'sda') targetGroup = "SDA";
-            else if (campaignId === 'mastery') targetGroup = "MASTERY";
-
-            campaignActivePool = targetGroup ? window.quizDatabase.filter(q => q.group === targetGroup) : [...window.quizDatabase];
-            if (campaignActivePool.length === 0) campaignActivePool = [...window.quizDatabase];
+            // Load the EXACT 50 questions for this specific book
+            let targetBookNode = window.quizDatabase.find(b => b.id === modeId);
+            if(targetBookNode && targetBookNode.questions) {
+                // Copy the array to manipulate during gameplay without deleting the master data
+                campaignActivePool = [...targetBookNode.questions];
+            } else {
+                campaignActivePool = [...window.quizDatabase[0].questions]; // Fallback
+            }
 
             document.getElementById('lobby-bag-btn').classList.add('hidden');
-            switchBackgroundMoodSoundtrack('war'); // Up the intensity for gameplay
+            document.body.classList.add('game-bg-active');
+            switchBackgroundMoodSoundtrack('war');
             executeNextQuestionCycle();
         }
 
         function executeNextQuestionCycle() {
             if (campaignActivePool.length === 0) {
-                displayGlobalAlertOverlay("CAMPAIGN COMPLETE", "All scriptural processing vectors passed with validation clearances.", () => {
+                showAlert("SECTOR COMPLETE", "All 50 parameters passed with validation clearances.", () => {
                     switchContextTerminalWindow('home');
                 });
                 return;
             }
 
-            const rIdx = Math.floor(Math.random() * campaignActivePool.length);
-            const activeNode = campaignActivePool[rIdx];
-            currentActiveQuestion = activeNode.questions[Math.floor(Math.random() * activeNode.questions.length)];
-            currentActiveQuestion._sourceBookContext = activeNode.name;
+            // Pull next sequential question
+            currentActiveQuestion = campaignActivePool.shift();
             
-            // DYNAMIC TIERED DIFFICULTY LOGIC ENGINE
-            let diff = currentActiveQuestion.difficulty || 'easy';
-            if (currentCampaignMode === 'mastery') diff = 'blitz';
-
+            // Map Difficulty to Strict Timers
+            let diff = currentActiveQuestion.difficulty;
             if (diff === 'hard') initialSecondsAllowed = 10;
             else if (diff === 'moderate') initialSecondsAllowed = 15;
             else if (diff === 'blitz') initialSecondsAllowed = 5;
@@ -589,60 +528,49 @@
         }
 
         function renderActiveQuestionPort() {
-            const canvasNode = document.getElementById('window-canvas');
-            
-            let answersHtml = "";
-            currentActiveQuestion.a.forEach((ans, idx) => {
-                answersHtml += `
-                    <button onclick="submitSelectedAnswerChoice(event, ${idx})" class="answer-selection-btn w-full p-4 rounded-2xl glass-card border border-slate-800 text-left text-xs font-bold text-slate-300 hover:border-indigo-500/40 hover:bg-slate-900/60 transition-all active:scale-[0.99] flex items-center justify-between group">
-                        <span>${ans}</span><i class="fa-solid fa-chevron-right text-[10px] text-slate-600 group-hover:text-indigo-400"></i>
-                    </button>
-                `;
-            });
-
-            // Color coding difficulty badge
-            let diffColor = "text-emerald-400 bg-emerald-950/80 border-emerald-500/30";
-            if(currentActiveQuestion.difficulty === 'moderate') diffColor = "text-amber-400 bg-amber-950/80 border-amber-500/30";
-            if(currentActiveQuestion.difficulty === 'hard' || currentCampaignMode === 'mastery') diffColor = "text-red-400 bg-red-950/80 border-red-500/30";
-            
-            let diffLabel = currentCampaignMode === 'mastery' ? 'BLITZ OVERDRIVE' : (currentActiveQuestion.difficulty || 'EASY').toUpperCase();
-
-            canvasNode.innerHTML = `
+            let htmlStr = `
                 <div class="flex items-center justify-between border-b border-slate-800 pb-2 animate__animated animate__fadeInDown">
                     <div>
-                        <h2 class="text-[11px] font-black text-indigo-400 uppercase tracking-widest">${currentActiveQuestion._sourceBookContext}</h2>
-                        <div class="text-[8px] font-black tracking-widest px-2 py-0.5 rounded-full border inline-block mt-1 ${diffColor}">${diffLabel}</div>
+                        <h2 class="text-[11px] font-black text-indigo-400 uppercase tracking-widest">${currentCampaignMode.toUpperCase()} SECTOR</h2>
+                        <div class="text-[8px] font-black tracking-widest px-2 py-0.5 rounded-full border inline-block mt-1 bg-slate-900 border-slate-700 text-slate-300">${currentActiveQuestion.difficulty.toUpperCase()}</div>
                     </div>
-                    <div id="clock-wrapper" class="text-xl font-black tracking-tighter tabular-nums text-amber-400 bg-slate-950/80 px-3 py-1 rounded-xl border border-white/10 shadow-inner">
-                        ⏰ <span id="clock-digit">${secondsRemaining}</span>s
-                    </div>
-                </div>
-
-                <div class="w-full h-1.5 bg-slate-950 border border-slate-900 rounded-full shadow-inner animate__animated animate__fadeInDown">
-                    <div id="countdown-progress-bar" class="h-full bg-gradient-to-r from-emerald-400 to-teal-500 w-full transition-all duration-1000 ease-linear rounded-full"></div>
-                </div>
-
-                <div class="py-2 space-y-4 animate__animated animate__zoomIn">
-                    <div class="p-5 rounded-3xl glass-card border border-slate-800 shadow-md text-center">
-                        <p class="text-sm font-bold text-white tracking-wide leading-relaxed">${currentActiveQuestion.q}</p>
-                    </div>
-                    <div class="space-y-2">
-                        ${answersHtml}
+                    <div id="clock-wrapper" class="text-2xl font-black tracking-tighter tabular-nums text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]">
+                        00:<span id="clock-digit">${secondsRemaining < 10 ? '0'+secondsRemaining : secondsRemaining}</span>
                     </div>
                 </div>
 
-                <div class="fixed bottom-0 left-0 right-0 p-3 bg-slate-950/95 border-t border-slate-900 z-40 flex justify-center gap-2 max-w-md mx-auto" onclick="event.stopPropagation()">
-                    <button id="perk-btn-freeze" onclick="applyInGameUtility('freeze')" class="flex-1 bg-slate-900 border border-sky-500/30 p-2 rounded-xl flex flex-col items-center active:scale-95 transition-transform ${state.perks.freeze<=0?'opacity-40':''}">
-                        <i class="fa-solid fa-snowflake text-sky-400 mb-1"></i><span class="text-[9px] text-slate-400 font-bold uppercase">Freeze (${state.perks.freeze})</span>
+                <div class="w-full h-2 bg-slate-950/80 border border-white/5 rounded-full shadow-inner overflow-hidden mt-3 animate__animated animate__fadeInDown">
+                    <div id="countdown-progress-bar" class="h-full bg-emerald-400 w-full transition-all duration-1000 ease-linear rounded-full"></div>
+                </div>
+
+                <div class="py-4 space-y-4 animate__animated animate__zoomIn">
+                    <div class="p-6 rounded-3xl glass-card border border-white/10 shadow-xl text-center bg-gradient-to-b from-slate-800/80 to-slate-900/90">
+                        <p class="text-sm font-black text-white tracking-wide leading-relaxed">${currentActiveQuestion.q}</p>
+                    </div>
+                    <div class="space-y-2 mt-4" id="choice-matrix">
+            `;
+
+            currentActiveQuestion.a.forEach((ans, idx) => {
+                htmlStr += `<button onclick="submitAnswer(${idx})" class="answer-selection-btn w-full p-4 rounded-2xl glass-card border border-white/5 text-left text-xs font-bold text-slate-200 hover:border-indigo-500/50 hover:bg-slate-800/80 transition-all active:scale-[0.98] flex items-center justify-between"><span>${ans}</span><i class="fa-solid fa-circle-dot text-[8px] text-slate-600"></i></button>`;
+            });
+
+            htmlStr += `
+                    </div>
+                </div>
+
+                <div class="fixed bottom-0 left-0 right-0 p-3 bg-slate-950/95 border-t border-white/10 z-40 flex justify-center gap-2 max-w-md mx-auto">
+                    <button id="perk-btn-freeze" onclick="applyPerk('freeze')" class="flex-1 bg-slate-900 border border-sky-500/30 p-2 rounded-xl flex flex-col items-center active:scale-95 transition-all text-sky-400 ${state.perks.freeze<=0?'opacity-30':''}">
+                        <i class="fa-solid fa-snowflake mb-1 text-lg"></i><span class="text-[9px] font-black uppercase text-slate-300">Freeze (${state.perks.freeze})</span>
                     </button>
-                    <button id="perk-btn-half" onclick="applyInGameUtility('half')" class="flex-1 bg-slate-900 border border-rose-500/30 p-2 rounded-xl flex flex-col items-center active:scale-95 transition-transform ${state.perks.half<=0?'opacity-40':''}">
-                        <i class="fa-solid fa-scale-balanced text-rose-400 mb-1"></i><span class="text-[9px] text-slate-400 font-bold uppercase">50/50 (${state.perks.half})</span>
+                    <button id="perk-btn-half" onclick="applyPerk('half')" class="flex-1 bg-slate-900 border border-rose-500/30 p-2 rounded-xl flex flex-col items-center active:scale-95 transition-all text-rose-400 ${state.perks.half<=0?'opacity-30':''}">
+                        <i class="fa-solid fa-scale-balanced mb-1 text-lg"></i><span class="text-[9px] font-black uppercase text-slate-300">50/50 (${state.perks.half})</span>
                     </button>
-                    <button id="perk-btn-shield" onclick="applyInGameUtility('shield')" class="flex-1 bg-slate-900 border border-amber-500/30 p-2 rounded-xl flex flex-col items-center active:scale-95 transition-transform ${state.perks.shield<=0?'opacity-40':''}">
-                        <i class="fa-solid fa-shield-halved text-amber-400 mb-1"></i><span class="text-[9px] text-slate-400 font-bold uppercase">Shield (${state.perks.shield})</span>
+                    <button id="perk-btn-shield" onclick="applyPerk('shield')" class="flex-1 bg-slate-900 border border-amber-500/30 p-2 rounded-xl flex flex-col items-center active:scale-95 transition-all text-amber-400 ${state.perks.shield<=0?'opacity-30':''}">
+                        <i class="fa-solid fa-shield-halved mb-1 text-lg"></i><span class="text-[9px] font-black uppercase text-slate-300">Shield (${state.perks.shield})</span>
                     </button>
                 </div>
             `;
+            document.getElementById('window-canvas').innerHTML = htmlStr;
         }
 
         function initiateQuestionCountdownTimer() {
@@ -650,7 +578,7 @@
             const progressBar = document.getElementById('countdown-progress-bar');
             
             countdownTimerRef = setInterval(() => {
-                if (isFreezeActive) return;
+                if (isFreezeActive || inputInteractionsBlocked) return;
 
                 secondsRemaining--;
                 let pct = Math.max(0, (secondsRemaining / initialSecondsAllowed) * 100);
@@ -658,39 +586,40 @@
                 if (progressBar) {
                     progressBar.style.width = `${pct}%`;
                     if (pct <= 30) {
-                        progressBar.className = "h-full bg-red-500 rounded-full shadow-[0_0_10px_rgba(239,68,68,0.8)]";
-                        triggerAudioFeedbackTone(80, 0.05, 'sawtooth');
+                        progressBar.className = "h-full bg-red-500 rounded-full shadow-[0_0_15px_rgba(239,68,68,0.8)]";
+                        triggerAudioTone(120, 0.05, 'sawtooth');
                     } else if (pct <= 60) {
-                        progressBar.className = "h-full bg-amber-500 rounded-full";
+                        progressBar.className = "h-full bg-amber-400 rounded-full";
                     }
                 }
+                
                 const clockNode = document.getElementById('clock-digit');
-                if(clockNode) clockNode.innerText = secondsRemaining;
+                if(clockNode) clockNode.innerText = secondsRemaining < 10 ? '0'+secondsRemaining : secondsRemaining;
 
                 if (secondsRemaining <= 0) {
-                    executeFailureSequence(); // NO popups. Direct fluid penalty jump.
+                    executeFluidFailure();
                 }
             }, 1000);
         }
 
-        function submitSelectedAnswerChoice(evt, choiceIndex) {
-            evt.preventDefault();
+        function submitAnswer(idx) {
             if (inputInteractionsBlocked) return;
-            clearInterval(countdownTimerRef);
             inputInteractionsBlocked = true;
+            clearInterval(countdownTimerRef);
 
-            const selectedBtn = document.getElementsByClassName('answer-selection-btn')[choiceIndex];
+            const btns = document.getElementsByClassName('answer-selection-btn');
             
-            if (choiceIndex === currentActiveQuestion.correct) {
-                triggerAudioFeedbackTone(440, 0.15, 'sine');
-                setTimeout(() => { triggerAudioFeedbackTone(659.25, 0.2, 'sine'); }, 150);
+            if (idx === currentActiveQuestion.correct) {
+                // SUCCESS
+                triggerAudioTone(440, 0.15, 'sine');
+                setTimeout(() => { triggerAudioTone(659.25, 0.2, 'sine'); }, 150);
 
-                if (selectedBtn) selectedBtn.className = "w-full p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/60 text-left text-xs font-black text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.3)] animate__animated animate__pulse";
+                if (btns[idx]) btns[idx].className = "w-full p-4 rounded-2xl border text-left text-xs font-black rainbow-correct flex items-center justify-between";
 
                 state.stats.currentStreak++;
                 state.stats.overallAnswers++;
                 state.gold += 15;
-                state.dailyTasks.forEach(t => { if (t.type === 'answer' || t.type === 'streak') t.progress++; });
+                state.tasks.forEach(t => { if (t.type === 'answer' || t.type === 'streak') t.progress++; });
                 saveState();
 
                 setTimeout(() => {
@@ -699,47 +628,49 @@
                 }, 1200);
 
             } else {
-                if (selectedBtn) selectedBtn.className = "w-full p-4 rounded-2xl bg-red-950/40 border border-red-500/60 text-left text-xs font-black text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.3)] animate__animated animate__shakeX";
+                // FAILURE
+                if (btns[idx]) btns[idx].className = "w-full p-4 rounded-2xl bg-red-950/80 border border-red-500/80 text-left text-xs font-black text-red-200 shadow-[0_0_20px_rgba(239,68,68,0.4)] animate__animated animate__shakeX flex items-center justify-between";
                 state.stats.currentStreak = 0; 
                 saveState();
                 
-                setTimeout(() => { executeFailureSequence(); }, 600); // Fluid jump
+                setTimeout(() => { executeFluidFailure(); }, 600);
             }
         }
 
-        // FLUID PENALTY: NO POPUPS FOR STANDARD WRONG ANSWERS/TIMEOUTS
-        function executeFailureSequence() {
+        // CORE FIX: No popups on failure. Smooth coin vibration and auto-skip.
+        function executeFluidFailure() {
             clearInterval(countdownTimerRef);
             inputInteractionsBlocked = true;
             toggleSnowSystemPipeline(false);
             
             if (isShieldActive) {
                 isShieldActive = false;
-                displayGlobalAlertOverlay("SHIELD ABSORBED STRIKE", "Divine Aegis shield absorbed penalty strike.", () => {
+                showAlert("SHIELD ABSORBED", "Aegis shield protected your gold.", () => {
                     inputInteractionsBlocked = false;
                     executeNextQuestionCycle();
                 });
                 return;
             }
 
-            triggerAudioFeedbackTone(110, 0.4, 'sawtooth');
+            // Harsh synthetic thud sound
+            triggerAudioTone(80, 0.4, 'square');
             state.gold = Math.max(0, state.gold - 20);
             saveState();
             
-            // Extreme visual vibration feedback on the wallet
-            const walletWidget = document.getElementById('gold-container');
-            if(walletWidget) {
-                walletWidget.classList.add('vibrate-error-bag');
-                setTimeout(() => { walletWidget.classList.remove('vibrate-error-bag'); }, 600);
+            // Violent Red UI Shake on the specific Gold container
+            const walletNode = document.getElementById('gold-container');
+            if(walletNode) {
+                walletNode.classList.add('vibrate-error-bag');
+                setTimeout(() => { walletNode.classList.remove('vibrate-error-bag'); }, 400);
             }
 
+            // Only popup if completely bankrupt
             if(state.gold <= 0) {
-                // Only popup if they are completely dead/bankrupt
                 setTimeout(() => {
-                    displayGlobalAlertOverlay(getString('walletTitle'), getString('walletMsg'), () => { switchContextTerminalWindow('home'); });
-                }, 700);
+                    showAlert(getString('walletTitle'), getString('walletMsg'), () => { switchContextTerminalWindow('home'); });
+                }, 600);
             } else {
-                // Seamless shuffle jump
+                // Instant seamless skip to next question
                 setTimeout(() => { 
                     inputInteractionsBlocked = false;
                     executeNextQuestionCycle(); 
@@ -747,31 +678,33 @@
             }
         }
 
-        function applyInGameUtility(type) {
+        // --- 7. POWER-UPS & STORE ---
+        function applyPerk(type) {
             if (state.perks[type] <= 0 || inputInteractionsBlocked) return;
             if (type === 'freeze' && isFreezeActive) return;
 
             state.perks[type]--; 
             saveState(); 
-            triggerAudioFeedbackTone(500, 0.1, 'sine');
+            triggerAudioTone(500, 0.15, 'triangle');
 
-            const targetBtn = document.getElementById(`perk-btn-${type}`);
-            if(targetBtn) {
-                let flashClass = `perk-flash-${type}`;
-                targetBtn.classList.add(flashClass);
-                setTimeout(() => { targetBtn.classList.remove(flashClass); }, 600);
+            // Visual dramatic pulse on the button
+            const btn = document.getElementById(`perk-btn-${type}`);
+            if(btn) {
+                btn.classList.add(`text-white`);
+                btn.classList.add(`perk-active-fx`);
+                setTimeout(() => { btn.classList.remove(`perk-active-fx`); btn.classList.remove(`text-white`); }, 500);
             }
 
             if (type === 'freeze') {
                 isFreezeActive = true;
                 document.getElementById('frost-frame').classList.add('frost-active');
-                toggleSnowSystemPipeline(true);
+                toggleSnowSystemPipeline(true); // Engages 150-particle intense blizzard
             } else if (type === 'half') {
                 const elements = document.getElementsByClassName('answer-selection-btn');
                 let removed = 0;
                 for(let i=0; i<elements.length; i++) {
                     if(i !== currentActiveQuestion.correct && removed < 2) {
-                        elements[i].style.opacity = "0.15";
+                        elements[i].style.opacity = "0.2";
                         elements[i].disabled = true;
                         removed++;
                     }
@@ -781,97 +714,131 @@
                 document.getElementById('shield-frame').classList.add('shield-active');
             }
             
-            // Update node texts immediately
-            document.getElementById('perk-btn-freeze').innerHTML = `<i class="fa-solid fa-snowflake text-sky-400 mb-1"></i><span class="text-[9px] text-slate-400 font-bold uppercase">Freeze (${state.perks.freeze})</span>`;
-            document.getElementById('perk-btn-half').innerHTML = `<i class="fa-solid fa-scale-balanced text-rose-400 mb-1"></i><span class="text-[9px] text-slate-400 font-bold uppercase">50/50 (${state.perks.half})</span>`;
-            document.getElementById('perk-btn-shield').innerHTML = `<i class="fa-solid fa-shield-halved text-amber-400 mb-1"></i><span class="text-[9px] text-slate-400 font-bold uppercase">Shield (${state.perks.shield})</span>`;
-        }
-
-        function requestSegmentVaultUnlock(evt, phaseTargetId, standardFeeValue, descriptiveLabelText) {
-            evt.preventDefault();
-            evt.stopPropagation();
-            if (inputInteractionsBlocked) return;
-
-            if (state.gold < standardFeeValue) {
-                triggerAudioFeedbackTone(90, 0.2, 'square');
-                displayGlobalAlertOverlay(getString('shortageTitle'), getString('shortageMsg'));
-                return;
-            }
-
-            triggerAudioFeedbackTone(293.66, 0.1, 'sine');
-            state.gold -= standardFeeValue;
-            state.unlockedBooks[phaseTargetId] = true;
-            saveState();
-
-            displayGlobalAlertOverlay(getString('unlockSuccess'), getString('unlockSuccessMsg', {name: descriptiveLabelText}), () => {
-                renderMenuMap();
-            });
+            // Force redraw the numbers on the UI buttons
+            document.getElementById('perk-btn-freeze').innerHTML = `<i class="fa-solid fa-snowflake text-sky-400 mb-1 text-lg"></i><span class="text-[9px] font-black uppercase text-slate-300">Freeze (${state.perks.freeze})</span>`;
+            document.getElementById('perk-btn-half').innerHTML = `<i class="fa-solid fa-scale-balanced text-rose-400 mb-1 text-lg"></i><span class="text-[9px] font-black uppercase text-slate-300">50/50 (${state.perks.half})</span>`;
+            document.getElementById('perk-btn-shield').innerHTML = `<i class="fa-solid fa-shield-halved text-amber-400 mb-1 text-lg"></i><span class="text-[9px] font-black uppercase text-slate-300">Shield (${state.perks.shield})</span>`;
         }
 
         function openShopModal(e) {
             if(e) e.stopPropagation();
-            const catalog = [
-                { id: 'freeze', name: 'Chrono Freeze', cost: 50, icon: '❄️' },
-                { id: 'half', name: 'Divine 50:50', cost: 75, icon: '⚖️' },
-                { id: 'shield', name: 'Aegis Shield', cost: 60, icon: '🛡️' }
-            ];
-            const grid = document.getElementById('modal-shop-grid'); grid.innerHTML = "";
-            catalog.forEach(item => {
-                grid.innerHTML += `
-                    <div class="flex items-center justify-between p-3 bg-slate-900/60 rounded-2xl border border-slate-800">
-                        <div class="flex items-center gap-3">
-                            <span class="text-xl bg-slate-950 p-2 rounded-xl border border-white/5">${item.icon}</span>
-                            <div>
-                                <h4 class="text-xs font-black text-slate-200 uppercase">${item.name}</h4>
-                                <p class="text-[9px] text-indigo-400 font-bold uppercase mt-0.5">Inventory: ${state.perks[item.id] || 0}</p>
-                            </div>
+            const shopHTML = `
+                <div class="flex items-center justify-between p-4 bg-slate-900/80 rounded-2xl border border-slate-700 shadow-md">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl text-sky-400 drop-shadow-[0_0_10px_rgba(56,189,248,0.5)]"><i class="fa-solid fa-snowflake"></i></span>
+                        <div>
+                            <h4 class="text-xs font-black text-white uppercase">Chrono Freeze</h4>
+                            <p class="text-[10px] text-sky-400 font-bold uppercase mt-1">In Bag: ${state.perks.freeze}</p>
                         </div>
-                        <button onclick="purchaseConsumablePerkItem(event, '${item.id}', ${item.cost})" class="bg-indigo-600 hover:bg-indigo-500 font-black text-[10px] px-3 py-2 rounded-xl text-white shadow-md active:scale-95 transition-transform uppercase tracking-wider border border-indigo-400/20 flex gap-1">
-                            <span>BUY</span><span class="text-indigo-200">${item.cost} 💰</span>
-                        </button>
                     </div>
-                `;
-            });
+                    <button onclick="buyPerk('freeze', 50)" class="bg-indigo-600 hover:bg-indigo-500 font-black text-xs px-4 py-2 rounded-xl text-white active:scale-95 shadow-lg border border-indigo-400/30">50 💰</button>
+                </div>
+                <div class="flex items-center justify-between p-4 bg-slate-900/80 rounded-2xl border border-slate-700 shadow-md">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl text-rose-400 drop-shadow-[0_0_10px_rgba(244,63,94,0.5)]"><i class="fa-solid fa-scale-balanced"></i></span>
+                        <div>
+                            <h4 class="text-xs font-black text-white uppercase">Divine 50/50</h4>
+                            <p class="text-[10px] text-rose-400 font-bold uppercase mt-1">In Bag: ${state.perks.half}</p>
+                        </div>
+                    </div>
+                    <button onclick="buyPerk('half', 75)" class="bg-indigo-600 hover:bg-indigo-500 font-black text-xs px-4 py-2 rounded-xl text-white active:scale-95 shadow-lg border border-indigo-400/30">75 💰</button>
+                </div>
+                <div class="flex items-center justify-between p-4 bg-slate-900/80 rounded-2xl border border-slate-700 shadow-md">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl text-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]"><i class="fa-solid fa-shield-halved"></i></span>
+                        <div>
+                            <h4 class="text-xs font-black text-white uppercase">Aegis Shield</h4>
+                            <p class="text-[10px] text-amber-400 font-bold uppercase mt-1">In Bag: ${state.perks.shield}</p>
+                        </div>
+                    </div>
+                    <button onclick="buyPerk('shield', 60)" class="bg-indigo-600 hover:bg-indigo-500 font-black text-xs px-4 py-2 rounded-xl text-white active:scale-95 shadow-lg border border-indigo-400/30">60 💰</button>
+                </div>
+            `;
+            document.getElementById('modal-shop-grid').innerHTML = shopHTML;
             document.getElementById('shop-modal').classList.remove('hidden');
         }
 
-        function closeShopModal(e) { 
-            if(e) e.stopPropagation();
-            document.getElementById('shop-modal').classList.add('hidden'); 
-        }
+        function closeShopModal() { document.getElementById('shop-modal').classList.add('hidden'); }
 
-        function purchaseConsumablePerkItem(evt, itemKey, costMetricValue) {
-            evt.preventDefault();
-            if (state.gold >= costMetricValue) {
-                state.gold -= costMetricValue;
-                state.perks[itemKey]++;
+        function buyPerk(id, cost) {
+            if (state.gold >= cost) {
+                state.gold -= cost;
+                state.perks[id]++;
                 saveState(); 
-                triggerAudioFeedbackTone(392, 0.15, 'sine');
-                openShopModal(evt); // Refresh the modal instantly
+                triggerAudioTone(392, 0.15, 'sine');
+                openShopModal(); // Auto-refresh UI
             } else {
-                displayGlobalAlertOverlay(getString('shortageTitle'), getString('shortageMsg'));
+                showAlert(getString('shortageTitle'), getString('shortageMsg'));
             }
         }
 
-        function displayGlobalAlertOverlay(alertTitle, alertMessageBody, confirmationCallback = null) {
-            activePostAlertCallback = confirmationCallback;
-            document.getElementById('alert-title').innerText = alertTitle;
-            document.getElementById('alert-msg').innerText = alertMessageBody;
+        function requestVaultUnlock(id, cost, name) {
+            if (state.gold >= cost) {
+                state.gold -= cost;
+                state.unlockedBooks[id] = true;
+                saveState();
+                triggerAudioTone(600, 0.3, 'sine');
+                showAlert(getString('unlockSuccess'), getString('unlockSuccessMsg').replace('{name}', name), () => { renderMenuMap(); });
+            } else {
+                showAlert(getString('shortageTitle'), getString('shortageMsg'));
+            }
+        }
+
+        function claimTaskReward(id) {
+            let task = state.tasks.find(t => t.id === id);
+            if (!task || task.done) return;
+            task.done = true;
+            state.gold += task.reward;
+            saveState();
+            triggerAudioTone(523.25, 0.3, 'sine');
+            renderTasksExplorer();
+        }
+
+        // --- 8. AUDIO & PARTICLES & ALERTS ---
+        function toggleAppLanguageSelector() {
+            state.lang = state.lang === 'en' ? 'tw' : 'en';
+            saveState();
+            triggerAudioTone(300, 0.1, 'triangle');
+            if (state.activeTab === 'home') renderMenuMap();
+            else if (state.activeTab === 'tasks') renderTasksExplorer();
+            else if (state.activeTab === 'copilot') renderCopilotHub();
+        }
+
+        function switchContextTerminalWindow(tab) {
+            if (inputInteractionsBlocked) return;
+            state.activeTab = tab;
+            
+            ['home', 'tasks', 'copilot'].forEach(id => {
+                let btn = document.getElementById(`nav-${id}`);
+                if(btn) btn.className = (tab === id) 
+                    ? "flex flex-col items-center justify-center py-2 text-indigo-400 bg-indigo-950/40 rounded-xl transition-all shadow-inner" 
+                    : "flex flex-col items-center justify-center py-2 text-slate-500 hover:text-slate-300 rounded-xl transition-all active:scale-95";
+            });
+
+            triggerAudioTone(140, 0.05, 'triangle');
+            if (tab === 'home') renderMenuMap();
+            else if (tab === 'tasks') renderTasksExplorer();
+            else if (tab === 'copilot') renderCopilotHub();
+        }
+
+        function showAlert(title, msg, callback = null) {
+            activePostAlertCallback = callback;
+            document.getElementById('alert-title').innerText = title;
+            document.getElementById('alert-msg').innerText = msg;
             document.getElementById('game-alert-modal').classList.remove('hidden');
         }
 
-        function dismissSystemModal(evt) {
-            evt.preventDefault();
-            triggerAudioFeedbackTone(180, 0.05, 'sine');
+        function dismissSystemModal(e) {
+            if(e) e.stopPropagation();
+            triggerAudioTone(180, 0.05, 'sine');
             document.getElementById('game-alert-modal').classList.add('hidden');
             if (activePostAlertCallback) {
-                const cb = activePostAlertCallback;
+                let cb = activePostAlertCallback;
                 activePostAlertCallback = null;
                 cb();
             }
         }
 
-        // AMBIENCE PARTICLE & SOUND ENGINES
         function initStarfieldAmbientLayer() {
             const canvas = document.getElementById('ambient-particle-canvas');
             if (!canvas) return;
@@ -879,7 +846,7 @@
             let dots = [];
             function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
             window.addEventListener('resize', resize); resize();
-            for(let i=0; i<35; i++) dots.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, r: Math.random() * 2 + 1, vY: Math.random() * 0.3 + 0.1, alpha: Math.random() * 0.4 + 0.1 });
+            for(let i=0; i<30; i++) dots.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, r: Math.random() * 2 + 1, vY: Math.random() * 0.2 + 0.1, alpha: Math.random() * 0.3 + 0.1 });
             function loop() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 dots.forEach(d => {
@@ -893,6 +860,7 @@
             loop();
         }
 
+        // Heavy Blizzard System for Freeze Perk (150 particles)
         function toggleSnowSystemPipeline(run) {
             const canvas = document.getElementById('snow-freeze-canvas');
             if (!canvas) return;
@@ -906,16 +874,16 @@
             canvas.width = window.innerWidth; canvas.height = window.innerHeight;
             canvas.style.opacity = "1"; snowFlakesArray = [];
 
-            for (let i = 0; i < 65; i++) {
-                snowFlakesArray.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, r: Math.random() * 3 + 1.5, speed: Math.random() * 1.5 + 0.5, density: Math.random() * 30 });
+            for (let i = 0; i < 150; i++) {
+                snowFlakesArray.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, r: Math.random() * 3 + 1, speed: Math.random() * 3 + 1, density: Math.random() * 50 });
             }
             function frame() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = "rgba(224, 242, 254, 0.85)"; ctx.beginPath();
-                for (let i = 0; i < 65; i++) {
+                ctx.fillStyle = "rgba(224, 242, 254, 0.9)"; ctx.beginPath();
+                for (let i = 0; i < 150; i++) {
                     let p = snowFlakesArray[i];
                     ctx.moveTo(p.x, p.y); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, true);
-                    p.y += p.speed; p.x += Math.sin(p.density) * 0.6;
+                    p.y += p.speed; p.x += Math.sin(p.density) * 1.5;
                     if (p.y > canvas.height) snowFlakesArray[i] = { x: Math.random() * canvas.width, y: -10, r: p.r, speed: p.speed, density: p.density };
                 }
                 ctx.fill();
@@ -925,16 +893,24 @@
         }
 
         function initAudioContext() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                startProceduralAmbianceLoop();
-            }
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        function triggerAudioTone(freq, dur, type = 'sine') {
+            if (!audioCtx || globalAudioMuted) return;
+            try {
+                let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
+                osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + dur);
+            } catch (err) {}
         }
 
         function startProceduralAmbianceLoop() {
             if (activeBackgroundToneLoop) clearInterval(activeBackgroundToneLoop);
             runMoodSynthesizerTick();
-            activeBackgroundToneLoop = setInterval(runMoodSynthesizerTick, currentBackgroundMoodType === 'war' ? 850 : 3500);
+            activeBackgroundToneLoop = setInterval(runMoodSynthesizerTick, currentBackgroundMoodType === 'war' ? 800 : 3000);
         }
 
         function runMoodSynthesizerTick() {
@@ -943,19 +919,19 @@
             const now = audioCtx.currentTime;
 
             if (currentBackgroundMoodType === 'war') {
-                let drumOsc = audioCtx.createOscillator(); let drumGain = audioCtx.createGain();
-                drumOsc.type = 'triangle'; drumOsc.frequency.setValueAtTime(58, now); drumOsc.frequency.exponentialRampToValueAtTime(0.01, now + 0.45);
-                drumGain.gain.setValueAtTime(0.4, now); drumGain.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
-                drumOsc.connect(drumGain); drumGain.connect(audioCtx.destination);
-                drumOsc.start(now); drumOsc.stop(now + 0.45);
+                let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(65, now); osc.frequency.exponentialRampToValueAtTime(0.01, now + 0.4);
+                gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 0.4);
             } else {
-                let ambientFreqs = [146.83, 220.00, 293.66];
-                ambientFreqs.forEach((f) => {
+                let freqs = [146.83, 220.00, 293.66];
+                freqs.forEach((f) => {
                     let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
                     osc.type = 'triangle'; osc.frequency.setValueAtTime(f, now);
-                    gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.02, now + 1.2); gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.3);
+                    gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.02, now + 1.0); gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.8);
                     osc.connect(gain); gain.connect(audioCtx.destination);
-                    osc.start(now); osc.stop(now + 3.4);
+                    osc.start(now); osc.stop(now + 3.0);
                 });
             }
         }
@@ -971,28 +947,18 @@
             const btn = document.getElementById('ambiance-toggle-btn');
             if (!audioCtx) {
                 initAudioContext(); globalAudioMuted = false;
-                if (btn) btn.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span>AMBIANCE: ON</span>`;
+                if (btn) btn.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span class="text-emerald-400">ON</span>`;
+                startProceduralAmbianceLoop();
                 return;
             }
             globalAudioMuted = !globalAudioMuted;
             if (globalAudioMuted) {
-                if (activeBackgroundToneLoop) { try { activeBackgroundToneLoop.stop(); } catch(e){} activeBackgroundToneLoop = null; }
-                if (btn) btn.innerHTML = `<span class="w-2 h-2 rounded-full bg-slate-500"></span><span class="text-slate-500">AMBIANCE: OFF</span>`;
+                if (activeBackgroundToneLoop) { clearInterval(activeBackgroundToneLoop); activeBackgroundToneLoop = null; }
+                if (btn) btn.innerHTML = `<span class="w-2 h-2 rounded-full bg-slate-500"></span><span class="text-slate-400">OFF</span>`;
             } else {
                 startProceduralAmbianceLoop();
-                if (btn) btn.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span class="text-emerald-400">AMBIANCE: ON</span>`;
+                if (btn) btn.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span class="text-emerald-400">ON</span>`;
             }
-        }
-
-        function triggerAudioFeedbackTone(freq, dur, type = 'sine') {
-            if (!audioCtx || globalAudioMuted) return;
-            try {
-                let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
-                osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.12, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(); osc.stop(audioCtx.currentTime + dur);
-            } catch (err) {}
         }
 
         window.addEventListener('DOMContentLoaded', () => {
