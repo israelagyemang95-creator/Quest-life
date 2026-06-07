@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Revelators Pathfinders Quiz Quest</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- Animate.css -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     
     <style>
@@ -135,6 +139,7 @@
 
     <div class="relative min-h-screen z-10 flex flex-col max-w-md mx-auto bg-slate-950/40 border-x border-slate-900 shadow-2xl overflow-hidden">
         
+        <!-- HEADER -->
         <header class="px-5 py-4 flex items-center justify-between border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50">
             <button onclick="toggleAudioAmbiance()" id="ambiance-toggle-btn" class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/40 text-emerald-400 text-xs font-black tracking-widest transition-all active:scale-95">
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -152,8 +157,10 @@
             </div>
         </header>
 
+        <!-- DYNAMIC CONTENT CANVAS -->
         <main id="window-canvas" class="flex-1 p-5 overflow-y-auto pb-28"></main>
 
+        <!-- FOOTER NAV -->
         <footer class="absolute bottom-0 left-0 right-0 bg-slate-950/90 backdrop-blur-xl border-t border-slate-800 grid grid-cols-3 p-3 gap-2 z-50">
             <button onclick="switchContextTerminalWindow('home')" id="nav-home" class="flex flex-col items-center justify-center py-2 text-indigo-400 bg-indigo-950/30 rounded-xl transition-all active:scale-95">
                 <i class="fa-solid fa-house text-lg"></i><span class="text-[10px] font-bold mt-1.5 uppercase">Home</span>
@@ -167,6 +174,7 @@
         </footer>
     </div>
 
+    <!-- NOTIFICATION MODAL -->
     <div id="game-alert-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
         <div class="glass-modal w-full max-w-xs p-6 text-center space-y-5 rounded-3xl animate__animated animate__zoomIn animate__faster border border-indigo-500/30 shadow-2xl">
             <div id="alert-icon" class="text-5xl drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">⚠️</div>
@@ -180,6 +188,7 @@
         </div>
     </div>
 
+    <!-- SHOP MODAL -->
     <div id="shop-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] hidden flex items-center justify-center p-4">
         <div class="glass-modal w-full max-w-sm p-6 space-y-4 rounded-3xl animate__animated animate__fadeInUp animate__faster border border-slate-700 shadow-2xl">
             <div class="flex justify-between items-center border-b border-slate-700 pb-4">
@@ -193,6 +202,7 @@
         </div>
     </div>
 
+    <!-- FLOATING BAG BUTTON -->
     <button id="lobby-bag-btn" onclick="openShopModal(event)" class="fixed bottom-24 right-6 z-40 bg-gradient-to-br from-indigo-500 to-purple-600 border border-white/20 w-14 h-14 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.5)] text-xl hover:scale-110 active:scale-95 transition-all animate__animated animate__pulse animate__infinite">
         🎒
     </button>
@@ -211,7 +221,13 @@
                 phase6Title: "Phase 6: SDA Teachings", phase6Desc: "The 28 Fundamental Beliefs", 
                 lockedEGW: "Requires 1000 Gold to unlock",
                 lockedBlitz: "Requires 500 Gold to unlock",
-                lockedSDA: "Requires 1500 Gold to unlock"
+                lockedSDA: "Requires 1500 Gold to unlock",
+                walletTitle: "Out of Gold",
+                walletMsg: "Complete tasks or retry sections to earn back your coin pouch balances.",
+                shortageTitle: "Insufficient Funds",
+                shortageMsg: "You do not have enough gold to complete this purchase.",
+                unlockSuccess: "Sector Unlocked",
+                unlockSuccessMsg: "You have successfully granted clearance to {name}."
             },
             tw: {
                 mapHub: "Akwankyerɛ Kuw", 
@@ -224,7 +240,13 @@
                 phase6Title: "Apaso 6: SDA Nkyerɛkyerɛ", phase6Desc: "Nkyerɛkyerɛ Titiriw 28 No", 
                 lockedEGW: "Hia Sika Kɔkɔɔ 1000 de abue",
                 lockedBlitz: "Hia Sika Kɔkɔɔ 500 de abue",
-                lockedSDA: "Hia Sika Kɔkɔɔ 1500 de abue"
+                lockedSDA: "Hia Sika Kɔkɔɔ 1500 de abue",
+                walletTitle: "Sika Asa",
+                walletMsg: "Yɛ adwuma ahorow no bio na wanya sika kɔkɔɔ.",
+                shortageTitle: "Sika Nnoso",
+                shortageMsg: "Wo sika kɔkɔɔ nnoso sɛ wo bɛtɔ ade yi.",
+                unlockSuccess: "Abue Baabi Koro",
+                unlockSuccessMsg: "Woatumi abue {name} kwan no koraa."
             }
         };
 
@@ -234,7 +256,6 @@
 
         // --- 2. EXACT 50-QUESTION PER BOOK GENERATOR ---
         function generateProceduralDatabaseItems() {
-            // Foundational Seeds
             const seeds = [
                 { id: "nt", group: "NT", q: "Who was chosen to be the earthly mother of Jesus Christ?", a: ["Elizabeth", "Mary", "Martha", "Salome"], correct: 1 },
                 { id: "nt", group: "NT", q: "Where was Jesus Christ born historically?", a: ["Nazareth", "Jerusalem", "Bethlehem", "Capernaum"], correct: 2 },
@@ -263,18 +284,16 @@
                 if(templates.length === 0) templates = seeds.filter(b => b.id === 'nt'); 
                 
                 let categoryQuestions = [];
-                // STRICTLY LOOP EXACTLY 50 TIMES PER BOOK
                 for(let i = 1; i <= 50; i++) {
                     let t = templates[(i - 1) % templates.length];
                     
-                    // Assign Dynamic Timer Difficulties evenly across the 50 items
-                    let diff = "easy"; // 20s
-                    if (i % 2 === 0) diff = "moderate"; // 15s
-                    if (i % 5 === 0) diff = "hard"; // 10s
-                    if (cat === "mastery") diff = "blitz"; // 5s
+                    let diff = "easy"; 
+                    if (i % 2 === 0) diff = "moderate"; 
+                    if (i % 5 === 0) diff = "hard"; 
+                    if (cat === "mastery") diff = "blitz"; 
 
                     categoryQuestions.push({
-                        q: `${t.q} [Sector Node ${i}/50]`, // Ensures UI visibly changes for every single question
+                        q: `${t.q} [Sector Node ${i}/50]`, 
                         a: [...t.a],
                         correct: t.correct,
                         difficulty: diff
@@ -302,8 +321,8 @@
             unlockedBooks: { nt: true, ot: true, mix: true, egw: false, mastery: false, sda: false },
             stats: { currentStreak: 0, overallAnswers: 0 },
             tasks: [
-                { id: "t1", type: "answer", target: 15, progress: 0, reward: 150, done: false },
-                { id: "t2", type: "streak", target: 5, progress: 0, reward: 200, done: false }
+                { id: "t1", type: "answer", target: 15, progress: 0, reward: 150, done: false, i18nKey: "Answer 15 Questions" },
+                { id: "t2", type: "streak", target: 5, progress: 0, reward: 200, done: false, i18nKey: "Achieve 5 Streak" }
             ]
         };
 
@@ -323,6 +342,7 @@
         let activePostAlertCallback = null;
         let snowAnimationId = null;
         let snowFlakesArray = [];
+        let currentBackgroundMoodType = "";
 
         function saveState() {
             localStorage.setItem('revelatorsMasterStateV3', JSON.stringify(state));
@@ -332,14 +352,13 @@
             if (goldVal) goldVal.innerText = `${state.gold}`;
             if (langLabel) langLabel.innerText = state.lang === 'en' ? "EN" : "TW";
             
-            // Re-bind data-i18n on state save to update translations live
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 let key = el.getAttribute('data-i18n');
                 el.innerText = getString(key);
             });
         }
 
-        // --- 4. RENDER: HOME MENU (No Template Literal Breaking) ---
+        // --- 4. RENDER: HOME MENU ---
         function renderMenuMap() {
             if (state.activeTab !== 'home') return;
             document.getElementById('lobby-bag-btn').classList.remove('hidden');
@@ -355,26 +374,22 @@
                 <div class="space-y-3 pt-4">
             `;
 
-            // Standard Unlocked Books
             htmlString += buildPhaseCard('nt', 'phase1Title', 'phase1Desc', 'bg-indigo-500');
             htmlString += buildPhaseCard('ot', 'phase2Title', 'phase2Desc', 'bg-emerald-500');
             htmlString += buildPhaseCard('mix', 'phase3Title', 'phase3Desc', 'bg-pink-500');
 
-            // Locked/Unlocked Book EGW
             if (state.unlockedBooks.egw) {
                 htmlString += buildPhaseCard('egw', 'phase4Title', 'phase4Desc', 'bg-amber-500');
             } else {
                 htmlString += buildLockedCard('egw', 'phase4Title', 'lockedEGW', 1000);
             }
 
-            // Locked/Unlocked Book MASTERY
             if (state.unlockedBooks.mastery) {
                 htmlString += buildPhaseCard('mastery', 'phase5Title', 'phase5Desc', 'bg-red-600', true);
             } else {
                 htmlString += buildLockedCard('mastery', 'phase5Title', 'lockedBlitz', 500);
             }
 
-            // Locked/Unlocked Book SDA
             if (state.unlockedBooks.sda) {
                 htmlString += buildPhaseCard('sda', 'phase6Title', 'phase6Desc', 'bg-cyan-500');
             } else {
@@ -385,7 +400,6 @@
             document.getElementById('window-canvas').innerHTML = htmlString;
         }
 
-        // HTML Builders to protect against IDE parsing errors
         function buildPhaseCard(id, titleKey, descKey, colorClass, isBlitz = false) {
             let extra = isBlitz ? `<span class="text-[8px] font-black text-white bg-red-600 px-2 py-0.5 rounded animate-pulse absolute top-4 right-4">WAR ZONE</span>` : '';
             return `
@@ -412,7 +426,7 @@
             `;
         }
 
-        // --- 5. RENDER: TASKS & COPILOT ---
+        // --- 5. RENDER: TASKS & COPILOT (LINKED TO WHATSAPP DM) ---
         function renderTasksExplorer() {
             if (state.activeTab !== 'tasks') return;
             document.getElementById('lobby-bag-btn').classList.add('hidden');
@@ -426,12 +440,11 @@
             
             state.tasks.forEach(t => {
                 let pct = Math.min(100, Math.floor((t.progress / t.target) * 100));
-                let txt = getString(t.i18nKey).replace('{target}', t.target);
                 
                 htmlString += `
                     <div class="p-4 rounded-2xl glass-card border border-slate-800 flex flex-col gap-3 ${t.done ? 'opacity-50' : ''}">
                         <div class="flex items-center justify-between">
-                            <p class="text-[11px] font-black text-slate-200 uppercase tracking-wide">${txt}</p>
+                            <p class="text-[11px] font-black text-slate-200 uppercase tracking-wide">${t.i18nKey}</p>
                             <span class="text-[10px] font-black text-amber-400 bg-amber-950/40 border border-amber-500/30 px-2 py-0.5 rounded-lg shrink-0">+${t.reward} 💰</span>
                         </div>
                         <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-900">
@@ -465,16 +478,28 @@
                                 <i class="fa-solid fa-robot"></i>
                             </div>
                             <div class="p-3 rounded-2xl rounded-tl-none bg-slate-900/80 border border-slate-800 text-xs text-slate-300 font-medium leading-relaxed">
-                                System Initialization Operational. Terminal logs indicate high integrity status frameworks across all 50-question narrative segments.
+                                System Initialization Operational. Terminal logs indicate high integrity status frameworks across all 50-question narrative segments. Submit any concerns straight to my WhatsApp DM.
                             </div>
                         </div>
                     </div>
                     <div class="flex gap-2 items-center border-t border-slate-800 pt-3">
-                        <input type="text" placeholder="Transmit query parameters..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-indigo-500/50">
-                        <button class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-sm active:scale-95 shadow-md"><i class="fa-solid fa-paper-plane"></i></button>
+                        <input type="text" id="copilot-query-field" placeholder="Transmit query parameters to DM..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-indigo-500/50">
+                        <button onclick="dispatchCopilotQueryToWhatsApp()" class="w-10 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center text-sm active:scale-95 shadow-md"><i class="fa-solid fa-paper-plane"></i></button>
                     </div>
                 </div>
             `;
+        }
+
+        function dispatchCopilotQueryToWhatsApp() {
+            const inputField = document.getElementById('copilot-query-field');
+            if (!inputField || !inputField.value.trim()) return;
+            
+            const messageText = encodeURIComponent("Revelators Pathfinder Query:\n" + inputField.value.trim());
+            const targetWhatsAppURL = "https://wa.me/233549839735?text=" + messageText;
+            
+            triggerAudioTone(400, 0.1, 'sine');
+            window.open(targetWhatsAppURL, '_blank');
+            inputField.value = "";
         }
 
         // --- 6. GAMEPLAY ENGINE ---
@@ -483,13 +508,11 @@
             triggerAudioTone(220, 0.1, 'sine');
             currentCampaignMode = modeId;
 
-            // Load the EXACT 50 questions for this specific book
             let targetBookNode = window.quizDatabase.find(b => b.id === modeId);
             if(targetBookNode && targetBookNode.questions) {
-                // Copy the array to manipulate during gameplay without deleting the master data
                 campaignActivePool = [...targetBookNode.questions];
             } else {
-                campaignActivePool = [...window.quizDatabase[0].questions]; // Fallback
+                campaignActivePool = [...window.quizDatabase[0].questions]; 
             }
 
             document.getElementById('lobby-bag-btn').classList.add('hidden');
@@ -506,10 +529,8 @@
                 return;
             }
 
-            // Pull next sequential question
             currentActiveQuestion = campaignActivePool.shift();
             
-            // Map Difficulty to Strict Timers
             let diff = currentActiveQuestion.difficulty;
             if (diff === 'hard') initialSecondsAllowed = 10;
             else if (diff === 'moderate') initialSecondsAllowed = 15;
@@ -610,7 +631,6 @@
             const btns = document.getElementsByClassName('answer-selection-btn');
             
             if (idx === currentActiveQuestion.correct) {
-                // SUCCESS
                 triggerAudioTone(440, 0.15, 'sine');
                 setTimeout(() => { triggerAudioTone(659.25, 0.2, 'sine'); }, 150);
 
@@ -628,7 +648,6 @@
                 }, 1200);
 
             } else {
-                // FAILURE
                 if (btns[idx]) btns[idx].className = "w-full p-4 rounded-2xl bg-red-950/80 border border-red-500/80 text-left text-xs font-black text-red-200 shadow-[0_0_20px_rgba(239,68,68,0.4)] animate__animated animate__shakeX flex items-center justify-between";
                 state.stats.currentStreak = 0; 
                 saveState();
@@ -637,7 +656,6 @@
             }
         }
 
-        // CORE FIX: No popups on failure. Smooth coin vibration and auto-skip.
         function executeFluidFailure() {
             clearInterval(countdownTimerRef);
             inputInteractionsBlocked = true;
@@ -652,25 +670,21 @@
                 return;
             }
 
-            // Harsh synthetic thud sound
             triggerAudioTone(80, 0.4, 'square');
             state.gold = Math.max(0, state.gold - 20);
             saveState();
             
-            // Violent Red UI Shake on the specific Gold container
             const walletNode = document.getElementById('gold-container');
             if(walletNode) {
                 walletNode.classList.add('vibrate-error-bag');
                 setTimeout(() => { walletNode.classList.remove('vibrate-error-bag'); }, 400);
             }
 
-            // Only popup if completely bankrupt
             if(state.gold <= 0) {
                 setTimeout(() => {
                     showAlert(getString('walletTitle'), getString('walletMsg'), () => { switchContextTerminalWindow('home'); });
                 }, 600);
             } else {
-                // Instant seamless skip to next question
                 setTimeout(() => { 
                     inputInteractionsBlocked = false;
                     executeNextQuestionCycle(); 
@@ -687,7 +701,6 @@
             saveState(); 
             triggerAudioTone(500, 0.15, 'triangle');
 
-            // Visual dramatic pulse on the button
             const btn = document.getElementById(`perk-btn-${type}`);
             if(btn) {
                 btn.classList.add(`text-white`);
@@ -698,7 +711,7 @@
             if (type === 'freeze') {
                 isFreezeActive = true;
                 document.getElementById('frost-frame').classList.add('frost-active');
-                toggleSnowSystemPipeline(true); // Engages 150-particle intense blizzard
+                toggleSnowSystemPipeline(true); 
             } else if (type === 'half') {
                 const elements = document.getElementsByClassName('answer-selection-btn');
                 let removed = 0;
@@ -714,7 +727,6 @@
                 document.getElementById('shield-frame').classList.add('shield-active');
             }
             
-            // Force redraw the numbers on the UI buttons
             document.getElementById('perk-btn-freeze').innerHTML = `<i class="fa-solid fa-snowflake text-sky-400 mb-1 text-lg"></i><span class="text-[9px] font-black uppercase text-slate-300">Freeze (${state.perks.freeze})</span>`;
             document.getElementById('perk-btn-half').innerHTML = `<i class="fa-solid fa-scale-balanced text-rose-400 mb-1 text-lg"></i><span class="text-[9px] font-black uppercase text-slate-300">50/50 (${state.perks.half})</span>`;
             document.getElementById('perk-btn-shield').innerHTML = `<i class="fa-solid fa-shield-halved text-amber-400 mb-1 text-lg"></i><span class="text-[9px] font-black uppercase text-slate-300">Shield (${state.perks.shield})</span>`;
@@ -766,7 +778,7 @@
                 state.perks[id]++;
                 saveState(); 
                 triggerAudioTone(392, 0.15, 'sine');
-                openShopModal(); // Auto-refresh UI
+                openShopModal(); 
             } else {
                 showAlert(getString('shortageTitle'), getString('shortageMsg'));
             }
@@ -860,7 +872,6 @@
             loop();
         }
 
-        // Heavy Blizzard System for Freeze Perk (150 particles)
         function toggleSnowSystemPipeline(run) {
             const canvas = document.getElementById('snow-freeze-canvas');
             if (!canvas) return;
@@ -963,8 +974,8 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             initStarfieldAmbientLayer();
-            switchContextTerminalWindow('home');
             saveState();
+            switchContextTerminalWindow('home');
         });
     </script>
 </body>
