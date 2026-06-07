@@ -29,11 +29,6 @@
             background-color: rgba(2, 6, 23, 0.88);
         }
 
-        /* Ambient Particle Framework */
-        #ambient-particle-canvas, #snow-freeze-canvas { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
-        #ambient-particle-canvas { opacity: 0.4; }
-        #snow-freeze-canvas { z-index: 45; opacity: 0; transition: opacity 0.3s ease; }
-        
         /* Glassmorphism UI */
         .glass-card { 
             background: rgba(15, 23, 42, 0.65); 
@@ -44,46 +39,43 @@
             color: white; 
         }
 
-        .level-card-interactive { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .level-card-interactive:hover { transform: translateY(-3px) scale(1.01); background: rgba(30, 41, 59, 0.8); }
-
-        /* Premium Power-Up Animations */
+        /* Premium Animations */
         @keyframes divineLight {
-            0% { box-shadow: 0 0 0px rgba(250, 204, 21, 0); transform: scale(1); background: rgba(15,23,42,0.85); }
-            50% { box-shadow: 0 0 50px rgba(250, 204, 21, 1); transform: scale(1.05); background: rgba(250, 204, 21, 0.3); border-color: #facc15; }
-            100% { box-shadow: 0 0 20px rgba(250, 204, 21, 0.5); transform: scale(1); background: rgba(202, 138, 4, 0.4); border-color: #facc15; }
+            0% { box-shadow: 0 0 0px rgba(250, 204, 21, 0); transform: scale(1); }
+            50% { box-shadow: 0 0 80px rgba(250, 204, 21, 1); transform: scale(1.05); background: rgba(250, 204, 21, 0.4); border-color: #facc15; }
+            100% { box-shadow: 0 0 20px rgba(250, 204, 21, 0.5); transform: scale(1); background: rgba(202, 138, 4, 0.5); border-color: #facc15; }
         }
-        .anim-divine { animation: divineLight 1.5s forwards !important; }
+        .anim-divine { animation: divineLight 1.5s forwards !important; z-index: 50; position: relative; }
 
         @keyframes timeWarpSpin {
-            0% { filter: hue-rotate(0deg); transform: rotate(0deg) scale(1); }
-            50% { filter: hue-rotate(180deg); transform: rotate(180deg) scale(1.2); }
-            100% { filter: hue-rotate(360deg); transform: rotate(360deg) scale(1); }
+            0% { filter: hue-rotate(0deg); transform: scale(1); }
+            50% { filter: hue-rotate(180deg); transform: scale(1.3) rotate(-5deg); text-shadow: 0 0 20px #a855f7; }
+            100% { filter: hue-rotate(360deg); transform: scale(1); }
         }
-        .anim-warp { animation: timeWarpSpin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards; color: #a855f7 !important; }
+        .anim-warp { animation: timeWarpSpin 1s ease-in-out forwards; color: #d8b4fe !important; }
 
         @keyframes goldShowerPulse {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; box-shadow: inset 0 0 40px #fbbf24; }
-            100% { background-position: 0% 50%; }
+            0% { background-position: 0% 50%; box-shadow: inset 0 0 20px #fbbf24; }
+            50% { background-position: 100% 50%; box-shadow: inset 0 0 80px #f59e0b; }
+            100% { background-position: 0% 50%; box-shadow: inset 0 0 20px #fbbf24; }
         }
-        .anim-midas-active { background: linear-gradient(270deg, #b45309, #fbbf24, #b45309); background-size: 400% 400%; animation: goldShowerPulse 2s ease infinite !important; color: white !important; border-color: #fef3c7 !important; }
+        .anim-midas-active { background: linear-gradient(270deg, #451a03, #b45309, #fcd34d, #b45309); background-size: 400% 400%; animation: goldShowerPulse 2s ease infinite !important; border-color: #fef3c7 !important; }
 
         @keyframes matrixOmniGlow {
-            0% { box-shadow: inset 0 0 10px #22c55e, 0 0 10px #22c55e; }
-            50% { box-shadow: inset 0 0 40px #4ade80, 0 0 40px #4ade80; }
-            100% { box-shadow: inset 0 0 10px #22c55e, 0 0 10px #22c55e; }
+            0% { box-shadow: inset 0 0 10px #22c55e, 0 0 20px #22c55e; border-color: #22c55e; }
+            50% { box-shadow: inset 0 0 50px #4ade80, 0 0 80px #4ade80; border-color: #86efac; }
+            100% { box-shadow: inset 0 0 10px #22c55e, 0 0 20px #22c55e; border-color: #22c55e; }
         }
-        .anim-omni-active { animation: matrixOmniGlow 1.5s infinite; border-color: #22c55e !important; }
+        .anim-omni-active { animation: matrixOmniGlow 1.5s forwards !important; }
 
-        @keyframes angelResurrect {
-            0% { opacity: 0; transform: translateY(20px) scale(0.9); }
-            50% { opacity: 1; transform: translateY(0) scale(1.1); filter: drop-shadow(0 0 30px #bae6fd); }
-            100% { opacity: 1; transform: translateY(0) scale(1); }
+        @keyframes resurrectFlash {
+            0% { background-color: rgba(14, 165, 233, 0); }
+            50% { background-color: rgba(56, 189, 248, 0.4); box-shadow: inset 0 0 100px rgba(186, 230, 253, 0.8); }
+            100% { background-color: rgba(14, 165, 233, 0); }
         }
-        .anim-resurrect-modal { animation: angelResurrect 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        .anim-resurrect-flash { animation: resurrectFlash 1.5s forwards; pointer-events: none; position: fixed; inset: 0; z-index: 999; }
 
-        /* Power-up Overlays */
+        /* Overlays */
         #frost-frame { position: fixed; inset: 0; border: 16px solid rgba(56, 189, 248, 0.5); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 100px rgba(14, 165, 233, 0.4); }
         .frost-active { opacity: 1 !important; }
         #shield-frame { position: fixed; inset: 0; border: 12px solid rgba(245, 158, 11, 0.6); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 40; box-shadow: inset 0 0 80px rgba(245, 158, 11, 0.3); }
@@ -94,10 +86,9 @@
 </head>
 <body>
 
-    <canvas id="ambient-particle-canvas"></canvas>
-    <canvas id="snow-freeze-canvas"></canvas>
     <div id="frost-frame"></div>
     <div id="shield-frame"></div>
+    <div id="resurrect-flash-container"></div>
 
     <div class="relative min-h-screen z-10 flex flex-col max-w-md mx-auto bg-slate-950/40 border-x border-slate-900 shadow-2xl overflow-hidden">
         
@@ -107,21 +98,21 @@
                 <span id="audio-label">ON</span>
             </button>
             <div class="flex items-center gap-3">
-                <div id="gold-container" class="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-slate-900 border border-amber-500/40 text-amber-400 font-black text-sm transition-all duration-200 shadow-inner">
+                <div id="gold-container" class="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-slate-900 border border-amber-500/40 text-amber-400 font-black text-sm transition-all shadow-inner">
                     <i class="fa-solid fa-coins text-xs"></i>
                     <span id="player-gold-display">750</span>
                 </div>
             </div>
         </header>
 
-        <main id="window-canvas" class="flex-1 p-5 overflow-y-auto pb-32"></main>
+        <main id="window-canvas" class="flex-1 p-5 overflow-y-auto pb-40"></main>
 
-        <footer class="absolute bottom-0 left-0 right-0 bg-slate-950/90 backdrop-blur-xl border-t border-slate-800 grid grid-cols-3 p-3 gap-2 z-50">
-            <button onclick="switchContextTerminalWindow('home')" id="nav-home" class="flex flex-col items-center justify-center py-2 text-indigo-400 bg-indigo-950/30 rounded-xl transition-all active:scale-95">
+        <footer class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-slate-950/95 backdrop-blur-xl border-t border-slate-800 grid grid-cols-3 p-3 gap-2 z-50">
+            <button onclick="switchContextTerminalWindow('home')" id="nav-home" class="flex flex-col items-center justify-center py-2 text-indigo-400 bg-indigo-950/40 rounded-xl transition-all shadow-inner">
                 <i class="fa-solid fa-house text-lg"></i><span class="text-[10px] font-bold mt-1.5 uppercase">Home</span>
             </button>
             <button onclick="switchContextTerminalWindow('tasks')" id="nav-tasks" class="flex flex-col items-center justify-center py-2 text-slate-500 hover:text-slate-300 rounded-xl transition-all active:scale-95 hover:bg-slate-900">
-                <i class="fa-solid fa-list-check text-lg"></i><span class="text-[10px] font-bold mt-1.5 uppercase">Daily Tasks</span>
+                <i class="fa-solid fa-list-check text-lg"></i><span class="text-[10px] font-bold mt-1.5 uppercase">Activities</span>
             </button>
             <button onclick="switchContextTerminalWindow('copilot')" id="nav-copilot" class="flex flex-col items-center justify-center py-2 text-slate-500 hover:text-slate-300 rounded-xl transition-all active:scale-95 hover:bg-slate-900">
                 <i class="fa-solid fa-robot text-lg"></i><span class="text-[10px] font-bold mt-1.5 uppercase">Copilot</span>
@@ -130,8 +121,8 @@
     </div>
 
     <!-- MTN MOMO PAYMENT MODAL -->
-    <div id="momo-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[120] hidden flex items-center justify-center p-4">
-        <div class="glass-modal w-full max-w-sm p-6 space-y-5 rounded-3xl bg-slate-900/90 border border-yellow-500/50 shadow-2xl">
+    <div id="momo-modal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-[120] hidden flex items-center justify-center p-4">
+        <div class="glass-modal w-full max-w-sm p-6 space-y-5 rounded-3xl bg-slate-900 border border-yellow-500/50 shadow-[0_0_40px_rgba(234,179,8,0.2)]">
             <div class="flex justify-between items-center border-b border-slate-700 pb-3">
                 <h3 class="text-sm font-black uppercase text-yellow-500 flex items-center gap-2"><i class="fa-solid fa-mobile-screen-button"></i> MTN Mobile Money</h3>
                 <button onclick="closeMoMoModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -142,8 +133,8 @@
                     <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Mobile Number</label>
                     <input type="text" id="momo-number" value="0549839735" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:border-yellow-500 outline-none">
                 </div>
-                <button onclick="processMoMoPayment()" class="w-full py-3 rounded-xl bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-black text-sm uppercase tracking-widest active:scale-95 transition-all shadow-[0_0_15px_rgba(234,179,8,0.4)]">
-                    Pay <span id="momo-cost-display">0</span> GHS
+                <button id="momo-pay-btn" onclick="processMoMoPayment()" class="w-full py-3 rounded-xl bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-black text-sm uppercase tracking-widest active:scale-95 transition-all shadow-[0_0_15px_rgba(234,179,8,0.4)]">
+                    PAY <span id="momo-cost-display">0</span> GHS
                 </button>
             </div>
         </div>
@@ -156,14 +147,12 @@
             <button onclick="closeShopModal()" class="w-10 h-10 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="flex-1 overflow-y-auto max-w-md mx-auto w-full space-y-6 pb-20">
-            <!-- Free / Gold Items -->
             <div class="space-y-3">
-                <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-800 pb-1">Standard Issue (Purchasable with Gold)</h4>
+                <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-800 pb-1">Standard 5 (Purchasable with Gold)</h4>
                 <div id="shop-free-grid" class="space-y-2"></div>
             </div>
-            <!-- Premium Items -->
             <div class="space-y-3">
-                <h4 class="text-[10px] font-black text-yellow-500 uppercase tracking-widest border-b border-yellow-900/50 pb-1 flex items-center gap-2"><i class="fa-solid fa-crown"></i> Premium Artifacts (MTN MoMo)</h4>
+                <h4 class="text-[10px] font-black text-yellow-500 uppercase tracking-widest border-b border-yellow-900/50 pb-1 flex items-center gap-2"><i class="fa-solid fa-crown"></i> Premium 5 (MTN MoMo)</h4>
                 <div id="shop-premium-grid" class="space-y-2"></div>
             </div>
         </div>
@@ -173,25 +162,10 @@
         🎒
     </button>
 
-    <!-- RESURRECTION MODAL -->
-    <div id="resurrect-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[150] hidden flex items-center justify-center p-4">
-        <div class="glass-modal w-full max-w-sm p-8 text-center space-y-6 rounded-3xl anim-resurrect-modal border border-sky-400/50 bg-slate-900/90 shadow-[0_0_50px_rgba(56,189,248,0.3)]">
-            <div class="text-6xl drop-shadow-[0_0_20px_rgba(56,189,248,0.8)] text-sky-300"><i class="fa-solid fa-dove"></i></div>
-            <div>
-                <h3 class="text-xl font-black heading-font text-white uppercase tracking-widest">Resurrection</h3>
-                <p class="text-xs text-sky-200 mt-2 font-medium">Death is not the end. Use a Resurrection artifact to prevent gold loss and preserve your streak.</p>
-            </div>
-            <div class="flex gap-3">
-                <button onclick="declineResurrection()" class="flex-1 py-3 rounded-xl bg-slate-800 text-slate-300 font-black text-xs uppercase tracking-widest">Accept Fate</button>
-                <button onclick="acceptResurrection()" class="flex-1 py-3 rounded-xl bg-sky-500 text-slate-900 font-black text-xs uppercase tracking-widest shadow-[0_0_15px_rgba(56,189,248,0.6)]">Revive (<span id="resurrect-count">0</span>)</button>
-            </div>
-        </div>
-    </div>
-
     <!-- GENERAL ALERT MODAL -->
-    <div id="game-alert-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] hidden flex items-center justify-center p-4">
-        <div class="glass-modal w-full max-w-xs p-6 text-center space-y-5 rounded-3xl animate__animated animate__zoomIn animate__faster border border-indigo-500/30 shadow-2xl bg-slate-900">
-            <div class="text-5xl drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] text-indigo-400"><i class="fa-solid fa-circle-exclamation"></i></div>
+    <div id="game-alert-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[200] hidden flex items-center justify-center p-4">
+        <div class="glass-modal w-full max-w-xs p-6 text-center space-y-5 rounded-3xl animate__animated animate__zoomIn animate__faster border border-indigo-500/50 shadow-2xl bg-slate-900">
+            <div id="alert-icon-container" class="text-5xl drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] text-indigo-400"><i class="fa-solid fa-bell"></i></div>
             <div class="space-y-1">
                 <h3 id="alert-title" class="text-sm font-black heading-font text-white uppercase tracking-widest">Notice</h3>
                 <p id="alert-msg" class="text-xs text-slate-300 font-medium leading-relaxed"></p>
@@ -200,26 +174,10 @@
         </div>
     </div>
 
-    <!-- START SECTOR OVERLAY -->
-    <div id="start-sector-modal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-[90] hidden flex items-center justify-center p-4">
-        <div class="text-center space-y-8 max-w-sm w-full animate__animated animate__fadeInUp">
-            <h2 id="start-sector-title" class="text-4xl font-black heading-font text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400 uppercase tracking-widest"></h2>
-            <div class="space-y-2">
-                <div class="flex justify-between text-xs font-bold text-slate-400 border-b border-slate-800 pb-2"><span>Questions:</span> <span class="text-white">50 Nodes</span></div>
-                <div class="flex justify-between text-xs font-bold text-slate-400 border-b border-slate-800 pb-2"><span>Difficulty Curve:</span> <span class="text-amber-400">Escalating</span></div>
-                <div class="flex justify-between text-xs font-bold text-slate-400 border-b border-slate-800 pb-2"><span>Reward:</span> <span class="text-emerald-400">High Yield</span></div>
-            </div>
-            <div class="pt-4 flex gap-3">
-                <button onclick="cancelSectorStart()" class="flex-1 py-4 rounded-2xl bg-slate-800 text-slate-400 font-black text-sm uppercase tracking-widest">ABORT</button>
-                <button onclick="confirmSectorStart()" class="flex-1 py-4 rounded-2xl bg-indigo-600 text-white font-black text-sm uppercase tracking-widest shadow-[0_0_20px_rgba(79,70,229,0.5)]">ENGAGE</button>
-            </div>
-        </div>
-    </div>
-
     <script>
         // --- 1. PROCEDURAL & EXPLICIT QUESTION DATABASES ---
         
-        // Fully explicit 50 questions for New Testament to ensure no repetitions.
+        // Fully explicit 50 questions for NT ensuring 0 duplication.
         const ntExplicitQuestions = [
             { q: "Who was chosen to be the earthly mother of Jesus?", a: ["Elizabeth", "Mary", "Martha", "Salome"], correct: 1 },
             { q: "Where was Jesus Christ born historically?", a: ["Nazareth", "Jerusalem", "Bethlehem", "Capernaum"], correct: 2 },
@@ -273,20 +231,19 @@
             { q: "Who said, 'Lord, to whom shall we go? You have the words of eternal life'?", a: ["Peter", "John", "Thomas", "Paul"], correct: 0 }
         ];
 
-        // Dynamic generator for other categories to prevent duplicates and ensure 50 distinct questions
+        // Generator ensuring no dupes for other books
         function generateProceduralSector(prefix, topicPool) {
             let questions = [];
             for(let i=0; i<50; i++) {
                 let topic = topicPool[i % topicPool.length];
                 let variation = Math.floor(i / topicPool.length) + 1;
-                let qText = `${prefix} Fact Check ${i+1}: Concerning ${topic}, what is the correct historical/biblical truth? (Variation ${variation})`;
+                let qText = `${prefix} Code ${i+1}: Concerning the doctrine of ${topic}, what is the documented outcome in Variation ${variation}?`;
                 questions.push({
                     q: qText,
-                    a: [`Correct Truth regarding ${topic}`, `False concept A about ${topic}`, `False concept B`, `Unrelated distraction`],
+                    a: [`Correct record of ${topic}`, `False concept A`, `False concept B`, `Unrelated distraction`],
                     correct: 0
                 });
             }
-            // Shuffle answers for reality
             questions.forEach(q => {
                 let correctAns = q.a[0];
                 q.a.sort(() => Math.random() - 0.5);
@@ -295,13 +252,7 @@
             return questions;
         }
 
-        const dbMix = generateProceduralSector("Grand Mix", ["Prophets", "Kings", "Battles", "Miracles", "Parables", "Covenants", "Geography"]);
-        const dbOT = generateProceduralSector("Old Testament", ["Creation", "Exodus", "Davidic Line", "Temple", "Exile", "Law", "Judges"]);
-        const dbEGW = generateProceduralSector("E.G. White", ["Great Controversy", "Health Reform", "Education", "Prophetic Gift", "Testimonies"]);
-        const dbMastery = generateProceduralSector("Mastery Blitz", ["Dates", "Numbers", "Genealogy", "Symbolism", "Original Languages"]);
-        const dbSDA = generateProceduralSector("SDA Beliefs", ["Sabbath", "Sanctuary", "State of the Dead", "Second Coming", "Trinity"]);
-
-        // Assign difficulty linearly: 1-15 (Easy), 16-35 (Moderate), 36-50 (Hard)
+        // Tiered Difficulty Curve (Easy -> Moderate -> Hard)
         function applyDifficultyCurve(qArray) {
             return qArray.map((q, idx) => {
                 let diff = "easy";
@@ -313,22 +264,23 @@
 
         window.quizDatabase = [
             { id: "nt", group: "NT", questions: applyDifficultyCurve(ntExplicitQuestions) },
-            { id: "ot", group: "OT", questions: applyDifficultyCurve(dbOT) },
-            { id: "mix", group: "MIX", questions: applyDifficultyCurve(dbMix) },
-            { id: "egw", group: "EGW", questions: applyDifficultyCurve(dbEGW) },
-            { id: "mastery", group: "MASTERY", questions: applyDifficultyCurve(dbMastery) },
-            { id: "sda", group: "SDA", questions: applyDifficultyCurve(dbSDA) }
+            { id: "ot", group: "OT", questions: applyDifficultyCurve(generateProceduralSector("Old Testament", ["Creation", "Exodus", "Davidic Line", "Temple", "Exile", "Law", "Judges"])) },
+            { id: "mix", group: "MIX", questions: applyDifficultyCurve(generateProceduralSector("Grand Mix", ["Prophets", "Kings", "Battles", "Miracles", "Parables", "Covenants", "Geography"])) },
+            { id: "egw", group: "EGW", questions: applyDifficultyCurve(generateProceduralSector("E.G. White", ["Great Controversy", "Health Reform", "Education", "Prophetic Gift", "Testimonies"])) },
+            { id: "mastery", group: "MASTERY", questions: applyDifficultyCurve(generateProceduralSector("Mastery Blitz", ["Dates", "Numbers", "Genealogy", "Symbolism", "Original Languages"])) },
+            { id: "sda", group: "SDA", questions: applyDifficultyCurve(generateProceduralSector("SDA Beliefs", ["Sabbath", "Sanctuary", "State of the Dead", "Second Coming", "Trinity"])) }
         ];
 
-        // --- 2. STATE MANAGEMENT & DAILY TASKS ---
-        let state = JSON.parse(localStorage.getItem('revelatorsStateV4')) || {
+        // --- 2. STATE MANAGEMENT ---
+        let state = JSON.parse(localStorage.getItem('revelatorsStateV5')) || {
             gold: 750, activeTab: 'home', lastTaskDate: "",
             unlockedBooks: { nt: true, ot: true, mix: true, egw: false, mastery: false, sda: false },
             stats: { currentStreak: 0, overallAnswers: 0 },
             perks: { 
-                free: { freeze: 3, half: 2, shield: 2, hint: 5, skip: 1 },
-                premium: { divine: 0, warp: 0, resurrect: 0, midas: 0, omni: 0 },
-                trials: { divine: 1, warp: 1, resurrect: 1, midas: 1, omni: 1 }
+                // 10 Total Powerups (5 Free, 5 Premium)
+                free: { freeze: 3, half: 2, shield: 2, skip: 1, hint: 2 },
+                premium: { divine: 0, warp: 0, midas: 0, omni: 0, resurrect: 0 },
+                trials: { divine: 1, warp: 1, midas: 1, omni: 1, resurrect: 1 } // 1 means trial is available
             },
             tasks: []
         };
@@ -336,63 +288,60 @@
         const todayDateStr = new Date().toDateString();
         if (state.lastTaskDate !== todayDateStr) {
             state.tasks = [
-                { id: "tk1", type: "streak", target: 20, progress: 0, reward: 500, done: false, title: "Flawless 20 Streak", desc: "Hard Mode" },
-                { id: "tk2", type: "hard", target: 15, progress: 0, reward: 800, done: false, title: "Conquer 15 Hard Nodes", desc: "Hard Mode" },
-                { id: "tk3", type: "gold", target: 1000, progress: 0, reward: 1000, done: false, title: "Earn 1000 Gold Today", desc: "Extreme" },
-                { id: "tk4", type: "no_perk", target: 10, progress: 0, reward: 600, done: false, title: "10 Answers No Perks", desc: "Moderate" },
-                { id: "tk5", type: "answer", target: 50, progress: 0, reward: 1500, done: false, title: "Clear 50-Q Sector", desc: "Extreme" }
+                { id: "tk1", type: "streak", target: 20, progress: 0, reward: 500, done: false, title: "Flawless 20 Streak", desc: "Extreme Difficulty" },
+                { id: "tk2", type: "hard", target: 15, progress: 0, reward: 800, done: false, title: "Conquer 15 Hard Nodes", desc: "Extreme Difficulty" },
+                { id: "tk3", type: "gold", target: 1000, progress: 0, reward: 1000, done: false, title: "Earn 1000 Gold Today", desc: "Moderate Difficulty" },
+                { id: "tk4", type: "no_perk", target: 10, progress: 0, reward: 600, done: false, title: "10 Answers No Perks", desc: "Hard Difficulty" },
+                { id: "tk5", type: "answer", target: 50, progress: 0, reward: 1500, done: false, title: "Clear 50-Q Sector", desc: "Extreme Difficulty" }
             ];
             state.lastTaskDate = todayDateStr;
+            saveState();
         }
 
         let currentCampaignMode = "";
         let campaignActivePool = [];
         let currentActiveQuestion = null;
+        let currentQuestionIndex = 0;
         let countdownTimerRef = null;
         let secondsRemaining = 0;
         let initialSecondsAllowed = 15;
         let inputInteractionsBlocked = false;
         
-        // Active Perk Flags
         let isShieldActive = false;
         let isFreezeActive = false;
         let isMidasActive = false;
-        let pendingResurrectionData = null;
 
         let audioCtx = null;
         let globalAudioMuted = false;
-        let activeBackgroundToneLoop = null;
 
         function saveState() {
-            localStorage.setItem('revelatorsStateV4', JSON.stringify(state));
+            localStorage.setItem('revelatorsStateV5', JSON.stringify(state));
             const goldVal = document.getElementById('player-gold-display');
             if (goldVal) goldVal.innerText = `${state.gold}`;
-            updateTaskProgress('gold', state.gold); // passive check
+            updateTaskProgress('gold', state.gold);
         }
 
         function updateTaskProgress(type, amount = 1) {
             state.tasks.forEach(t => {
                 if (t.type === type && !t.done) {
-                    if(type === 'gold') t.progress = amount; // absolute
+                    if(type === 'gold') t.progress = amount; 
                     else t.progress += amount;
                 }
             });
-            saveState();
+            localStorage.setItem('revelatorsStateV5', JSON.stringify(state));
         }
 
         // --- 3. RENDERERS ---
         function renderMenuMap() {
-            if (state.activeTab !== 'home') return;
             document.getElementById('lobby-bag-btn').classList.remove('hidden');
             document.body.classList.remove('game-bg-active');
-            switchBackgroundMoodSoundtrack('lobby');
 
             let htmlString = `
                 <div class="space-y-1 animate__animated animate__fadeInDown">
                     <h1 class="text-3xl font-black tracking-wider heading-font text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400 uppercase leading-tight">REVELATORS PATHFINDERS</h1>
                     <p class="text-[10px] text-slate-400 font-bold tracking-widest uppercase">Select a scriptural sector</p>
                 </div>
-                <div class="space-y-3 pt-4">
+                <div class="space-y-3 pt-4 pb-10">
             `;
 
             htmlString += buildPhaseCard('nt', 'Phase 1: New Testament', 'The Gospels and Epistles', 'bg-indigo-500');
@@ -410,7 +359,7 @@
         function buildPhaseCard(id, title, desc, colorClass, isBlitz = false) {
             let extra = isBlitz ? `<span class="text-[8px] font-black text-white bg-red-600 px-2 py-0.5 rounded animate-pulse absolute top-4 right-4">WAR ZONE</span>` : '';
             return `
-                <div onclick="promptSectorStart('${id}', '${title}')" class="level-card-interactive w-full p-5 glass-card text-left cursor-pointer relative overflow-hidden flex items-center group ${isBlitz ? 'border-red-500/30' : ''}">
+                <div onclick="promptSectorStart('${id}')" class="w-full p-5 glass-card text-left cursor-pointer relative overflow-hidden flex items-center group transition-transform active:scale-95 hover:bg-slate-800 ${isBlitz ? 'border-red-500/30' : ''}">
                     <div class="absolute inset-y-0 left-0 w-1.5 ${colorClass}"></div>
                     <div class="pl-3 w-full">
                         <h3 class="text-sm font-black uppercase tracking-wide text-white">${title}</h3>
@@ -433,14 +382,13 @@
         }
 
         function renderTasksExplorer() {
-            if (state.activeTab !== 'tasks') return;
             document.getElementById('lobby-bag-btn').classList.add('hidden');
             let htmlString = `
                 <div class="space-y-1 animate__animated animate__fadeIn">
-                    <h1 class="text-2xl font-black tracking-wider heading-font text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 uppercase">Daily Directive</h1>
-                    <p class="text-[10px] text-slate-400 font-bold tracking-widest uppercase">High difficulty rotational challenges</p>
+                    <h1 class="text-2xl font-black tracking-wider heading-font text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 uppercase">Daily Activities</h1>
+                    <p class="text-[10px] text-slate-400 font-bold tracking-widest uppercase">5 Extreme rotating challenges</p>
                 </div>
-                <div class="space-y-3 pt-4 animate__animated animate__fadeInUp">
+                <div class="space-y-3 pt-4 pb-10 animate__animated animate__fadeInUp">
             `;
             
             state.tasks.forEach(t => {
@@ -457,7 +405,7 @@
                         <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-900">
                             <div class="h-full bg-indigo-500 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
                         </div>
-                        <div class="flex justify-between text-[9px] text-slate-400 font-black">
+                        <div class="flex justify-between text-[9px] text-slate-400 font-black items-center">
                             <span>Progress: ${Math.min(t.progress, t.target)} / ${t.target}</span>
                 `;
                 
@@ -473,12 +421,11 @@
         }
 
         function renderCopilotHub() {
-            if (state.activeTab !== 'copilot') return;
             document.getElementById('lobby-bag-btn').classList.add('hidden');
             document.getElementById('window-canvas').innerHTML = `
                 <div class="space-y-1 animate__animated animate__fadeIn">
-                    <h1 class="text-2xl font-black tracking-wider heading-font text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400 uppercase">Copilot Forum</h1>
-                    <p class="text-[10px] text-slate-400 font-bold tracking-widest uppercase">Stakeholder interactive assistance</p>
+                    <h1 class="text-2xl font-black tracking-wider heading-font text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400 uppercase">Copilot Assistant</h1>
+                    <p class="text-[10px] text-slate-400 font-bold tracking-widest uppercase">Stakeholder interactive support</p>
                 </div>
                 <div class="flex-1 mt-4 p-4 rounded-3xl glass-card border border-slate-800 flex flex-col justify-between gap-4 animate__animated animate__zoomIn min-h-[350px]">
                     <div class="space-y-4 flex-1 overflow-y-auto">
@@ -487,12 +434,12 @@
                                 <i class="fa-solid fa-robot"></i>
                             </div>
                             <div class="p-3 rounded-2xl rounded-tl-none bg-slate-900/80 border border-slate-800 text-xs text-slate-300 font-medium leading-relaxed">
-                                Hello! Welcome to the Copilot Forum. I'm here to assist you with any inquiries or problems you might be facing in the Sankofa Impact Initiative or this portal. Please let me know how I can help, and your concerns will go straight to DM!
+                                Hello! Welcome to the Copilot Forum. I'm here to assist you with any inquiries or problems you might be facing. Please let me know how I can help, and your concerns will go straight to DM!
                             </div>
                         </div>
                     </div>
                     <div class="flex gap-2 items-center border-t border-slate-800 pt-3">
-                        <input type="text" id="copilot-query-field" placeholder="Transmit query parameters to DM..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-indigo-500/50">
+                        <input type="text" id="copilot-query-field" placeholder="Type your issue..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-indigo-500/50">
                         <button onclick="dispatchCopilotQueryToWhatsApp()" class="w-10 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center text-sm active:scale-95 shadow-md"><i class="fa-solid fa-paper-plane"></i></button>
                     </div>
                 </div>
@@ -508,67 +455,71 @@
         }
 
         // --- 4. GAMEPLAY MECHANICS ---
-        function promptSectorStart(modeId, title) {
-            document.getElementById('start-sector-title').innerText = title;
+        function promptSectorStart(modeId) {
+            if (inputInteractionsBlocked) return;
             currentCampaignMode = modeId;
-            document.getElementById('start-sector-modal').classList.remove('hidden');
-        }
-
-        function cancelSectorStart() {
-            document.getElementById('start-sector-modal').classList.add('hidden');
-            currentCampaignMode = "";
-        }
-
-        function confirmSectorStart() {
-            document.getElementById('start-sector-modal').classList.add('hidden');
-            if (inputInteractionsBlocked || !currentCampaignMode) return;
-            
-            triggerAudioTone(220, 0.1, 'sine');
             let targetBookNode = window.quizDatabase.find(b => b.id === currentCampaignMode);
-            campaignActivePool = [...targetBookNode.questions];
+            
+            // Deep copy to prevent mutation bugs
+            campaignActivePool = JSON.parse(JSON.stringify(targetBookNode.questions));
+            currentQuestionIndex = 0;
 
             document.getElementById('lobby-bag-btn').classList.add('hidden');
             document.body.classList.add('game-bg-active');
-            switchBackgroundMoodSoundtrack('war');
+            
             executeNextQuestionCycle();
         }
 
         function executeNextQuestionCycle() {
-            if (campaignActivePool.length === 0) {
-                updateTaskProgress('answer', 50); // Completed full sector
-                showAlert("SECTOR COMPLETE", "All 50 parameters passed with validation clearances.", () => {
+            try {
+                if (campaignActivePool.length === 0) {
+                    updateTaskProgress('answer', 50);
+                    showAlert("SECTOR COMPLETE", "All 50 parameters passed successfully.", "check-circle", () => {
+                        switchContextTerminalWindow('home');
+                    });
+                    return;
+                }
+
+                currentActiveQuestion = campaignActivePool.shift();
+                currentQuestionIndex++;
+                
+                let diff = currentActiveQuestion.difficulty;
+                if (diff === 'hard') initialSecondsAllowed = 10;
+                else if (diff === 'moderate') initialSecondsAllowed = 15;
+                else initialSecondsAllowed = 20;
+
+                secondsRemaining = initialSecondsAllowed;
+                inputInteractionsBlocked = false;
+                
+                // Reset visual states
+                isShieldActive = false;
+                isFreezeActive = false;
+                isMidasActive = false;
+                document.getElementById('shield-frame').className = "";
+                document.getElementById('frost-frame').className = "";
+                document.body.classList.remove('anim-midas-active');
+                
+                let qBox = document.getElementById('question-box');
+                if (qBox) qBox.classList.remove('anim-omni-active');
+
+                renderActiveQuestionPort();
+                initiateQuestionCountdownTimer();
+            } catch (err) {
+                console.error(err);
+                showAlert("SYSTEM ERROR", "Node failed to load. Resetting sequence.", "triangle-exclamation", () => {
                     switchContextTerminalWindow('home');
                 });
-                return;
             }
-
-            currentActiveQuestion = campaignActivePool.shift();
-            
-            let diff = currentActiveQuestion.difficulty;
-            if (diff === 'hard') initialSecondsAllowed = 10;
-            else if (diff === 'moderate') initialSecondsAllowed = 15;
-            else initialSecondsAllowed = 20;
-
-            secondsRemaining = initialSecondsAllowed;
-            
-            // Reset state modifiers
-            isShieldActive = false;
-            isFreezeActive = false;
-            isMidasActive = false;
-            document.getElementById('shield-frame').className = "";
-            document.getElementById('frost-frame').className = "";
-            document.body.classList.remove('anim-midas-active');
-
-            renderActiveQuestionPort();
-            initiateQuestionCountdownTimer();
         }
 
         function renderActiveQuestionPort() {
+            let diffColor = currentActiveQuestion.difficulty === 'hard' ? 'text-red-400' : currentActiveQuestion.difficulty === 'moderate' ? 'text-amber-400' : 'text-emerald-400';
+            
             let htmlStr = `
                 <div class="flex items-center justify-between border-b border-slate-800 pb-2 animate__animated animate__fadeInDown">
                     <div>
-                        <h2 class="text-[11px] font-black text-indigo-400 uppercase tracking-widest">${currentCampaignMode.toUpperCase()} SECTOR • NODE ${50 - campaignActivePool.length}/50</h2>
-                        <div class="text-[8px] font-black tracking-widest px-2 py-0.5 rounded-full border inline-block mt-1 bg-slate-900 border-slate-700 ${currentActiveQuestion.difficulty === 'hard' ? 'text-red-400' : currentActiveQuestion.difficulty === 'moderate' ? 'text-amber-400' : 'text-emerald-400'}">${currentActiveQuestion.difficulty.toUpperCase()}</div>
+                        <h2 class="text-[11px] font-black text-indigo-400 uppercase tracking-widest">${currentCampaignMode.toUpperCase()} SECTOR • NODE ${currentQuestionIndex}/50</h2>
+                        <div class="text-[8px] font-black tracking-widest px-2 py-0.5 rounded-full border inline-block mt-1 bg-slate-900 border-slate-700 ${diffColor}">${currentActiveQuestion.difficulty.toUpperCase()}</div>
                     </div>
                     <div id="clock-wrapper" class="text-2xl font-black tracking-tighter tabular-nums text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]">
                         00:<span id="clock-digit">${secondsRemaining < 10 ? '0'+secondsRemaining : secondsRemaining}</span>
@@ -594,32 +545,38 @@
                     </div>
                 </div>
 
-                <!-- Live Game Powerup Bar -->
+                <!-- 10 Powerups Bar (Scrollable) -->
                 <div class="fixed bottom-0 left-0 right-0 p-3 bg-slate-950/95 border-t border-slate-800 z-40 max-w-md mx-auto overflow-x-auto">
                     <div class="flex gap-2 min-w-max pb-1">
-                        ${buildInGamePerkBtn('freeze', 'Freeze', 'sky', state.perks.free.freeze, false)}
-                        ${buildInGamePerkBtn('half', '50/50', 'rose', state.perks.free.half, false)}
-                        ${buildInGamePerkBtn('shield', 'Shield', 'amber', state.perks.free.shield, false)}
+                        ${buildInGamePerkBtn('freeze', 'Freeze', 'sky', state.perks.free.freeze)}
+                        ${buildInGamePerkBtn('half', '50/50', 'rose', state.perks.free.half)}
+                        ${buildInGamePerkBtn('shield', 'Shield', 'amber', state.perks.free.shield)}
+                        ${buildInGamePerkBtn('skip', 'Skip', 'emerald', state.perks.free.skip)}
+                        ${buildInGamePerkBtn('hint', 'Hint', 'indigo', state.perks.free.hint)}
+                        
+                        <div class="w-px bg-slate-800 mx-1"></div>
+                        
                         ${buildInGamePerkBtn('divine', 'Divine', 'yellow', state.perks.premium.divine + state.perks.trials.divine, true)}
                         ${buildInGamePerkBtn('warp', 'Warp', 'purple', state.perks.premium.warp + state.perks.trials.warp, true)}
                         ${buildInGamePerkBtn('midas', 'Midas', 'orange', state.perks.premium.midas + state.perks.trials.midas, true)}
                         ${buildInGamePerkBtn('omni', 'Omni', 'green', state.perks.premium.omni + state.perks.trials.omni, true)}
+                        ${buildInGamePerkBtn('resurrect', 'Revive', 'cyan', state.perks.premium.resurrect + state.perks.trials.resurrect, true)}
                     </div>
                 </div>
             `;
             document.getElementById('window-canvas').innerHTML = htmlStr;
         }
 
-        function buildInGamePerkBtn(type, name, color, count, isPremium) {
-            let iconMap = { freeze: 'snowflake', half: 'scale-balanced', shield: 'shield-halved', divine: 'bolt', warp: 'clock', midas: 'hand-sparkles', omni: 'eye' };
+        function buildInGamePerkBtn(type, name, color, count, isPremium = false) {
+            let iconMap = { freeze: 'snowflake', half: 'scale-balanced', shield: 'shield-halved', skip: 'forward-step', hint: 'lightbulb', divine: 'bolt', warp: 'clock', midas: 'hand-sparkles', omni: 'eye', resurrect: 'dove' };
             let opacity = count <= 0 ? 'opacity-30' : '';
             let border = isPremium ? `border-${color}-500/80` : `border-${color}-500/30`;
             let bg = isPremium ? `bg-${color}-900/40` : `bg-slate-900`;
             return `
-                <button onclick="activateInGamePerk('${type}')" class="flex-shrink-0 w-16 h-16 ${bg} border ${border} rounded-xl flex flex-col items-center justify-center active:scale-95 transition-all text-${color}-400 ${opacity} relative">
-                    <i class="fa-solid fa-${iconMap[type]} text-lg mb-1"></i>
-                    <span class="text-[8px] font-black uppercase text-slate-300">${name}</span>
-                    <span class="absolute -top-1 -right-1 bg-slate-800 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-slate-600">${count}</span>
+                <button onclick="activateInGamePerk('${type}')" id="btn-perk-${type}" class="flex-shrink-0 w-14 h-14 ${bg} border ${border} rounded-xl flex flex-col items-center justify-center active:scale-95 transition-all text-${color}-400 ${opacity} relative shadow-sm">
+                    <i class="fa-solid fa-${iconMap[type]} text-base mb-1"></i>
+                    <span class="text-[7px] font-black uppercase text-slate-300">${name}</span>
+                    <span id="badge-${type}" class="absolute -top-1 -right-1 bg-slate-800 text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-slate-600">${count}</span>
                 </button>
             `;
         }
@@ -649,76 +606,46 @@
 
         function submitAnswer(idx, isOmni = false) {
             if (inputInteractionsBlocked) return;
-            inputInteractionsBlocked = true;
+            inputInteractionsBlocked = true; // Lock immediately
             clearInterval(countdownTimerRef);
 
-            const btns = document.getElementsByClassName('answer-selection-btn');
-            
-            if (idx === currentActiveQuestion.correct || isOmni) {
-                triggerAudioTone(440, 0.15, 'sine');
-                setTimeout(() => { triggerAudioTone(659.25, 0.2, 'sine'); }, 150);
-
-                let targetBtn = btns[isOmni ? currentActiveQuestion.correct : idx];
-                if (targetBtn) {
-                    targetBtn.className = "w-full p-4 rounded-2xl border text-left text-xs font-black flex items-center justify-between text-white border-transparent transform scale-105 shadow-[0_0_30px_rgba(16,185,129,0.6)] bg-gradient-to-r from-emerald-500 to-emerald-400";
-                }
-
-                state.stats.currentStreak++;
-                let reward = currentActiveQuestion.difficulty === 'hard' ? 30 : 15;
-                if(isMidasActive) reward *= 5;
+            try {
+                const btns = document.getElementsByClassName('answer-selection-btn');
                 
-                state.gold += reward;
-                updateTaskProgress('streak');
-                updateTaskProgress('answer');
-                if(currentActiveQuestion.difficulty === 'hard') updateTaskProgress('hard');
-                if(!isShieldActive && !isFreezeActive && !isMidasActive) updateTaskProgress('no_perk');
-                
-                saveState();
+                if (idx === currentActiveQuestion.correct || isOmni) {
+                    triggerAudioTone(440, 0.15, 'sine');
+                    
+                    let targetBtn = btns[isOmni ? currentActiveQuestion.correct : idx];
+                    if (targetBtn) {
+                        targetBtn.className = "w-full p-4 rounded-2xl border text-left text-xs font-black flex items-center justify-between text-white border-transparent transform scale-105 shadow-[0_0_30px_rgba(16,185,129,0.6)] bg-gradient-to-r from-emerald-500 to-emerald-400";
+                    }
 
-                setTimeout(() => {
-                    inputInteractionsBlocked = false;
-                    executeNextQuestionCycle();
-                }, 1500);
+                    state.stats.currentStreak++;
+                    let reward = currentActiveQuestion.difficulty === 'hard' ? 30 : 15;
+                    if(isMidasActive) reward *= 5;
+                    
+                    state.gold += reward;
+                    updateTaskProgress('streak');
+                    updateTaskProgress('answer');
+                    if(currentActiveQuestion.difficulty === 'hard') updateTaskProgress('hard');
+                    if(!isShieldActive && !isFreezeActive && !isMidasActive) updateTaskProgress('no_perk');
+                    
+                    saveState();
 
-            } else {
-                if (btns[idx]) btns[idx].className = "w-full p-4 rounded-2xl bg-red-950/80 border border-red-500/80 text-left text-xs font-black text-red-200 shadow-[0_0_20px_rgba(239,68,68,0.4)] animate__animated animate__shakeX flex items-center justify-between";
-                
-                // Show Resurrection Prompt if available
-                let resCount = state.perks.premium.resurrect + state.perks.trials.resurrect;
-                if (resCount > 0) {
-                    pendingResurrectionData = { missedIdx: idx };
-                    document.getElementById('resurrect-count').innerText = resCount;
-                    document.getElementById('resurrect-modal').classList.remove('hidden');
+                    // Safely transition to next question
+                    setTimeout(() => {
+                        executeNextQuestionCycle();
+                    }, 1500);
+
                 } else {
-                    setTimeout(() => { executeFluidFailure(); }, 600);
+                    if (btns[idx]) btns[idx].className = "w-full p-4 rounded-2xl bg-red-950/80 border border-red-500/80 text-left text-xs font-black text-red-200 shadow-[0_0_20px_rgba(239,68,68,0.4)] animate__animated animate__shakeX flex items-center justify-between";
+                    setTimeout(() => { executeFluidFailure(); }, 800);
                 }
+            } catch (err) {
+                console.error("Submit Answer Error: ", err);
+                inputInteractionsBlocked = false; // Emergency release
+                showAlert("SYSTEM ERROR", "Execution failed. Please retry.", "triangle-exclamation");
             }
-        }
-
-        function declineResurrection() {
-            document.getElementById('resurrect-modal').classList.add('hidden');
-            pendingResurrectionData = null;
-            setTimeout(() => { executeFluidFailure(); }, 200);
-        }
-
-        function acceptResurrection() {
-            if (state.perks.trials.resurrect > 0) state.perks.trials.resurrect--;
-            else state.perks.premium.resurrect--;
-            saveState();
-
-            document.getElementById('resurrect-modal').classList.add('hidden');
-            triggerAudioTone(880, 0.4, 'sine');
-            
-            // Clean up UI and let them try again
-            const btns = document.getElementsByClassName('answer-selection-btn');
-            if (pendingResurrectionData && btns[pendingResurrectionData.missedIdx]) {
-                btns[pendingResurrectionData.missedIdx].style.opacity = "0.2";
-                btns[pendingResurrectionData.missedIdx].disabled = true;
-            }
-            
-            inputInteractionsBlocked = false;
-            pendingResurrectionData = null;
-            initiateQuestionCountdownTimer(); // resume clock
         }
 
         function executeFluidFailure() {
@@ -727,8 +654,7 @@
             
             if (isShieldActive) {
                 isShieldActive = false;
-                showAlert("SHIELD ABSORBED", "Aegis shield protected your gold and streak.", () => {
-                    inputInteractionsBlocked = false;
+                showAlert("SHIELD ABSORBED", "Aegis shield protected your gold and streak.", "shield-halved", () => {
                     executeNextQuestionCycle();
                 });
                 return;
@@ -740,18 +666,17 @@
             saveState();
 
             if(state.gold <= 0) {
-                setTimeout(() => { showAlert("Out of Gold", "Complete tasks or retry sections to earn back your coin pouch balances.", () => { switchContextTerminalWindow('home'); }); }, 600);
+                showAlert("OUT OF GOLD", "Complete tasks or retry to earn back your balances.", "coins", () => { switchContextTerminalWindow('home'); });
             } else {
-                setTimeout(() => { inputInteractionsBlocked = false; executeNextQuestionCycle(); }, 800);
+                executeNextQuestionCycle();
             }
         }
 
-        // --- 5. PERK ACTIVATION (IN-GAME) ---
+        // --- 5. POWER-UP ACTIVATION ---
         function activateInGamePerk(type) {
             if (inputInteractionsBlocked) return;
             
-            // Deduct Logic
-            let isPremium = ['divine', 'warp', 'midas', 'omni'].includes(type);
+            let isPremium = ['divine', 'warp', 'midas', 'omni', 'resurrect'].includes(type);
             let hasStock = false;
 
             if (isPremium) {
@@ -763,9 +688,15 @@
 
             if (!hasStock) return;
             saveState();
-            renderActiveQuestionPort(); // Update bar counts
+            
+            // Dynamically update the specific badge without re-rendering the whole screen to prevent DOM freezing
+            let newCount = isPremium ? (state.perks.premium[type] + state.perks.trials[type]) : state.perks.free[type];
+            let badge = document.getElementById(`badge-${type}`);
+            let btn = document.getElementById(`btn-perk-${type}`);
+            if (badge) badge.innerText = newCount;
+            if (btn && newCount <= 0) btn.classList.add('opacity-30');
 
-            // Apply Effects
+            // Apply specific Power-up Logic visually
             if (type === 'freeze') {
                 isFreezeActive = true;
                 document.getElementById('frost-frame').classList.add('frost-active');
@@ -780,20 +711,43 @@
             } else if (type === 'shield') {
                 isShieldActive = true;
                 document.getElementById('shield-frame').classList.add('shield-active');
+            } else if (type === 'skip') {
+                submitAnswer(currentActiveQuestion.correct, true);
+            } else if (type === 'hint') {
+                const elements = document.getElementsByClassName('answer-selection-btn');
+                for(let i=0; i<elements.length; i++) {
+                    if(i !== currentActiveQuestion.correct && !elements[i].disabled) {
+                        elements[i].style.opacity = "0.2"; elements[i].disabled = true; break;
+                    }
+                }
             } else if (type === 'divine') {
-                let btn = document.getElementById(`ans-btn-${currentActiveQuestion.correct}`);
-                if(btn) btn.classList.add('anim-divine');
+                let ansBtn = document.getElementById(`ans-btn-${currentActiveQuestion.correct}`);
+                if(ansBtn) ansBtn.classList.add('anim-divine');
                 triggerAudioTone(800, 0.5, 'sine');
             } else if (type === 'warp') {
                 secondsRemaining += 45;
-                document.getElementById('clock-wrapper').classList.add('anim-warp');
-                setTimeout(() => document.getElementById('clock-wrapper').classList.remove('anim-warp'), 1000);
+                let clock = document.getElementById('clock-wrapper');
+                if (clock) {
+                    clock.classList.add('anim-warp');
+                    setTimeout(() => clock.classList.remove('anim-warp'), 1000);
+                }
             } else if (type === 'midas') {
                 isMidasActive = true;
                 document.body.classList.add('anim-midas-active');
             } else if (type === 'omni') {
-                document.getElementById('question-box').classList.add('anim-omni-active');
+                let qBox = document.getElementById('question-box');
+                if (qBox) qBox.classList.add('anim-omni-active');
                 setTimeout(() => { submitAnswer(null, true); }, 1000);
+            } else if (type === 'resurrect') {
+                let flash = document.createElement('div');
+                flash.className = 'anim-resurrect-flash';
+                document.getElementById('resurrect-flash-container').appendChild(flash);
+                setTimeout(() => flash.remove(), 1500);
+                // Resurrect effect: resets timer and shield
+                secondsRemaining = initialSecondsAllowed;
+                isShieldActive = true;
+                document.getElementById('shield-frame').classList.add('shield-active');
+                triggerAudioTone(880, 0.4, 'sine');
             }
         }
 
@@ -801,11 +755,13 @@
         function openShopModal(e) {
             if(e) e.stopPropagation();
             
-            // Build Free
+            // Build 5 Free Items
             const freeItems = [
                 { id: 'freeze', name: 'Chrono Freeze', icon: 'snowflake', color: 'sky', cost: 50 },
                 { id: 'half', name: 'Divine 50/50', icon: 'scale-balanced', color: 'rose', cost: 75 },
-                { id: 'shield', name: 'Aegis Shield', icon: 'shield-halved', color: 'amber', cost: 60 }
+                { id: 'shield', name: 'Aegis Shield', icon: 'shield-halved', color: 'amber', cost: 60 },
+                { id: 'skip', name: 'Leap of Faith', icon: 'forward-step', color: 'emerald', cost: 150 },
+                { id: 'hint', name: 'Whisper of Truth', icon: 'lightbulb', color: 'indigo', cost: 40 }
             ];
             document.getElementById('shop-free-grid').innerHTML = freeItems.map(i => `
                 <div class="flex items-center justify-between p-3 bg-slate-900/80 rounded-2xl border border-slate-700">
@@ -813,28 +769,36 @@
                         <span class="text-xl text-${i.color}-400 w-8 text-center"><i class="fa-solid fa-${i.icon}"></i></span>
                         <div><h4 class="text-xs font-black text-white uppercase">${i.name}</h4><p class="text-[10px] text-${i.color}-400 font-bold">Bag: ${state.perks.free[i.id]}</p></div>
                     </div>
-                    <button onclick="buyPerkGold('${i.id}', ${i.cost})" class="bg-indigo-600 font-black text-xs px-3 py-1.5 rounded-xl text-white shadow-lg">${i.cost} 💰</button>
+                    <button onclick="buyPerkGold('${i.id}', ${i.cost})" class="bg-indigo-600 active:scale-95 font-black text-xs px-3 py-1.5 rounded-xl text-white shadow-lg">${i.cost} 💰</button>
                 </div>
             `).join('');
 
-            // Build Premium
+            // Build 5 Premium Items
             const premiumItems = [
                 { id: 'divine', name: 'Divine Revelation', icon: 'bolt', cost: 1, desc: 'Illuminates the exact answer.' },
                 { id: 'warp', name: 'Time Warp', icon: 'clock', cost: 2, desc: 'Adds 45s to the clock.' },
-                { id: 'resurrect', name: 'Resurrection', icon: 'dove', cost: 5, desc: 'Revive from a wrong answer.' },
                 { id: 'midas', name: 'Midas Touch', icon: 'hand-sparkles', cost: 3, desc: '5x Gold Multiplier.' },
-                { id: 'omni', name: 'Omniscience', icon: 'eye', cost: 4, desc: 'Auto-completes the node.' }
+                { id: 'omni', name: 'Omniscience', icon: 'eye', cost: 4, desc: 'Auto-completes the node.' },
+                { id: 'resurrect', name: 'Resurrection', icon: 'dove', cost: 5, desc: 'Reset clock + Shield.' }
             ];
             document.getElementById('shop-premium-grid').innerHTML = premiumItems.map(i => {
-                let trialHtml = state.perks.trials[i.id] > 0 ? `<span class="bg-green-600 text-[8px] px-1.5 py-0.5 rounded text-white absolute -top-2 -right-2 rotate-12">FREE TRIAL</span>` : '';
+                let isTrial = state.perks.trials[i.id] > 0;
+                let btnHtml = isTrial 
+                    ? `<button onclick="claimFreeTrial('${i.id}')" class="bg-emerald-500 font-black text-[10px] px-3 py-2 rounded-xl text-slate-900 shadow-[0_0_10px_rgba(16,185,129,0.3)] animate-pulse active:scale-95">CLAIM FREE TRIAL</button>`
+                    : `<button onclick="initiateMoMoPayment('${i.id}', ${i.cost})" class="bg-yellow-500 font-black text-xs px-3 py-2 rounded-xl text-slate-900 shadow-[0_0_10px_rgba(234,179,8,0.3)] active:scale-95">${i.cost} GHS</button>`;
+                
+                let trialBadge = isTrial 
+                    ? `<span class="bg-emerald-600 text-[8px] px-1.5 py-0.5 rounded text-white absolute -top-2 -right-2 rotate-12 font-black border border-emerald-400">TRIAL AVAILABLE</span>` 
+                    : `<span class="bg-slate-700 text-[8px] px-1.5 py-0.5 rounded text-slate-400 absolute -top-2 -right-2 font-black border border-slate-600">TRIAL CONSUMED</span>`;
+
                 return `
-                <div class="flex items-center justify-between p-3 bg-slate-900/80 rounded-2xl border border-yellow-900/50 relative">
-                    ${trialHtml}
+                <div class="flex items-center justify-between p-3 bg-slate-900/80 rounded-2xl border border-yellow-900/50 relative mt-3">
+                    ${trialBadge}
                     <div class="flex items-center gap-3">
                         <span class="text-xl text-yellow-500 w-8 text-center"><i class="fa-solid fa-${i.icon}"></i></span>
-                        <div><h4 class="text-xs font-black text-white uppercase">${i.name}</h4><p class="text-[9px] text-slate-400 w-32 leading-tight">${i.desc}</p><p class="text-[10px] text-yellow-500 font-bold mt-0.5">Bag: ${state.perks.premium[i.id]}</p></div>
+                        <div><h4 class="text-xs font-black text-white uppercase">${i.name}</h4><p class="text-[9px] text-slate-400 w-28 leading-tight mt-0.5">${i.desc}</p><p class="text-[10px] text-yellow-500 font-bold mt-1">Bag: ${state.perks.premium[i.id]}</p></div>
                     </div>
-                    <button onclick="initiateMoMoPayment('${i.id}', ${i.cost})" class="bg-yellow-500 font-black text-xs px-3 py-1.5 rounded-xl text-slate-900 shadow-[0_0_10px_rgba(234,179,8,0.3)]">${i.cost} GHS</button>
+                    ${btnHtml}
                 </div>
             `}).join('');
 
@@ -845,34 +809,60 @@
 
         function buyPerkGold(id, cost) {
             if (state.gold >= cost) { state.gold -= cost; state.perks.free[id]++; saveState(); triggerAudioTone(392, 0.15, 'sine'); openShopModal(); } 
-            else { showAlert("Insufficient Funds", "You do not have enough gold."); }
+            else { showAlert("Insufficient Funds", "You do not have enough gold.", "circle-xmark"); }
+        }
+
+        function claimFreeTrial(id) {
+            if (state.perks.trials[id] > 0) {
+                state.perks.trials[id]--;
+                state.perks.premium[id]++;
+                saveState();
+                showAlert("TRIAL CLAIMED", "Premium artifact added to your bag.", "box-open");
+                openShopModal();
+            }
         }
 
         let pendingMoMoPurchase = null;
         function initiateMoMoPayment(id, costGhs) {
             pendingMoMoPurchase = { id, costGhs };
             document.getElementById('momo-cost-display').innerText = costGhs;
+            let btn = document.getElementById('momo-pay-btn');
+            btn.innerText = `PAY ${costGhs} GHS`;
+            btn.className = "w-full py-3 rounded-xl bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-black text-sm uppercase tracking-widest active:scale-95 transition-all shadow-[0_0_15px_rgba(234,179,8,0.4)]";
+            btn.disabled = false;
             document.getElementById('momo-modal').classList.remove('hidden');
         }
 
         function closeMoMoModal() { document.getElementById('momo-modal').classList.add('hidden'); pendingMoMoPurchase = null; }
 
         function processMoMoPayment() {
-            const btn = document.querySelector('#momo-modal button');
-            btn.innerText = "PROCESSING..."; btn.disabled = true;
+            const btn = document.getElementById('momo-pay-btn');
+            const num = document.getElementById('momo-number').value;
+            
+            // Simulating realistic MTN USSD push sequence
+            btn.innerText = "AWAITING USSD AUTHORIZATION..."; 
+            btn.className = "w-full py-3 rounded-xl bg-slate-700 text-slate-400 font-black text-sm uppercase tracking-widest transition-all cursor-not-allowed";
+            btn.disabled = true;
+            
+            // Step 1: Alert user to check phone
             setTimeout(() => {
-                state.perks.premium[pendingMoMoPurchase.id]++;
-                saveState();
-                closeMoMoModal();
-                btn.innerText = `PAY ${pendingMoMoPurchase.costGhs} GHS`; btn.disabled = false;
-                showAlert("PAYMENT SUCCESS", "Premium artifact acquired via MTN Mobile Money.");
-                openShopModal();
-            }, 1500);
+                showAlert("AUTHORIZATION REQUIRED", `A payment prompt of ${pendingMoMoPurchase.costGhs} GHS has been sent to ${num}. Please enter your MTN MoMo PIN on your device to approve.`, "mobile-screen-button");
+                
+                // Step 2: Simulate successful API callback from provider after 5s
+                setTimeout(() => {
+                    state.perks.premium[pendingMoMoPurchase.id]++;
+                    saveState();
+                    closeMoMoModal();
+                    showAlert("PAYMENT SUCCESS", "Premium artifact acquired and added to your bag.", "check-double", () => {
+                        openShopModal();
+                    });
+                }, 5000);
+            }, 800);
         }
 
         function requestVaultUnlock(id, cost, name) {
             if (state.gold >= cost) { state.gold -= cost; state.unlockedBooks[id] = true; saveState(); renderMenuMap(); } 
-            else { showAlert("Insufficient Funds", "You do not have enough gold to unlock this sector."); }
+            else { showAlert("Insufficient Funds", "You do not have enough gold to unlock this sector.", "lock"); }
         }
 
         function claimTaskReward(id) {
@@ -881,23 +871,24 @@
             task.done = true; state.gold += task.reward; saveState(); triggerAudioTone(523.25, 0.3, 'sine'); renderTasksExplorer();
         }
 
-        // --- 7. AUDIO & CONTEXT NAV ---
+        // --- 7. AUDIO & UI UTILS ---
         function switchContextTerminalWindow(tab) {
             if (inputInteractionsBlocked) return;
             state.activeTab = tab;
             ['home', 'tasks', 'copilot'].forEach(id => {
                 let btn = document.getElementById(`nav-${id}`);
-                if(btn) btn.className = (tab === id) ? "flex flex-col items-center justify-center py-2 text-indigo-400 bg-indigo-950/40 rounded-xl transition-all shadow-inner" : "flex flex-col items-center justify-center py-2 text-slate-500 hover:text-slate-300 rounded-xl transition-all active:scale-95";
+                if(btn) btn.className = (tab === id) ? "flex flex-col items-center justify-center py-2 text-indigo-400 bg-indigo-950/40 rounded-xl transition-all shadow-inner" : "flex flex-col items-center justify-center py-2 text-slate-500 hover:text-slate-300 rounded-xl transition-all active:scale-95 hover:bg-slate-900";
             });
             if (tab === 'home') renderMenuMap();
             else if (tab === 'tasks') renderTasksExplorer();
             else if (tab === 'copilot') renderCopilotHub();
         }
 
-        function showAlert(title, msg, callback = null) {
+        function showAlert(title, msg, iconClass = "bell", callback = null) {
             window.activePostAlertCallback = callback;
             document.getElementById('alert-title').innerText = title;
             document.getElementById('alert-msg').innerText = msg;
+            document.getElementById('alert-icon-container').innerHTML = `<i class="fa-solid fa-${iconClass}"></i>`;
             document.getElementById('game-alert-modal').classList.remove('hidden');
         }
 
@@ -911,38 +902,28 @@
         function triggerAudioTone(freq, dur, type = 'sine') {
             if (!audioCtx || globalAudioMuted) return;
             try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
                 let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
                 osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
                 gain.gain.setValueAtTime(0.12, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
                 osc.connect(gain); gain.connect(audioCtx.destination);
                 osc.start(); osc.stop(audioCtx.currentTime + dur);
-            } catch (err) {}
-        }
-
-        function switchBackgroundMoodSoundtrack(mood) {
-            initAudioContext();
-            if (activeBackgroundToneLoop) clearInterval(activeBackgroundToneLoop);
-            activeBackgroundToneLoop = setInterval(() => {
-                if (globalAudioMuted || !audioCtx) return;
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                const now = audioCtx.currentTime;
-                if (mood === 'war') {
-                    let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
-                    osc.type = 'triangle'; osc.frequency.setValueAtTime(65, now); osc.frequency.exponentialRampToValueAtTime(0.01, now + 0.4);
-                    gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-                    osc.connect(gain); gain.connect(audioCtx.destination); osc.start(now); osc.stop(now + 0.4);
-                }
-            }, mood === 'war' ? 800 : 3000);
+            } catch (err) { console.warn("Audio Context blocked by browser"); }
         }
 
         function toggleAudioAmbiance() {
             const btn = document.getElementById('ambiance-toggle-btn');
-            if (!audioCtx) { initAudioContext(); globalAudioMuted = false; btn.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span class="text-emerald-400">ON</span>`; switchBackgroundMoodSoundtrack('lobby'); return; }
+            if (!audioCtx) { initAudioContext(); globalAudioMuted = false; btn.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span class="text-emerald-400">ON</span>`; return; }
             globalAudioMuted = !globalAudioMuted;
             btn.innerHTML = globalAudioMuted ? `<span class="w-2 h-2 rounded-full bg-slate-500"></span><span class="text-slate-400">OFF</span>` : `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span class="text-emerald-400">ON</span>`;
         }
 
-        window.addEventListener('DOMContentLoaded', () => { saveState(); switchContextTerminalWindow('home'); });
+        window.addEventListener('DOMContentLoaded', () => { 
+            // Force reset tab state on hard boot to prevent blank screens
+            state.activeTab = 'home';
+            saveState(); 
+            switchContextTerminalWindow('home'); 
+        });
     </script>
 </body>
 </html>
