@@ -3,77 +3,463 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Revelators Pathfinders</title>
+    <title>Revelators Pathfinders Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;600&display=swap');
-        body { font-family: 'Rajdhani', sans-serif; background: #05050a; color: #e2e8f0; }
-        .glass { background: rgba(20, 20, 35, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-        .locked { opacity: 0.6; filter: grayscale(1); }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800&family=Rajdhani:wght@500;700&display=swap');
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: radial-gradient(circle at center, #0c0f26 0%, #05050f 100%);
+            color: #f1f5f9;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .heading-font { font-family: 'Orbitron', sans-serif; }
+
+        .cyber-card {
+            background: rgba(13, 17, 38, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .cyber-card:hover {
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Prevent popups or elements from floating automatically */
+        .static-modal {
+            animation: none !important;
+            transform: none !important;
+        }
+
+        .glow-green { box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
+        .glow-blue { box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
+        .glow-pink { box-shadow: 0 0 15px rgba(236, 72, 153, 0.2); }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col justify-between">
 
-    <audio id="sfxCorrect" src="https://actions.google.com/sounds/v1/musical/bell_pluck_correct_answer.ogg"></audio>
+    <!-- Top Status Bar -->
+    <header class="w-full max-w-md mx-auto p-4 flex justify-between items-center bg-slate-950/60 backdrop-blur-md border-b border-slate-800/80 sticky top-0 z-50">
+        <div class="flex items-center space-x-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <h1 class="heading-font font-extrabold text-sm tracking-wider text-slate-300">REVELATORS</h1>
+        </div>
+        <div class="flex items-center space-x-3">
+            <div id="global-coins" class="bg-slate-900/90 px-3 py-1.5 rounded-full border border-amber-500/30 flex items-center space-x-1.5 text-amber-400 font-bold text-sm">
+                <span>🪙</span>
+                <span id="coin-count">405</span>
+            </div>
+        </div>
+    </header>
 
-    <div class="p-4 flex justify-between items-center glass">
-        <h1 class="font-bold text-lg tracking-widest text-cyan-400">REVELATORS</h1>
-        <div id="coin-display" class="text-yellow-400 font-bold">💰 500</div>
-    </div>
+    <!-- Main View Dynamic Container -->
+    <main id="view-container" class="flex-1 w-full max-w-md mx-auto p-4 pb-24 overflow-y-auto">
+        <!-- Views render here dynamically -->
+    </main>
 
-    <main id="app" class="flex-1 p-4 space-y-4">
-        </main>
-
-    <nav class="glass flex justify-around p-4">
-        <button onclick="renderView('home')">🏠 Home</button>
-        <button onclick="renderView('tasks')">📋 Tasks</button>
-        <button onclick="renderView('copilot')">🤖 Copilot</button>
+    <!-- Fixed Global Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-slate-950/90 backdrop-blur-xl border-t border-slate-800/80 flex justify-around items-center py-3 z-50">
+        <button onclick="switchView('home')" id="nav-home" class="flex flex-col items-center space-y-1 text-cyan-400 font-bold text-xs transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            <span>HOME</span>
+        </button>
+        <button onclick="switchView('activities')" id="nav-activities" class="flex flex-col items-center space-y-1 text-slate-500 font-bold text-xs transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            <span>ACTIVITIES</span>
+        </button>
+        <button onclick="switchView('copilot')" id="nav-copilot" class="flex flex-col items-center space-y-1 text-slate-500 font-bold text-xs transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+            <span>COPILOT</span>
+        </button>
     </nav>
 
+    <!-- INLINE SIMULATED DATA ENGINE (50 Questions per Domain Pattern) -->
     <script>
-        let gameState = JSON.parse(localStorage.getItem('gameData')) || {
-            coins: 500,
-            unlocked: ['NT', 'OT', 'MIX']
-        };
-
-        function save() { localStorage.setItem('gameData', JSON.stringify(gameState)); }
-
-        const books = {
-            NT: { title: "New Testament", cost: 0 },
-            OT: { title: "Old Testament", cost: 0 },
-            MIX: { title: "Grand Mixture", cost: 0 },
-            EGW: { title: "E.G. White", cost: 1000 },
-            BLITZ: { title: "Mastery Blitz", cost: 500 },
-            SDA: { title: "SDA Teachings", cost: 1500 }
-        };
-
-        function renderView(view) {
-            const app = document.getElementById('app');
-            if(view === 'home') {
-                app.innerHTML = Object.entries(books).map(([id, b]) => `
-                    <div onclick="unlock('${id}')" class="glass p-5 rounded-xl cursor-pointer ${gameState.unlocked.includes(id) ? '' : 'locked'}">
-                        <h2 class="font-bold text-xl">${b.title}</h2>
-                        <p class="text-sm text-gray-400">${b.cost > 0 ? 'Cost: ' + b.cost + ' 💰' : 'Unlocked'}</p>
-                    </div>
-                `).join('');
-            } else if(view === 'copilot') {
-                app.innerHTML = `<div class="glass p-6 rounded-xl"><h2 class="text-cyan-400 font-bold">COPILOT ACTIVE</h2><p class="mt-2">System initialized. Awaiting input...</p><input class="w-full mt-4 bg-black p-2 rounded" placeholder="Transmit query..."></div>`;
+        // Generated database pattern framework ensuring 50 elements can populate cleanly
+        const generateQuestions = (prefix, total = 50) => {
+            let data = [];
+            for(let i = 1; i <= total; i++) {
+                data.push({
+                    id: `${prefix}-${i}`,
+                    q: `${prefix} Deep-Dive Assessment Milestone Question ${i}: Which specific foundational pillar validates this truth context?`,
+                    options: [`Primary Objective Evidence ${i}`, `Alternative Option Variant B`, `Context Variant Option C`, `Control Reference Standard D`],
+                    correct: 0,
+                    points: 10
+                });
             }
+            return data;
+        };
+
+        const Database = {
+            NT: generateQuestions("New Testament"),
+            OT: generateQuestions("Old Testament"),
+            EGW: generateQuestions("Ellen G. White Prophetic Framework"),
+            SDA: generateQuestions("SDA Fundamental Teachings")
+        };
+    </script>
+
+    <!-- MAIN CORE APPLICATION ENGINE -->
+    <script>
+        // Audio API Sound Engine (Generates high quality, ultra soothing perfect chimes directly)
+        const AudioEngine = {
+            ctx: null,
+            init() {
+                if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            },
+            playCorrect() {
+                this.init();
+                let osc = this.ctx.createOscillator();
+                let gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, this.ctx.currentTime); // C5
+                osc.frequency.setValueAtTime(659.25, this.ctx.currentTime + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, this.ctx.currentTime + 0.2); // G5
+                osc.frequency.setValueAtTime(1046.50, this.ctx.currentTime + 0.3); // C6
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.6);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.6);
+            },
+            playError() {
+                this.init();
+                let osc = this.ctx.createOscillator();
+                let gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(180, this.ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(120, this.ctx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.3);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.3);
+            }
+        };
+
+        // Application State Management Setup
+        let State = {
+            coins: 405,
+            unlockedBooks: ['NT', 'OT'], // Premium elements 'EGW' and 'SDA' locked by default
+            powerups: { fiftyFifty: 3, skip: 2, freeze: 1 },
+            currentActiveLevel: null,
+            currentQuestionIndex: 0,
+            activePool: [],
+            score: 0,
+            timer: null,
+            timeLeft: 30,
+            isTimerFrozen: false
+        };
+
+        // Load Persistent State Saved Configuration
+        if(localStorage.getItem('revelators_state_v3')) {
+            try {
+                const loaded = JSON.parse(localStorage.getItem('revelators_state_v3'));
+                State = {...State, ...loaded};
+            } catch(e) { console.error("State recovery bypassed initialization", e); }
         }
 
-        function unlock(id) {
-            if(gameState.unlocked.includes(id)) return alert("Loading Sector...");
-            if(gameState.coins >= books[id].cost) {
-                gameState.coins -= books[id].cost;
-                gameState.unlocked.push(id);
-                save();
-                renderView('home');
+        function saveState() {
+            localStorage.setItem('revelators_state_v3', JSON.stringify(State));
+            document.getElementById('coin-count').innerText = State.coins;
+        }
+
+        // View Routing Core Switching Architecture
+        function switchView(viewName, params = null) {
+            clearInterval(State.timer);
+            State.isTimerFrozen = false;
+            
+            // UI state management sync tabs indicators
+            ['home', 'activities', 'copilot'].forEach(v => {
+                const el = document.getElementById(`nav-${v}`);
+                if(el) {
+                    el.classList.remove('text-cyan-400');
+                    el.classList.add('text-slate-500');
+                }
+            });
+            const activeNav = document.getElementById(`nav-${viewName}`);
+            if(activeNav) {
+                activeNav.classList.remove('text-slate-500');
+                activeNav.classList.add('text-cyan-400');
+            }
+
+            const container = document.getElementById('view-container');
+            
+            switch(viewName) {
+                case 'home':
+                    renderHome(container);
+                    break;
+                case 'activities':
+                    renderActivities(container);
+                    break;
+                case 'copilot':
+                    renderCopilot(container);
+                    break;
+                case 'quiz':
+                    renderQuiz(container, params);
+                    break;
+            }
+            saveState();
+        }
+
+        function renderHome(target) {
+            const sectors = [
+                { id: 'NT', title: 'NEW TESTAMENT', desc: '50 Master Nodes Available', cost: 0, color: 'border-l-4 border-blue-500 glow-blue' },
+                { id: 'OT', title: 'OLD TESTAMENT', desc: '50 Master Nodes Available', cost: 0, color: 'border-l-4 border-amber-500' },
+                { id: 'EGW', title: 'E.G. WHITE PROPHEDIAS', desc: '50 Premium Locked Tracks', cost: 300, color: 'border-l-4 border-pink-500 glow-pink' },
+                { id: 'SDA', title: 'SDA FUNDAMENTALS', desc: '50 Advanced Doctrine Tracks', cost: 500, color: 'border-l-4 border-emerald-500 glow-green' },
+                { id: 'MASTERY', title: 'MASTERY BLITZ', desc: 'Aggregates from your unlocked paths', cost: 150, color: 'border-l-4 border-purple-500' },
+                { id: 'MIXED', title: 'MIXED COMPETITION', desc: 'Direct dynamic global test tracks', cost: 0, color: 'border-l-4 border-slate-400' }
+            ];
+
+            let html = `<div class="space-y-4 animate-fade-in">
+                <div class="p-2 mb-2"><h2 class="heading-font text-xl font-bold tracking-tight text-white">SELECT TRACK DOMAIN</h2></div>`;
+            
+            sectors.forEach(sec => {
+                const isUnlocked = State.unlockedBooks.includes(sec.id) || sec.cost === 0;
+                html += `
+                    <div class="cyber-card ${sec.color} rounded-xl p-5 relative overflow-hidden flex justify-between items-center">
+                        <div>
+                            <h3 class="heading-font font-bold text-base tracking-wide text-slate-100">${sec.title}</h3>
+                            <p class="text-xs text-slate-400 mt-1">${sec.desc}</p>
+                        </div>
+                        <div>
+                            ${isUnlocked ? 
+                                `<button onclick="startQuizLaunch('${sec.id}')" class="bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-bold px-4 py-2 rounded-lg text-xs transition-all">LAUNCH</button>` :
+                                `<button onclick="purchaseSector('${sec.id}', ${sec.cost})" class="bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-lg text-xs tracking-wider flex items-center space-x-1"><span>UNLOCK</span> <span class="text-[10px]">🪙${sec.cost}</span></button>`
+                            }
+                        </div>
+                    </div>`;
+            });
+            html += `</div>`;
+            target.innerHTML = html;
+        }
+
+        function purchaseSector(id, cost) {
+            if(State.coins >= cost) {
+                State.coins -= cost;
+                State.unlockedBooks.push(id);
+                switchView('home');
             } else {
-                alert("Insufficient coins!");
+                alert("🔴 Dynamic Sync Denied: Insufficient operational game coins balance. Complete daily tasks or exercises.");
             }
         }
 
-        renderView('home');
+        function startQuizLaunch(id) {
+            State.currentActiveLevel = id;
+            State.currentQuestionIndex = 0;
+            State.score = 0;
+            State.isTimerFrozen = false;
+
+            if(id === 'MASTERY' || id === 'MIXED') {
+                // Collect dynamic active questions pools matching criteria
+                let combined = [];
+                State.unlockedBooks.forEach(b => {
+                    if(Database[b]) combined = combined.concat(Database[b]);
+                });
+                if(combined.length === 0) combined = Database.NT; // Dynamic safety validation fallback
+                State.activePool = combined.sort(() => 0.5 - Math.random()).slice(0, 15);
+            } else {
+                State.activePool = [...Database[id]];
+            }
+            switchView('quiz');
+        }
+
+        function renderQuiz(target) {
+            if(State.currentQuestionIndex >= State.activePool.length) {
+                renderEndScreen(target);
+                return;
+            }
+
+            const currentQuestion = State.activePool[State.currentQuestionIndex];
+            clearInterval(State.timer);
+            State.timeLeft = 30;
+
+            let html = `
+                <div class="space-y-4 static-modal">
+                    <!-- Progress Bar Header Matrix -->
+                    <div class="flex justify-between items-center px-1 text-xs text-slate-400 font-mono">
+                        <span>NODE: ${State.currentQuestionIndex + 1} / ${State.activePool.length}</span>
+                        <span id="quiz-timer" class="text-cyan-400 font-bold text-sm">⏳ 30s</span>
+                    </div>
+
+                    <!-- Main Dynamic Question Frame -->
+                    <div class="cyber-card rounded-2xl p-6 border border-slate-800/80 bg-slate-900/40">
+                        <p class="text-base text-slate-200 leading-relaxed font-medium">${currentQuestion.q}</p>
+                    </div>
+
+                    <!-- Dynamic Options Layout Block -->
+                    <div id="options-block" class="space-y-2.5 pt-2">`;
+            
+            currentQuestion.options.forEach((opt, idx) => {
+                html += `
+                    <button onclick="evaluateAnswerSelection(${idx}, this)" class="w-full text-left bg-slate-900/60 hover:bg-slate-800/60 border border-slate-800 p-4 rounded-xl text-sm transition-all flex items-center space-x-3 text-slate-300">
+                        <span class="w-6 h-6 rounded-lg bg-slate-800 flex items-center justify-center font-mono text-xs text-cyan-400 border border-slate-700">${String.fromCharCode(65 + idx)}</span>
+                        <span class="flex-1 option-text-payload">${opt}</span>
+                    </button>`;
+            });
+
+            html += `</div>
+
+                    <!-- Functional Real-time Power Ups Panel Area -->
+                    <div class="grid grid-cols-3 gap-2 pt-4 border-t border-slate-900">
+                        <button onclick="triggerFiftyFiftyPowerUp()" class="bg-slate-900/80 border border-purple-500/20 p-2.5 rounded-xl flex flex-col items-center justify-center space-y-1 hover:border-purple-500/40 transition-all">
+                            <span class="text-sm">🌓</span>
+                            <span class="text-[10px] tracking-wider text-purple-400 font-bold">50:50 (${State.powerups.fiftyFifty})</span>
+                        </button>
+                        <button onclick="triggerSkipPowerUp()" class="bg-slate-900/80 border border-indigo-500/20 p-2.5 rounded-xl flex flex-col items-center justify-center space-y-1 hover:border-indigo-500/40 transition-all">
+                            <span class="text-sm">⚡</span>
+                            <span class="text-[10px] tracking-wider text-indigo-400 font-bold">SKIP (${State.powerups.skip})</span>
+                        </button>
+                        <button onclick="triggerFreezePowerUp()" class="bg-slate-900/80 border border-sky-500/20 p-2.5 rounded-xl flex flex-col items-center justify-center space-y-1 hover:border-sky-500/40 transition-all">
+                            <span class="text-sm">❄️</span>
+                            <span class="text-[10px] tracking-wider text-sky-400 font-bold">FREEZE (${State.powerups.freeze})</span>
+                        </button>
+                    </div>
+                </div>`;
+
+            target.innerHTML = html;
+
+            // Initialize Timer Logic Loop
+            State.timer = setInterval(() => {
+                if(!State.isTimerFrozen) {
+                    State.timeLeft--;
+                    const timerEl = document.getElementById('quiz-timer');
+                    if(timerEl) timerEl.innerText = `⏳ ${State.timeLeft}s`;
+                    
+                    if(State.timeLeft <= 0) {
+                        clearInterval(State.timer);
+                        AudioEngine.playError();
+                        advanceNextQuestionSequence();
+                    }
+                }
+            }, 1000);
+        }
+
+        function evaluateAnswerSelection(selectedIdx, element) {
+            clearInterval(State.timer);
+            const currentQuestion = State.activePool[State.currentQuestionIndex];
+            const buttons = document.getElementById('options-block').getElementsByTagName('button');
+            
+            // Freeze choice parameters directly
+            for(let btn of buttons) btn.disabled = true;
+
+            if(selectedIdx === currentQuestion.correct) {
+                element.classList.remove('border-slate-800', 'bg-slate-900/60');
+                element.classList.add('border-emerald-500', 'bg-emerald-500/10', 'text-emerald-400');
+                AudioEngine.playCorrect();
+                State.score += currentQuestion.points;
+                State.coins += 2; // Real-time economy reward tick
+            } else {
+                element.classList.remove('border-slate-800', 'bg-slate-900/60');
+                element.classList.add('border-rose-500', 'bg-rose-500/10', 'text-rose-400');
+                buttons[currentQuestion.correct].classList.add('border-emerald-500', 'bg-emerald-500/10', 'text-emerald-400');
+                AudioEngine.playError();
+            }
+
+            setTimeout(() => { advanceNextQuestionSequence(); }, 1200);
+        }
+
+        function advanceNextQuestionSequence() {
+            State.currentQuestionIndex++;
+            switchView('quiz');
+        }
+
+        // Operational Corrected Powerup Algorithms Execution
+        function triggerFiftyFiftyPowerUp() {
+            if(State.powerups.fiftyFifty <= 0) return;
+            State.powerups.fiftyFifty--;
+            const currentQuestion = State.activePool[State.currentQuestionIndex];
+            const buttons = document.getElementById('options-block').getElementsByTagName('button');
+            
+            let eliminatedCount = 0;
+            // Iterate and strip exactly 2 wrong options safely
+            for(let i = 0; i < buttons.length; i++) {
+                if(i !== currentQuestion.correct && eliminatedCount < 2) {
+                    buttons[i].style.opacity = "0.2";
+                    buttons[i].disabled = true;
+                    eliminatedCount++;
+                }
+            }
+            saveState();
+            switchView('quiz'); // Refresh ui context state smoothly
+        }
+
+        function triggerSkipPowerUp() {
+            if(State.powerups.skip <= 0) return;
+            State.powerups.skip--;
+            saveState();
+            advanceNextQuestionSequence();
+        }
+
+        function triggerFreezePowerUp() {
+            if(State.powerups.freeze <= 0 || State.isTimerFrozen) return;
+            State.powerups.freeze--;
+            State.isTimerFrozen = true;
+            const timerEl = document.getElementById('quiz-timer');
+            if(timerEl) timerEl.innerText = `❄️ FROZEN`;
+            saveState();
+        }
+
+        function renderEndScreen(target) {
+            target.innerHTML = `
+                <div class="cyber-card rounded-2xl p-8 text-center space-y-6 static-modal">
+                    <h2 class="heading-font text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400">OPERATION COMPLETE</h2>
+                    <div class="py-4">
+                        <p class="text-xs tracking-widest text-slate-400 font-mono">TOTAL METRIC SCORE GATHERED</p>
+                        <p class="text-5xl heading-font font-black text-white mt-2">${State.score}</p>
+                    </div>
+                    <button onclick="switchView('home')" class="w-full bg-cyan-500 hover:bg-cyan-600 text-slate-950 heading-font font-bold p-4 rounded-xl transition-all tracking-wider">RETURN TO CORE MATRIX</button>
+                </div>`;
+        }
+
+        function renderActivities(target) {
+            target.innerHTML = `
+                <div class="space-y-4 static-modal">
+                    <div class="p-2"><h2 class="heading-font text-xl font-bold text-white">MISSION LOG ACTIVITIES</h2></div>
+                    <div class="cyber-card rounded-xl p-4 flex justify-between items-center border border-slate-800">
+                        <div>
+                            <p class="text-sm font-bold text-slate-200">Daily Doctrinal Sweep</p>
+                            <p class="text-xs text-slate-400">Answer 10 questions systematically</p>
+                        </div>
+                        <span class="text-xs text-amber-400 font-bold">🪙 +50</span>
+                    </div>
+                    <div class="cyber-card rounded-xl p-4 flex justify-between items-center border border-slate-800 opacity-60">
+                        <div>
+                            <p class="text-sm font-bold text-slate-200">Prophetic Chrono Explorer</p>
+                            <p class="text-xs text-slate-400">Complete 3 Ellen G. White chapters</p>
+                        </div>
+                        <span class="text-xs text-slate-400 font-bold">Locked</span>
+                    </div>
+                </div>`;
+        }
+
+        function renderCopilot(target) {
+            target.innerHTML = `
+                <div class="space-y-4 flex flex-col justify-between h-[70vh] static-modal">
+                    <div class="space-y-3 overflow-y-auto p-2 flex-1">
+                        <div class="p-3 bg-slate-900/80 border border-slate-800 rounded-2xl rounded-tl-none max-w-[85%]">
+                            <p class="text-xs text-cyan-400 font-mono font-bold uppercase tracking-wider">AI Copilot Core</p>
+                            <p class="text-sm text-slate-300 mt-1">Greetings Pathfinder. I am sync-linked directly to your doctrinal databases. Ask me any validation checkpoint queries regarding structural scripts or lessons.</p>
+                        </div>
+                    </div>
+                    <div class="p-2 bg-slate-950/80 rounded-xl border border-slate-800 flex items-center space-x-2">
+                        <input type="text" placeholder="Transmit direct question telemetry..." class="bg-transparent text-sm text-slate-200 flex-1 px-2 focus:outline-none placeholder:text-slate-600">
+                        <button class="bg-cyan-500 hover:bg-cyan-600 text-slate-950 p-2 rounded-lg font-bold text-xs">SEND</button>
+                    </div>
+                </div>`;
+        }
+
+        // Universal Boot Initialization
+        switchView('home');
     </script>
 </body>
 </html>
