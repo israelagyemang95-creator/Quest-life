@@ -11,7 +11,7 @@
     
     <style>
         :root {
-            --glass-bg: rgba(18, 22, 38, 0.72);
+            --glass-bg: rgba(18, 22, 38, 0.75);
             --glass-border: rgba(255, 255, 255, 0.14);
             --accent-gold: #ffc107;
             --accent-gold-glow: rgba(255, 193, 7, 0.35);
@@ -88,6 +88,7 @@
             width: 100%;
             max-width: 650px;
             margin: 0 auto;
+            position: relative;
         }
 
         .hud-stat {
@@ -112,6 +113,28 @@
         .cyan-text { color: var(--accent-cyan); }
         .purple-text { color: var(--accent-purple); }
 
+        /* Save Flash Badge */
+        #save-toast {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-cyan);
+            color: #090c15;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 0.2rem 0.6rem;
+            border-radius: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease, top 0.3s ease;
+            pointer-events: none;
+        }
+
+        #save-toast.show {
+            opacity: 1;
+            top: -20px;
+        }
+
         /* Game Screens Switcher */
         .screen {
             display: none;
@@ -122,7 +145,7 @@
             max-width: 520px;
             margin: auto;
             padding: 1.75rem;
-            gap: 1.25rem;
+            gap: 1.1rem;
             animation: fadeIn 0.3s ease-out forwards;
         }
 
@@ -146,6 +169,31 @@
             font-size: 0.85rem;
             color: var(--text-muted);
             text-align: center;
+        }
+
+        /* Stats Row */
+        .stats-summary {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 0.75rem;
+            text-align: center;
+        }
+
+        .stat-item h5 {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-item p {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-top: 0.2rem;
         }
 
         /* Tier Pill Badge */
@@ -183,7 +231,7 @@
         }
 
         .question-text {
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             font-weight: 700;
             line-height: 1.5;
             text-align: center;
@@ -204,7 +252,7 @@
             padding: 0.9rem 1.25rem;
             border-radius: 16px;
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.92rem;
             text-align: left;
             cursor: pointer;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -279,6 +327,23 @@
             box-shadow: 0 6px 24px var(--accent-gold-glow);
         }
 
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 0.6rem 1.2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            color: var(--danger-red);
+            border-color: var(--danger-red);
+        }
+
         .activity-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -317,6 +382,8 @@
         
         <!-- Header HUD -->
         <header class="hud glass-panel interactive">
+            <div id="save-toast">SAVED</div>
+
             <div class="hud-stat">
                 <div class="hud-badge">
                     <span>🪙</span>
@@ -326,7 +393,7 @@
             <div class="hud-stat">
                 <div class="hud-badge">
                     <span id="hud-activity-icon">⛰️</span>
-                    <span id="hud-altitude" class="cyan-text">120m</span>
+                    <span id="hud-altitude" class="cyan-text">0m</span>
                 </div>
             </div>
             <div class="hud-stat">
@@ -360,7 +427,24 @@
                     </div>
                 </div>
 
+                <!-- Career Progress Summary -->
+                <div class="stats-summary">
+                    <div class="stat-item">
+                        <h5>Max Peak</h5>
+                        <p id="stat-max-alt" class="cyan-text">0m</p>
+                    </div>
+                    <div class="stat-item">
+                        <h5>Best Streak</h5>
+                        <p id="stat-high-streak" class="purple-text">0x</p>
+                    </div>
+                    <div class="stat-item">
+                        <h5>Solved</h5>
+                        <p id="stat-solved" class="gold-text">0</p>
+                    </div>
+                </div>
+
                 <button class="btn-primary" onclick="startQuiz()">Begin Quest</button>
+                <button class="btn-secondary" onclick="resetProgress()">Reset Saved Data</button>
             </section>
 
             <!-- Quiz Screen -->
@@ -414,33 +498,97 @@
         };
 
         const questionDatabase = [
-            // Tier 1 Questions
+            // --- TIER 1 QUESTIONS ---
             { tier: 1, book: "Genesis", question: "On which mountain did Noah's Ark come to rest after the flood?", options: ["Mount Sinai", "Mount Ararat", "Mount Carmel", "Mount Nebo"], correct: 1, hint: "Located in modern-day Turkey." },
             { tier: 1, book: "Genesis", question: "What was the name of Abraham's original home city?", options: ["Ur", "Babylon", "Jericho", "Sodom"], correct: 0, hint: "A short, 2-letter ancient Sumerian city." },
             { tier: 1, book: "Exodus", question: "Through which body of water did Moses lead the Israelites?", options: ["Dead Sea", "Sea of Galilee", "Red Sea", "Jordan River"], correct: 2, hint: "Named after a vivid color." },
-            
-            // Tier 2 Questions
-            { tier: 2, book: "Exodus", question: "What was the first plate brought upon Egypt?", options: ["Frogs", "Water turned to Blood", "Locusts", "Darkness"], correct: 1, hint: "Affects the Nile River." },
+            { tier: 1, book: "Matthew", question: "In which city was Jesus born?", options: ["Nazareth", "Jerusalem", "Bethlehem", "Capernaum"], correct: 2, hint: "Known as the City of David." },
+            { tier: 1, book: "Psalms", question: "'The Lord is my shepherd; I shall not want' is the first line of which Psalm?", options: ["Psalm 1", "Psalm 23", "Psalm 91", "Psalm 119"], correct: 1, hint: "A famous Psalm numbered in the low twenties." },
+
+            // --- TIER 2 QUESTIONS ---
+            { tier: 2, book: "Exodus", question: "What was the first plague brought upon Egypt?", options: ["Frogs", "Water turned to Blood", "Locusts", "Darkness"], correct: 1, hint: "Affects the Nile River." },
             { tier: 2, book: "Joshua", question: "How many days did the Israelites march around Jericho before the walls fell?", options: ["3 Days", "7 Days", "12 Days", "40 Days"], correct: 1, hint: "A biblically significant number associated with completion." },
-            
-            // Tier 3 Questions
-            { tier: 3, book: "Daniel", question: "What were the Babylonian names given to Hananiah, Mishael, and Azariah?", options: ["Abednego, Shadrach, Meshach", "Shadrach, Meshach, Abednego", "Balthazar, Belteshazzar, Darius", "Elam, Cyrus, Artaxerxes"], correct: 1, hint: "Shadrach comes first in the standard ordering." }
+            { tier: 2, book: "Luke", question: "What was the occupation of Zacchaeus before he met Jesus?", options: ["Fisherman", "Tax Collector", "Tentmaker", "Pharisee"], correct: 1, hint: "He climbed a sycamore tree to see Jesus." },
+            { tier: 2, book: "Acts", question: "On the road to which city was Saul converted?", options: ["Antioch", "Damascus", "Rome", "Ephesus"], correct: 1, hint: "Capital city of modern Syria." },
+
+            // --- TIER 3 QUESTIONS ---
+            { tier: 3, book: "Daniel", question: "What were the Babylonian names given to Hananiah, Mishael, and Azariah?", options: ["Abednego, Shadrach, Meshach", "Shadrach, Meshach, Abednego", "Balthazar, Belteshazzar, Darius", "Elam, Cyrus, Artaxerxes"], correct: 1, hint: "Shadrach comes first in the standard ordering." },
+            { tier: 3, book: "Revelation", question: "Which of the Seven Churches of Asia was called 'lukewarm'?", options: ["Ephesus", "Smyrna", "Laodicea", "Philadelphia"], correct: 2, hint: "Neither hot nor cold." },
+            { tier: 3, book: "Acts", question: "Who was the first Christian martyr recorded in the Book of Acts?", options: ["James", "Stephen", "Philip", "Barnabas"], correct: 1, hint: "One of the original seven deacons, stoned to death." }
         ];
 
         /* ===================================================
-           2. GAME STATE & SYSTEM LOGIC
+           2. LOCAL STORAGE PERSISTENCE ENGINE
            =================================================== */
+        const STORAGE_KEY = "BIBLE_QUEST_GAME_SAVE_V1";
+
         let gameState = {
             coins: 250,
             altitude: 0,
+            maxAltitude: 0,
             streak: 0,
+            highStreak: 0,
+            solvedCount: 0,
             hasShield: false,
             currentActivity: 'MOUNTAIN', // 'MOUNTAIN', 'RIVER', 'DESERT'
             currentQuestion: null,
-            timeRemaining: 100,
             timerInterval: null
         };
 
+        function saveProgress() {
+            const dataToSave = {
+                coins: gameState.coins,
+                altitude: gameState.altitude,
+                maxAltitude: gameState.maxAltitude,
+                streak: gameState.streak,
+                highStreak: gameState.highStreak,
+                solvedCount: gameState.solvedCount
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+            
+            // Trigger visual save toast
+            const toast = document.getElementById('save-toast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 1200);
+        }
+
+        function loadProgress() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    gameState.coins = parsed.coins ?? 250;
+                    gameState.altitude = parsed.altitude ?? 0;
+                    gameState.maxAltitude = parsed.maxAltitude ?? 0;
+                    gameState.streak = parsed.streak ?? 0;
+                    gameState.highStreak = parsed.highStreak ?? 0;
+                    gameState.solvedCount = parsed.solvedCount ?? 0;
+                } catch(e) {
+                    console.error("Error loading save data", e);
+                }
+            }
+            updateHUD();
+            updateMenuStats();
+        }
+
+        function resetProgress() {
+            if (confirm("Are you sure you want to reset all coins, altitude, and high score progress?")) {
+                localStorage.removeItem(STORAGE_KEY);
+                gameState.coins = 250;
+                gameState.altitude = 0;
+                gameState.maxAltitude = 0;
+                gameState.streak = 0;
+                gameState.highStreak = 0;
+                gameState.solvedCount = 0;
+                updateHUD();
+                updateMenuStats();
+                alert("Progress reset to default!");
+            }
+        }
+
+        /* ===================================================
+           3. SYSTEM & UI LOGIC
+           =================================================== */
         // 2D Avatar Procedural Motion State
         let avatar = {
             x: 80,
@@ -458,6 +606,12 @@
             
             const icons = { 'MOUNTAIN': '⛰️', 'RIVER': '🚣', 'DESERT': '🏜️' };
             document.getElementById('hud-activity-icon').innerText = icons[gameState.currentActivity];
+        }
+
+        function updateMenuStats() {
+            document.getElementById('stat-max-alt').innerText = gameState.maxAltitude + 'm';
+            document.getElementById('stat-high-streak').innerText = gameState.highStreak + 'x';
+            document.getElementById('stat-solved').innerText = gameState.solvedCount;
         }
 
         function setScreen(screenId) {
@@ -487,7 +641,6 @@
             const currentTierNum = determineCurrentTier();
             const tierQuestions = questionDatabase.filter(q => q.tier === currentTierNum);
             
-            // Fallback to any question if pool is exhausted
             const pool = tierQuestions.length > 0 ? tierQuestions : questionDatabase;
             gameState.currentQuestion = pool[Math.floor(Math.random() * pool.length)];
 
@@ -526,8 +679,15 @@
                 gameState.coins += tierInfo.reward;
                 gameState.altitude += tierInfo.altitudeGain;
                 gameState.streak += 1;
+                gameState.solvedCount += 1;
                 
-                // Trigger Avatar Procedural Forward Movement
+                if (gameState.altitude > gameState.maxAltitude) {
+                    gameState.maxAltitude = gameState.altitude;
+                }
+                if (gameState.streak > gameState.highStreak) {
+                    gameState.highStreak = gameState.streak;
+                }
+                
                 triggerAvatarMove();
 
             } else {
@@ -542,6 +702,8 @@
             }
 
             updateHUD();
+            updateMenuStats();
+            saveProgress(); // Persist changes
 
             setTimeout(() => {
                 loadNextQuestion();
@@ -564,6 +726,7 @@
                     gameState.coins = Math.max(0, gameState.coins - tierInfo.penalty);
                     gameState.streak = 0;
                     updateHUD();
+                    saveProgress();
                     loadNextQuestion();
                 }
             }, 100);
@@ -571,10 +734,8 @@
 
         function triggerAvatarMove() {
             avatar.isMoving = true;
-            // Advance avatar across screen canvas
             avatar.targetX += (window.innerWidth * 0.15);
             
-            // Loop avatar back across canvas seamlessly when reaching end
             if (avatar.targetX > window.innerWidth * 0.85) {
                 avatar.targetX = window.innerWidth * 0.15;
                 avatar.x = window.innerWidth * 0.05;
@@ -596,10 +757,11 @@
                 alert("Not enough coins!");
             }
             updateHUD();
+            saveProgress();
         }
 
         /* ===================================================
-           3. p5.js CANVAS & PROCEDURAL 2D AVATAR ENGINE
+           4. p5.js CANVAS & PROCEDURAL 2D AVATAR ENGINE
            =================================================== */
         let particles = [];
 
@@ -607,7 +769,6 @@
             let canvas = createCanvas(windowWidth, windowHeight);
             canvas.parent('p5-canvas-container');
 
-            // Initialize atmospheric background particles
             for (let i = 0; i < 50; i++) {
                 particles.push({
                     x: random(width),
@@ -620,10 +781,12 @@
 
             avatar.x = width * 0.15;
             avatar.targetX = width * 0.15;
+
+            // Load saved local storage progress on initial boot
+            loadProgress();
         }
 
         function draw() {
-            // Render Selected Terrain
             if (gameState.currentActivity === 'MOUNTAIN') {
                 background(12, 17, 30);
                 drawMountainTerrain();
@@ -635,15 +798,11 @@
                 drawDesertTerrain();
             }
 
-            // Update & Render Avatar Procedural Motion
             updateAvatarPosition();
             drawProceduralAvatar();
-
-            // Atmospheric Particle FX
             drawParticles();
         }
 
-        /* Terrain Curve Snap Logic */
         function getTerrainY(x, type) {
             if (type === 'MOUNTAIN') {
                 return height - 80 - noise(x * 0.008) * 90;
@@ -655,10 +814,7 @@
         }
 
         function updateAvatarPosition() {
-            // Lerp avatar X position smoothly towards target
             avatar.x = lerp(avatar.x, avatar.targetX, avatar.speed);
-            
-            // Snap Y directly to current terrain height curve
             avatar.y = getTerrainY(avatar.x, gameState.currentActivity);
 
             if (abs(avatar.x - avatar.targetX) < 1) {
@@ -670,84 +826,47 @@
             }
         }
 
-        /* Draw Procedural 2D Character Avatar */
         function drawProceduralAvatar() {
             push();
             translate(avatar.x, avatar.y);
 
             if (gameState.currentActivity === 'MOUNTAIN') {
-                // Mountain Climber Avatar
                 let legOffset = sin(avatar.stepFrame * 2) * 5;
-                
-                // Shadow
-                fill(0, 0, 0, 60);
-                ellipse(0, 5, 24, 8);
-
-                // Legs
+                fill(0, 0, 0, 60); ellipse(0, 5, 24, 8);
                 stroke(255); strokeWeight(3);
                 line(-4, -5, -6 + legOffset, 4);
                 line(4, -5, 6 - legOffset, 4);
-
-                // Body & Cloak
-                noStroke();
-                fill(0, 229, 255); // Cyan Tunic
+                noStroke(); fill(0, 229, 255);
                 rect(-8, -24, 16, 18, 4);
-
-                // Head
-                fill(255, 205, 148);
-                ellipse(0, -30, 14, 14);
-
-                // Walking Stick / Staff
+                fill(255, 205, 148); ellipse(0, -30, 14, 14);
                 stroke(255, 193, 7); strokeWeight(2);
                 line(8, -32, 10 + legOffset, 6);
 
             } else if (gameState.currentActivity === 'RIVER') {
-                // Boat & Rower Avatar
                 let waveBob = sin(frameCount * 0.08) * 3;
                 translate(0, waveBob);
-
-                // Boat Hull
-                noStroke();
-                fill(160, 82, 45);
+                noStroke(); fill(160, 82, 45);
                 arc(0, -2, 46, 22, 0, PI);
-
-                // Rower
-                fill(255, 205, 148);
-                ellipse(-4, -16, 12, 12); // Head
-                fill(168, 85, 247); // Purple Tunic
-                rect(-10, -10, 12, 12, 3);
-
-                // Oar Rowing Motion
+                fill(255, 205, 148); ellipse(-4, -16, 12, 12);
+                fill(168, 85, 247); rect(-10, -10, 12, 12, 3);
                 stroke(255); strokeWeight(2.5);
                 let oarAngle = sin(frameCount * 0.1) * 0.5;
                 line(-2, -8, 18 * cos(oarAngle), 12 * sin(oarAngle) + 6);
 
             } else if (gameState.currentActivity === 'DESERT') {
-                // Desert Traveler Avatar
                 let bounce = abs(sin(avatar.stepFrame)) * 3;
                 translate(0, -bounce);
-
-                // Shadow
-                fill(0, 0, 0, 50);
-                ellipse(0, 4, 28, 6);
-
-                // Cloak / Robe
-                noStroke();
-                fill(255, 193, 7);
+                fill(0, 0, 0, 50); ellipse(0, 4, 28, 6);
+                noStroke(); fill(255, 193, 7);
                 triangle(-10, 2, 10, 2, 0, -28);
-
-                // Head turban
-                fill(245);
-                ellipse(0, -26, 14, 12);
+                fill(245); ellipse(0, -26, 14, 12);
             }
 
             pop();
         }
 
-        /* Environment Render Functions */
         function drawMountainTerrain() {
             noStroke();
-            // Background Mountains
             fill(22, 30, 50);
             beginShape();
             vertex(0, height);
@@ -758,7 +877,6 @@
             vertex(width, height);
             endShape(CLOSE);
 
-            // Foreground Path Mountain Ridge
             fill(32, 44, 70);
             beginShape();
             vertex(0, height);
@@ -772,11 +890,9 @@
 
         function drawRiverTerrain() {
             noStroke();
-            // River Water Base
             fill(0, 119, 182, 90);
             rect(0, height - 140, width, 140);
 
-            // Animated Waves
             fill(0, 180, 216, 120);
             beginShape();
             vertex(0, height);
@@ -790,7 +906,6 @@
 
         function drawDesertTerrain() {
             noStroke();
-            // Background Dunes
             fill(180, 100, 45);
             beginShape();
             vertex(0, height);
@@ -801,7 +916,6 @@
             vertex(width, height);
             endShape(CLOSE);
 
-            // Foreground Dunes
             fill(220, 135, 55);
             beginShape();
             vertex(0, height);
