@@ -1,1291 +1,954 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bible Quest: Adventure & Marketplace</title>
-    <!-- p5.js Library for 2D Canvas Engine -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Knowledge Quest - Quiz Engine</title>
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --panel-bg: #1e293b;
+      --panel-border: #334155;
+      --accent-blue: #3b82f6;
+      --accent-gold: #eab308;
+      --accent-green: #10b981;
+      --accent-purple: #a855f7;
+      --accent-cyan: #06b6d4;
+      --accent-red: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem;
+    }
+
+    /* Header & Navigation */
+    header {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .brand-title { font-size: 1.4rem; font-weight: 700; color: #fff; }
     
-    <style>
-        :root {
-            --glass-bg: rgba(18, 22, 38, 0.82);
-            --glass-border: rgba(255, 255, 255, 0.14);
-            --accent-gold: #ffc107;
-            --accent-gold-glow: rgba(255, 193, 7, 0.35);
-            --accent-cyan: #00e5ff;
-            --accent-purple: #a855f7;
-            --danger-red: #ff4757;
-            --success-green: #2ed573;
-            --tier-easy: #2ed573;
-            --tier-medium: #ff9f43;
-            --tier-hard: #ff4757;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
-
-        body, html {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #090c15;
-            color: var(--text-main);
-        }
-
-        /* p5.js Canvas Container */
-        #p5-canvas-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
-
-        /* Glassmorphism UI Root Overlay */
-        .ui-root {
-            position: relative;
-            z-index: 10;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 1rem;
-            pointer-events: none;
-        }
-
-        .interactive {
-            pointer-events: auto;
-        }
-
-        /* Reusable Glass Panel Styling */
-        .glass-panel {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.6);
-        }
-
-        /* Header HUD */
-        header.hud {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 1.25rem;
-            width: 100%;
-            max-width: 680px;
-            margin: 0 auto;
-            position: relative;
-        }
-
-        .hud-stat {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-weight: 700;
-            font-size: 0.95rem;
-        }
-
-        .hud-badge {
-            background: rgba(255, 255, 255, 0.08);
-            padding: 0.4rem 0.85rem;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .gold-text { color: var(--accent-gold); }
-        .cyan-text { color: var(--accent-cyan); }
-        .purple-text { color: var(--accent-purple); }
-
-        /* Save Flash Badge */
-        #save-toast {
-            position: absolute;
-            top: -30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--accent-cyan);
-            color: #090c15;
-            font-size: 0.7rem;
-            font-weight: 800;
-            padding: 0.2rem 0.6rem;
-            border-radius: 10px;
-            opacity: 0;
-            transition: opacity 0.3s ease, top 0.3s ease;
-            pointer-events: none;
-        }
-
-        #save-toast.show {
-            opacity: 1;
-            top: -20px;
-        }
-
-        .btn-icon-shop {
-            background: linear-gradient(135deg, var(--accent-gold), #ff9800);
-            color: #090c15;
-            border: none;
-            padding: 0.45rem 0.9rem;
-            border-radius: 12px;
-            font-weight: 800;
-            font-size: 0.85rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-            box-shadow: 0 4px 15px var(--accent-gold-glow);
-            transition: all 0.2s;
-        }
-
-        .btn-icon-shop:hover {
-            transform: scale(1.05);
-        }
-
-        /* Screens Switcher */
-        .screen {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            max-width: 520px;
-            margin: auto;
-            padding: 1.75rem;
-            gap: 1.1rem;
-            animation: fadeIn 0.3s ease-out forwards;
-        }
-
-        .screen.active {
-            display: flex;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .card-title {
-            font-size: 1.35rem;
-            font-weight: 800;
-            text-align: center;
-            letter-spacing: -0.3px;
-        }
-
-        .card-subtitle {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            text-align: center;
-        }
-
-        /* Stats Summary */
-        .stats-summary {
-            display: flex;
-            justify-content: space-around;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            padding: 0.75rem;
-            text-align: center;
-        }
-
-        .stat-item h5 {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-item p {
-            font-size: 1.1rem;
-            font-weight: 800;
-            margin-top: 0.2rem;
-        }
-
-        /* Tier Pill Badge */
-        .tier-badge {
-            font-size: 0.75rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            display: inline-block;
-        }
-
-        .tier-badge.tier-1 { color: var(--tier-easy); border-color: var(--tier-easy); }
-        .tier-badge.tier-2 { color: var(--tier-medium); border-color: var(--tier-medium); }
-        .tier-badge.tier-3 { color: var(--tier-hard); border-color: var(--tier-hard); }
-
-        /* Quiz UI Elements */
-        .timer-bar-container {
-            width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 0.25rem;
-        }
-
-        .timer-bar {
-            height: 100%;
-            width: 100%;
-            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-gold));
-            transition: width 0.1s linear;
-        }
-
-        .question-text {
-            font-size: 1.1rem;
-            font-weight: 700;
-            line-height: 1.5;
-            text-align: center;
-            margin: 0.25rem 0 0.75rem 0;
-        }
-
-        .options-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            width: 100%;
-        }
-
-        .option-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            color: var(--text-main);
-            padding: 0.9rem 1.25rem;
-            border-radius: 16px;
-            font-weight: 600;
-            font-size: 0.92rem;
-            text-align: left;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .option-btn:hover {
-            background: rgba(255, 255, 255, 0.12);
-            border-color: var(--accent-cyan);
-            transform: translateY(-2px);
-        }
-
-        .option-btn.correct {
-            background: rgba(46, 213, 115, 0.25) !important;
-            border-color: var(--success-green) !important;
-        }
-
-        .option-btn.wrong {
-            background: rgba(255, 71, 87, 0.25) !important;
-            border-color: var(--danger-red) !important;
-        }
-
-        /* Power-Up Quick Marketplace Bar */
-        .powerup-bar {
-            display: flex;
-            gap: 0.5rem;
-            width: 100%;
-            justify-content: space-between;
-            margin-top: 0.5rem;
-        }
-
-        .powerup-item {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 14px;
-            padding: 0.6rem;
-            font-size: 0.75rem;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.2rem;
-            transition: all 0.2s;
-        }
-
-        .powerup-item:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: var(--accent-gold);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #ffc107, #ff9800);
-            color: #0b0f19;
-            border: none;
-            padding: 1rem 1.75rem;
-            border-radius: 16px;
-            font-weight: 800;
-            font-size: 1rem;
-            cursor: pointer;
-            box-shadow: 0 4px 20px var(--accent-gold-glow);
-            transition: all 0.2s;
-            width: 100%;
-            text-align: center;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 24px var(--accent-gold-glow);
-        }
-
-        .btn-secondary {
-            background: transparent;
-            color: var(--text-muted);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 0.6rem 1.2rem;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-secondary:hover {
-            color: var(--danger-red);
-            border-color: var(--danger-red);
-        }
-
-        .activity-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.75rem;
-            width: 100%;
-        }
-
-        .activity-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 1rem 0.5rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .activity-card.active, .activity-card:hover {
-            background: rgba(0, 229, 255, 0.15);
-            border-color: var(--accent-cyan);
-        }
-
-        .activity-card h4 {
-            font-size: 0.85rem;
-            margin-top: 0.4rem;
-        }
-
-        /* ===================================================
-           MARKETPLACE GLASS CLINICAL MODAL
-           =================================================== */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.65);
-            backdrop-filter: blur(12px);
-            z-index: 100;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            padding: 1rem;
-            pointer-events: auto;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-            animation: fadeIn 0.25 ease-out;
-        }
-
-        .modal-card {
-            width: 100%;
-            max-width: 580px;
-            max-height: 85vh;
-            display: flex;
-            flex-direction: column;
-            gap: 1.2rem;
-            padding: 1.75rem;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-        }
-
-        .modal-close-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: var(--text-main);
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            font-size: 1.1rem;
-            font-weight: 800;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-        }
-
-        .modal-close-btn:hover {
-            background: var(--danger-red);
-        }
-
-        /* Shop Tabs */
-        .market-tabs {
-            display: flex;
-            gap: 0.5rem;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 0.3rem;
-            border-radius: 14px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 0.6rem;
-            border: none;
-            background: transparent;
-            color: var(--text-muted);
-            font-weight: 700;
-            font-size: 0.85rem;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .tab-btn.active {
-            background: var(--glass-bg);
-            color: var(--accent-cyan);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .market-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.85rem;
-            overflow-y: auto;
-            padding-right: 0.2rem;
-            max-height: 52vh;
-        }
-
-        .market-grid::-webkit-scrollbar {
-            width: 6px;
-        }
-        .market-grid::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-        }
-
-        .market-item {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 18px;
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            gap: 0.5rem;
-            position: relative;
-            transition: all 0.2s;
-        }
-
-        .market-item:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.25);
-        }
-
-        .market-item.equipped {
-            border-color: var(--accent-cyan);
-            background: rgba(0, 229, 255, 0.08);
-        }
-
-        .item-icon {
-            font-size: 2.2rem;
-            margin-bottom: 0.2rem;
-        }
-
-        .item-title {
-            font-size: 0.95rem;
-            font-weight: 700;
-        }
-
-        .item-desc {
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            line-height: 1.3;
-        }
-
-        .btn-item-action {
-            margin-top: 0.4rem;
-            width: 100%;
-            padding: 0.55rem;
-            border-radius: 12px;
-            border: none;
-            font-weight: 800;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-item-action.buy {
-            background: var(--accent-gold);
-            color: #0b0f19;
-        }
-
-        .btn-item-action.equip {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-main);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .btn-item-action.active-equip {
-            background: var(--accent-cyan);
-            color: #0b0f19;
-            cursor: default;
-        }
-    </style>
+    .stats-bar {
+      display: flex;
+      gap: 1.25rem;
+      align-items: center;
+    }
+
+    .stat-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: #0f172a;
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: 1px solid var(--panel-border);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .stat-badge.coins { color: var(--accent-gold); border-color: rgba(234, 179, 8, 0.4); }
+    .stat-badge.coins.pulse-gold {
+      animation: goldPulse 0.8s ease-in-out infinite alternate;
+    }
+
+    .btn {
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      padding: 0.6rem 1.2rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary { background: var(--accent-blue); color: white; }
+    .btn-primary:hover { background: #2563eb; transform: translateY(-1px); }
+    .btn-shop { background: #8b5cf6; color: white; }
+    .btn-shop:hover { background: #7c3aed; transform: translateY(-1px); }
+
+    /* Main Container */
+    main {
+      width: 100%;
+      max-width: 900px;
+      position: relative;
+    }
+
+    .card {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    /* Active Power-up Visual FX on Main Card */
+    .card.shield-active {
+      border-color: var(--accent-purple);
+      box-shadow: 0 0 25px rgba(168, 85, 247, 0.4);
+      animation: shieldGlow 2s infinite alternate;
+    }
+
+    .card.frost-active {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 25px rgba(6, 182, 212, 0.4);
+    }
+
+    .frost-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.05) 0%, rgba(6, 182, 212, 0.15) 100%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 5;
+    }
+    .card.frost-active .frost-overlay { opacity: 1; }
+
+    /* Timer Bar */
+    .timer-container {
+      width: 100%;
+      height: 8px;
+      background: #0f172a;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+    .timer-bar {
+      height: 100%;
+      width: 100%;
+      background: var(--accent-blue);
+      transition: width 1s linear, background-color 0.3s;
+    }
+    .card.frost-active .timer-bar { background: var(--accent-cyan); }
+
+    /* Question & Options */
+    .level-indicator {
+      color: var(--accent-blue);
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.5rem;
+    }
+
+    .question-text {
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      line-height: 1.4;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 640px) {
+      .options-grid { grid-template-columns: 1fr; }
+    }
+
+    .option-btn {
+      background: #0f172a;
+      border: 1px solid var(--panel-border);
+      color: var(--text-main);
+      padding: 1rem 1.2rem;
+      border-radius: 10px;
+      font-size: 1rem;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--accent-blue);
+      background: #1e293b;
+      transform: translateY(-2px);
+    }
+
+    .option-btn.correct { background: rgba(16, 185, 129, 0.2); border-color: var(--accent-green); color: #34d399; }
+    .option-btn.incorrect { background: rgba(239, 68, 68, 0.2); border-color: var(--accent-red); color: #f87171; }
+    
+    .option-btn.option-eliminated {
+      opacity: 0.2;
+      transform: scale(0.95);
+      pointer-events: none;
+      filter: blur(1px);
+      transition: all 0.4s ease;
+    }
+
+    .option-btn.smart-hint-highlight {
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 12px rgba(234, 179, 8, 0.3);
+    }
+
+    /* In-Game Power-Up Toolbar */
+    .powerup-toolbar {
+      display: flex;
+      justify-content: center;
+      gap: 0.8rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--panel-border);
+    }
+
+    .powerup-btn {
+      background: #0f172a;
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 0.5rem 0.9rem;
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .powerup-btn:hover:not(:disabled) {
+      border-color: var(--accent-blue);
+      transform: translateY(-2px);
+    }
+
+    .powerup-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .powerup-btn .badge {
+      background: var(--accent-blue);
+      color: white;
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 10px;
+    }
+
+    /* Marketplace Modal */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-backdrop.open { opacity: 1; pointer-events: auto; }
+
+    .shop-modal {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 650px;
+      padding: 1.5rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      transform: translateY(20px);
+      transition: transform 0.3s ease;
+    }
+
+    .modal-backdrop.open .shop-modal { transform: translateY(0); }
+
+    .shop-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.2rem;
+    }
+
+    .shop-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 580px) {
+      .shop-grid { grid-template-columns: 1fr; }
+    }
+
+    .shop-item {
+      background: #0f172a;
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.25s ease;
+    }
+
+    .shop-item:hover {
+      border-color: var(--accent-gold);
+      box-shadow: 0 4px 15px rgba(234, 179, 8, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .shop-item.purchased-anim {
+      animation: buyBounce 0.4s ease-out;
+    }
+
+    .shop-item-title { font-weight: 700; font-size: 1rem; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.4rem; }
+    .shop-item-desc { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.8rem; }
+    .shop-item-footer { display: flex; justify-content: space-between; align-items: center; }
+    .shop-price { color: var(--accent-gold); font-weight: 700; display: flex; align-items: center; gap: 0.2rem; }
+
+    /* Animations */
+    @keyframes goldPulse {
+      from { box-shadow: 0 0 5px rgba(234, 179, 8, 0.2); }
+      to { box-shadow: 0 0 18px rgba(234, 179, 8, 0.6); }
+    }
+
+    @keyframes shieldGlow {
+      from { box-shadow: 0 0 15px rgba(168, 85, 247, 0.3); }
+      to { box-shadow: 0 0 30px rgba(168, 85, 247, 0.6); }
+    }
+
+    @keyframes buyBounce {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); border-color: var(--accent-green); }
+      100% { transform: scale(1); }
+    }
+
+    .hidden { display: none !important; }
+  </style>
 </head>
 <body>
 
-    <!-- p5.js Background & Terrain Engine Canvas -->
-    <div id="p5-canvas-container"></div>
+  <!-- Header Stats Bar -->
+  <header>
+    <div class="brand-title">Knowledge Quest</div>
+    <div class="stats-bar">
+      <div class="stat-badge coins" id="coins-display">🪙 150</div>
+      <div class="stat-badge" id="score-display">⭐ Score: 0</div>
+      <button class="btn btn-shop" id="open-shop-btn">🛒 Shop</button>
+      <label style="cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 0.3rem;">
+        <input type="checkbox" id="ambient-toggle"> 🎵 Ambient
+      </label>
+    </div>
+  </header>
 
-    <!-- Glassmorphism UI Root Overlay -->
-    <div class="ui-root">
+  <!-- Main Game Container -->
+  <main>
+    <!-- Start / Level Selector View -->
+    <div id="view-start" class="card">
+      <h2 style="margin-bottom: 1rem;">Select Quest Level</h2>
+      <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Earn coins by answering questions correctly and equip power-ups to tackle tough challenges!</p>
+      <div id="level-list" style="display: flex; flex-direction: column; gap: 1rem;"></div>
+    </div>
+
+    <!-- Active Quiz View -->
+    <div id="view-quiz" class="card hidden">
+      <div class="frost-overlay"></div>
+      
+      <div class="timer-container">
+        <div class="timer-bar" id="timer-bar"></div>
+      </div>
+
+      <div class="level-indicator" id="level-title">Level 1</div>
+      <div class="question-text" id="question-text">Question loading...</div>
+
+      <div class="options-grid" id="options-grid"></div>
+
+      <!-- In-Game Powerup Activation Toolbar -->
+      <div class="powerup-toolbar" id="powerup-toolbar"></div>
+    </div>
+
+    <!-- Level Completion View -->
+    <div id="view-complete" class="card hidden" style="text-align: center;">
+      <h2 style="font-size: 2rem; color: var(--accent-green); margin-bottom: 0.5rem;">Level Complete!</h2>
+      <p id="complete-summary" style="color: var(--text-muted); margin-bottom: 1.5rem;">You cleared the level!</p>
+      <button class="btn btn-primary" id="continue-btn">Continue to Map</button>
+    </div>
+  </main>
+
+  <!-- Marketplace Modal Store -->
+  <div class="modal-backdrop" id="shop-modal">
+    <div class="shop-modal">
+      <div class="shop-header">
+        <h2>Power-Up Store</h2>
+        <button class="btn" style="background: transparent; color: var(--text-muted); font-size: 1.2rem;" id="close-shop-btn">✕</button>
+      </div>
+      <div class="shop-grid" id="shop-grid"></div>
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================================================
+       1. SYNTHESIZED AUDIO ENGINE (Web Audio API)
+       ========================================================================== */
+    class AudioManager {
+      constructor() {
+        this.ctx = null;
+        this.ambientGain = null;
+        this.ambientOscillators = [];
+        this.ambientLfo = null;
+        this.isAmbientPlaying = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playCorrect() {
+        this.init();
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        const now = this.ctx.currentTime;
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+          gain.gain.setValueAtTime(0.15, now + idx * 0.06);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.25);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.06);
+          osc.stop(now + idx * 0.06 + 0.25);
+        });
+      }
+
+      playCoin() {
+        this.init();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(987.77, now);
+        osc.frequency.setValueAtTime(1318.51, now + 0.07);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.3);
+      }
+
+      playPurchase() {
+        this.init();
+        const now = this.ctx.currentTime;
+        [783.99, 987.77, 1174.66, 1567.98].forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.025);
+          gain.gain.setValueAtTime(0.12, now + idx * 0.025);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.025 + 0.35);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.025);
+          osc.stop(now + idx * 0.025 + 0.35);
+        });
+      }
+
+      playPowerup() {
+        this.init();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(300, now);
+        osc.frequency.exponentialRampToValueAtTime(1200, now + 0.3);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.3);
+      }
+
+      startAmbient() {
+        this.init();
+        if (this.isAmbientPlaying) return;
+        const now = this.ctx.currentTime;
+        this.ambientGain = this.ctx.createGain();
+        this.ambientGain.gain.setValueAtTime(0.001, now);
+        this.ambientGain.gain.linearRampToValueAtTime(0.05, now + 2);
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(280, now);
+
+        this.ambientLfo = this.ctx.createOscillator();
+        const lfoGain = this.ctx.createGain();
+        this.ambientLfo.frequency.setValueAtTime(0.15, now);
+        lfoGain.gain.setValueAtTime(80, now);
+        this.ambientLfo.connect(lfoGain);
+        lfoGain.connect(filter.frequency);
+        this.ambientLfo.start(now);
+
+        this.ambientOscillators = [110.00, 164.81, 220.00, 277.18].map((freq) => {
+          const osc = this.ctx.createOscillator();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now);
+          osc.connect(filter);
+          osc.start(now);
+          return osc;
+        });
+
+        filter.connect(this.ambientGain);
+        this.ambientGain.connect(this.ctx.destination);
+        this.isAmbientPlaying = true;
+      }
+
+      stopAmbient() {
+        if (!this.isAmbientPlaying || !this.ambientGain) return;
+        const now = this.ctx.currentTime;
+        this.ambientGain.gain.linearRampToValueAtTime(0.0001, now + 1.5);
+        setTimeout(() => {
+          this.ambientOscillators.forEach((osc) => osc.stop());
+          if (this.ambientLfo) this.ambientLfo.stop();
+          this.ambientOscillators = [];
+          this.isAmbientPlaying = false;
+        }, 1500);
+      }
+    }
+
+    const audioManager = new AudioManager();
+
+    /* ==========================================================================
+       2. LEVEL ARCHITECTURE & QUESTION BANK DATA
+       ========================================================================== */
+    const levelData = [
+      {
+        level: 1,
+        title: "Level 1: Foundations & Fundamentals",
+        questions: [
+          {
+            id: "l1_q1",
+            question: "In personal finance literature (e.g., 'Rich Dad Poor Dad'), how is an 'Asset' defined?",
+            options: [
+              "Anything that puts money into your pocket",
+              "Any property or vehicle you own outright",
+              "Your primary residential home",
+              "Items purchased with high liability value"
+            ],
+            correctIndex: 0
+          },
+          {
+            id: "l1_q2",
+            question: "Which web standard is specifically used for synthesizing audio on-the-fly in browser games?",
+            options: [
+              "Web Audio API",
+              "HTML5 <audio> tag element",
+              "WebRTC Audio Stream",
+              "Canvas Sound Rendering"
+            ],
+            correctIndex: 0
+          }
+        ]
+      },
+      {
+        level: 2,
+        title: "Level 2: Development & Sustainability",
+        questions: [
+          {
+            id: "l2_q1",
+            question: "What primary energy source powers decentralized cold-storage hubs for rural agricultural preservation?",
+            options: [
+              "Solar Photovoltaic (PV) Systems",
+              "Diesel Generator Units",
+              "Geothermal Heat Exchanges",
+              "Grid Thermal Turbines"
+            ],
+            correctIndex: 0
+          },
+          {
+            id: "l2_q2",
+            question: "Which city hosts the historical Kwame Nkrumah Memorial Park and Mausoleum?",
+            options: [
+              "Accra",
+              "Kumasi",
+              "Cape Coast",
+              "Tamale"
+            ],
+            correctIndex: 0
+          }
+        ]
+      },
+      {
+        level: 3,
+        title: "Level 3: Web Architecture & Advanced Concepts",
+        questions: [
+          {
+            id: "l3_q1",
+            question: "In modern frontend web design, which utility-first CSS framework relies on classes like 'flex', 'pt-4', and 'text-center'?",
+            options: [
+              "Tailwind CSS",
+              "Bootstrap",
+              "Bulma",
+              "Foundation"
+            ],
+            correctIndex: 0
+          },
+          {
+            id: "l3_q2",
+            question: "When running procedural 3D modeling scripts in Blender, which scripting language is natively embedded?",
+            options: [
+              "Python",
+              "JavaScript",
+              "C++",
+              "Lua"
+            ],
+            correctIndex: 0
+          }
+        ]
+      }
+    ];
+
+    /* ==========================================================================
+       3. POWER-UP MARKETPLACE CONFIGURATION
+       ========================================================================== */
+    const powerUpStore = [
+      { id: 'fiftyFifty', name: '50/50 Eliminator', price: 50, icon: '⚡', desc: 'Removes 2 incorrect answer choices.' },
+      { id: 'timeFreeze', name: 'Time Freeze', price: 75, icon: '❄️', desc: 'Adds +15s and pauses the question timer.' },
+      { id: 'doubleCoins', name: 'Double Coins', price: 100, icon: '🪙', desc: 'Doubles coin rewards for the current level.' },
+      { id: 'shield', name: 'Second Chance Shield', price: 120, icon: '🛡️', desc: 'Protects against loss on your first wrong answer.' },
+      { id: 'smartHint', name: 'Smart Hint', price: 60, icon: '💡', desc: 'Highlights one incorrect choice to ignore.' }
+    ];
+
+    /* ==========================================================================
+       4. GAME STATE MANAGEMENT & LOGIC
+       ========================================================================== */
+    const gameState = {
+      coins: 150,
+      score: 0,
+      inventory: {
+        fiftyFifty: 1,
+        timeFreeze: 1,
+        doubleCoins: 0,
+        shield: 0,
+        smartHint: 1
+      },
+      activeEffects: {
+        doubleCoins: false,
+        shield: false,
+        timeFreeze: false
+      },
+      currentLevelIdx: 0,
+      currentQuestionIdx: 0,
+      timer: 20,
+      timerInterval: null
+    };
+
+    // DOM Elements
+    const coinsDisplay = document.getElementById('coins-display');
+    const scoreDisplay = document.getElementById('score-display');
+    const shopModal = document.getElementById('shop-modal');
+    const shopGrid = document.getElementById('shop-grid');
+    const viewStart = document.getElementById('view-start');
+    const viewQuiz = document.getElementById('view-quiz');
+    const viewComplete = document.getElementById('view-complete');
+    const levelList = document.getElementById('level-list');
+    const mainCard = document.querySelector('#view-quiz.card');
+
+    function updateStatsUI() {
+      coinsDisplay.textContent = `🪙 ${gameState.coins}`;
+      scoreDisplay.textContent = `⭐ Score: ${gameState.score}`;
+      if (gameState.activeEffects.doubleCoins) {
+        coinsDisplay.classList.add('pulse-gold');
+      } else {
+        coinsDisplay.classList.remove('pulse-gold');
+      }
+    }
+
+    /* --- Marketplace Logic --- */
+    function renderShop() {
+      shopGrid.innerHTML = '';
+      powerUpStore.forEach(item => {
+        const canAfford = gameState.coins >= item.price;
+        const count = gameState.inventory[item.id] || 0;
         
-        <!-- Header HUD -->
-        <header class="hud glass-panel interactive">
-            <div id="save-toast">SAVED</div>
-
-            <div class="hud-stat">
-                <div class="hud-badge">
-                    <span>🪙</span>
-                    <span id="hud-coins" class="gold-text">250</span>
-                </div>
-            </div>
-            <div class="hud-stat">
-                <div class="hud-badge">
-                    <span id="hud-activity-icon">⛰️</span>
-                    <span id="hud-altitude" class="cyan-text">0m</span>
-                </div>
-            </div>
-            <div class="hud-stat">
-                <div class="hud-badge">
-                    <span>🔥</span>
-                    <span id="hud-streak" class="purple-text">0x</span>
-                </div>
-            </div>
-
-            <!-- Market Trigger Button -->
-            <button class="btn-icon-shop" onclick="openShop()">
-                <span>🛒</span> Shop
+        const el = document.createElement('div');
+        el.className = 'shop-item';
+        el.id = `shop-item-${item.id}`;
+        el.innerHTML = `
+          <div>
+            <div class="shop-item-title">${item.icon} ${item.name}</div>
+            <div class="shop-item-desc">${item.desc} (Owned: ${count})</div>
+          </div>
+          <div class="shop-item-footer">
+            <div class="shop-price">🪙 ${item.price}</div>
+            <button class="btn btn-primary" ${!canAfford ? 'disabled' : ''} onclick="buyPowerUp('${item.id}')">
+              Buy
             </button>
-        </header>
+          </div>
+        `;
+        shopGrid.appendChild(el);
+      });
+    }
 
-        <!-- Main Screen Container -->
-        <main>
-            
-            <!-- Menu Screen -->
-            <section id="screen-menu" class="screen glass-panel interactive active">
-                <h2 class="card-title">Choose Your Expedition</h2>
-                <p class="card-subtitle">Select a 2D terrain traversal mode to challenge biblical question tiers.</p>
-                
-                <div class="activity-grid">
-                    <div class="activity-card active" onclick="selectActivity('MOUNTAIN')">
-                        <span style="font-size: 1.5rem;">⛰️</span>
-                        <h4>Mountain</h4>
-                    </div>
-                    <div class="activity-card" onclick="selectActivity('RIVER')">
-                        <span style="font-size: 1.5rem;">🚣</span>
-                        <h4>River</h4>
-                    </div>
-                    <div class="activity-card" onclick="selectActivity('DESERT')">
-                        <span style="font-size: 1.5rem;">🏜️</span>
-                        <h4>Desert</h4>
-                    </div>
-                </div>
+    window.buyPowerUp = function(id) {
+      const item = powerUpStore.find(p => p.id === id);
+      if (item && gameState.coins >= item.price) {
+        gameState.coins -= item.price;
+        gameState.inventory[id] = (gameState.inventory[id] || 0) + 1;
+        
+        audioManager.playPurchase();
+        updateStatsUI();
+        renderShop();
+        renderPowerUpToolbar();
 
-                <!-- Career Progress Summary -->
-                <div class="stats-summary">
-                    <div class="stat-item">
-                        <h5>Max Peak</h5>
-                        <p id="stat-max-alt" class="cyan-text">0m</p>
-                    </div>
-                    <div class="stat-item">
-                        <h5>Best Streak</h5>
-                        <p id="stat-high-streak" class="purple-text">0x</p>
-                    </div>
-                    <div class="stat-item">
-                        <h5>Solved</h5>
-                        <p id="stat-solved" class="gold-text">0</p>
-                    </div>
-                </div>
-
-                <button class="btn-primary" onclick="startQuiz()">Begin Quest</button>
-                <button class="btn-secondary" onclick="resetProgress()">Reset Saved Data</button>
-            </section>
-
-            <!-- Quiz Screen -->
-            <section id="screen-quiz" class="screen glass-panel interactive">
-                <div class="timer-bar-container">
-                    <div id="timer-bar" class="timer-bar"></div>
-                </div>
-                
-                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                    <p id="book-tag" class="card-subtitle" style="text-transform: uppercase; font-weight:700; color: var(--accent-cyan);">Genesis</p>
-                    <span id="tier-badge" class="tier-badge tier-1">Tier 1 • Easy</span>
-                </div>
-
-                <h3 id="question-text" class="question-text">Loading question...</h3>
-
-                <div id="options-grid" class="options-grid"></div>
-
-                <!-- Power-Ups Quick Marketplace Bar -->
-                <div class="powerup-bar">
-                    <div class="powerup-item" onclick="usePowerup('hint')">
-                        <span>💡 Hint</span>
-                        <span class="gold-text">20 🪙</span>
-                    </div>
-                    <div class="powerup-item" onclick="usePowerup('shield')">
-                        <span>🛡️ Shield</span>
-                        <span class="gold-text">35 🪙</span>
-                    </div>
-                    <div class="powerup-item" onclick="usePowerup('freeze')">
-                        <span>❄️ Freeze</span>
-                        <span class="gold-text">15 🪙</span>
-                    </div>
-                </div>
-            </section>
-
-        </main>
-
-        <!-- Footer Spacer -->
-        <footer style="height: 10px;"></footer>
-    </div>
-
-    <!-- Dedicated Glassmorphism Marketplace Modal -->
-    <div id="modal-shop" class="modal-overlay">
-        <div class="modal-card glass-panel">
-            <div class="modal-header">
-                <div>
-                    <h2 class="card-title" style="text-align: left;">Celestial Marketplace</h2>
-                    <p class="card-subtitle" style="text-align: left;">Customize your traveler & ambient world</p>
-                </div>
-                <button class="modal-close-btn" onclick="closeShop()">✕</button>
-            </div>
-
-            <!-- Shop Category Tabs -->
-            <div class="market-tabs">
-                <button id="tab-skins" class="tab-btn active" onclick="switchShopTab('skins')">Avatar Skins</button>
-                <button id="tab-weather" class="tab-btn" onclick="switchShopTab('weather')">Weather Effects</button>
-            </div>
-
-            <!-- Grid Container -->
-            <div id="market-grid-container" class="market-grid">
-                <!-- Items populated dynamically via JS -->
-            </div>
-        </div>
-    </div>
-
-    <script>
-        /* ===================================================
-           1. QUESTION DATABASE & CONFIG
-           =================================================== */
-        const TIER_CONFIG = {
-            1: { name: "Tier 1 • Easy", class: "tier-1", timeLimit: 20, reward: 15, penalty: 5, altitudeGain: 25 },
-            2: { name: "Tier 2 • Medium", class: "tier-2", timeLimit: 14, reward: 30, penalty: 12, altitudeGain: 50 },
-            3: { name: "Tier 3 • Hard", class: "tier-3", timeLimit: 9, reward: 60, penalty: 25, altitudeGain: 100 }
-        };
-
-        const questionDatabase = [
-            { tier: 1, book: "Genesis", question: "On which mountain did Noah's Ark come to rest after the flood?", options: ["Mount Sinai", "Mount Ararat", "Mount Carmel", "Mount Nebo"], correct: 1, hint: "Located in modern-day Turkey." },
-            { tier: 1, book: "Genesis", question: "What was the name of Abraham's original home city?", options: ["Ur", "Babylon", "Jericho", "Sodom"], correct: 0, hint: "A short, 2-letter ancient Sumerian city." },
-            { tier: 1, book: "Exodus", question: "Through which body of water did Moses lead the Israelites?", options: ["Dead Sea", "Sea of Galilee", "Red Sea", "Jordan River"], correct: 2, hint: "Named after a vivid color." },
-            { tier: 1, book: "Matthew", question: "In which city was Jesus born?", options: ["Nazareth", "Jerusalem", "Bethlehem", "Capernaum"], correct: 2, hint: "Known as the City of David." },
-            { tier: 1, book: "Psalms", question: "'The Lord is my shepherd; I shall not want' is the first line of which Psalm?", options: ["Psalm 1", "Psalm 23", "Psalm 91", "Psalm 119"], correct: 1, hint: "A famous Psalm numbered in the low twenties." },
-            { tier: 2, book: "Exodus", question: "What was the first plague brought upon Egypt?", options: ["Frogs", "Water turned to Blood", "Locusts", "Darkness"], correct: 1, hint: "Affects the Nile River." },
-            { tier: 2, book: "Joshua", question: "How many days did the Israelites march around Jericho before the walls fell?", options: ["3 Days", "7 Days", "12 Days", "40 Days"], correct: 1, hint: "A biblically significant number associated with completion." },
-            { tier: 2, book: "Luke", question: "What was the occupation of Zacchaeus before he met Jesus?", options: ["Fisherman", "Tax Collector", "Tentmaker", "Pharisee"], correct: 1, hint: "He climbed a sycamore tree to see Jesus." },
-            { tier: 2, book: "Acts", question: "On the road to which city was Saul converted?", options: ["Antioch", "Damascus", "Rome", "Ephesus"], correct: 1, hint: "Capital city of modern Syria." },
-            { tier: 3, book: "Daniel", question: "What were the Babylonian names given to Hananiah, Mishael, and Azariah?", options: ["Abednego, Shadrach, Meshach", "Shadrach, Meshach, Abednego", "Balthazar, Belteshazzar, Darius", "Elam, Cyrus, Artaxerxes"], correct: 1, hint: "Shadrach comes first in the standard ordering." },
-            { tier: 3, book: "Revelation", question: "Which of the Seven Churches of Asia was called 'lukewarm'?", options: ["Ephesus", "Smyrna", "Laodicea", "Philadelphia"], correct: 2, hint: "Neither hot nor cold." },
-            { tier: 3, book: "Acts", question: "Who was the first Christian martyr recorded in the Book of Acts?", options: ["James", "Stephen", "Philip", "Barnabas"], correct: 1, hint: "One of the original seven deacons, stoned to death." }
-        ];
-
-        /* ===================================================
-           2. MARKETPLACE CATALOG CONFIGURATION
-           =================================================== */
-        const MARKET_SKINS = [
-            { id: 'DEFAULT', name: 'Desert Nomad', icon: '🚶', cost: 0, desc: 'A resilient traveler equipped with cyan robes and wooden staff.' },
-            { id: 'SCHOLAR', name: 'Wise Scholar', icon: '📜', cost: 100, desc: 'Clad in royal purple with a floating scroll of scripture.' },
-            { id: 'PALADIN', name: 'Holy Paladin', icon: '⚔️', cost: 250, desc: 'Encased in polished golden armor with a flowing red cape.' },
-            { id: 'ANGELIC', name: 'Celestial Herald', icon: '🪽', cost: 500, desc: 'Blessed with glowing wings and an ethereal halo aura.' }
-        ];
-
-        const MARKET_WEATHER = [
-            { id: 'DEFAULT', name: 'Calm Ember Skies', icon: '✨', cost: 0, desc: 'Gentle golden embers rising softly through the air.' },
-            { id: 'RAIN', name: 'Blessing Rainstorm', icon: '🌧️', cost: 150, desc: 'Cool revitalizing rain with ground splash physics.' },
-            { id: 'GOLD_DUST', name: 'Golden Manna', icon: '🌟', cost: 300, desc: 'Swirling luminous heavenly particles that shimmer brightly.' },
-            { id: 'SNOW', name: 'Mount Sinai Snow', icon: '❄️', cost: 450, desc: 'Serene white snow drifts dancing softly on mountain winds.' }
-        ];
-
-        /* ===================================================
-           3. GAME STATE & LOCAL STORAGE PERSISTENCE
-           =================================================== */
-        const STORAGE_KEY = "BIBLE_QUEST_GAME_SAVE_V2";
-
-        let gameState = {
-            coins: 250,
-            altitude: 0,
-            maxAltitude: 0,
-            streak: 0,
-            highStreak: 0,
-            solvedCount: 0,
-            hasShield: false,
-            unlockedSkins: ['DEFAULT'],
-            equippedSkin: 'DEFAULT',
-            unlockedWeather: ['DEFAULT'],
-            equippedWeather: 'DEFAULT',
-            currentActivity: 'MOUNTAIN',
-            currentQuestion: null,
-            timerInterval: null,
-            activeShopTab: 'skins'
-        };
-
-        function saveProgress() {
-            const dataToSave = {
-                coins: gameState.coins,
-                altitude: gameState.altitude,
-                maxAltitude: gameState.maxAltitude,
-                streak: gameState.streak,
-                highStreak: gameState.highStreak,
-                solvedCount: gameState.solvedCount,
-                unlockedSkins: gameState.unlockedSkins,
-                equippedSkin: gameState.equippedSkin,
-                unlockedWeather: gameState.unlockedWeather,
-                equippedWeather: gameState.equippedWeather
-            };
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
-            
-            const toast = document.getElementById('save-toast');
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 1200);
+        // Trigger pulse bounce animation on card
+        const shopCard = document.getElementById(`shop-item-${id}`);
+        if (shopCard) {
+          shopCard.classList.add('purchased-anim');
+          setTimeout(() => shopCard.classList.remove('purchased-anim'), 400);
         }
+      }
+    };
 
-        function loadProgress() {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    gameState.coins = parsed.coins ?? 250;
-                    gameState.altitude = parsed.altitude ?? 0;
-                    gameState.maxAltitude = parsed.maxAltitude ?? 0;
-                    gameState.streak = parsed.streak ?? 0;
-                    gameState.highStreak = parsed.highStreak ?? 0;
-                    gameState.solvedCount = parsed.solvedCount ?? 0;
-                    gameState.unlockedSkins = parsed.unlockedSkins ?? ['DEFAULT'];
-                    gameState.equippedSkin = parsed.equippedSkin ?? 'DEFAULT';
-                    gameState.unlockedWeather = parsed.unlockedWeather ?? ['DEFAULT'];
-                    gameState.equippedWeather = parsed.equippedWeather ?? 'DEFAULT';
-                } catch(e) {
-                    console.error("Error loading save data", e);
-                }
-            }
-            updateHUD();
-            updateMenuStats();
-        }
+    /* --- Level Selector --- */
+    function renderLevelSelector() {
+      levelList.innerHTML = '';
+      levelData.forEach((lvl, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn option-btn';
+        btn.style.width = '100%';
+        btn.innerHTML = `<strong>${lvl.title}</strong> (${lvl.questions.length} Questions)`;
+        btn.onclick = () => startLevel(idx);
+        levelList.appendChild(btn);
+      });
+    }
 
-        function resetProgress() {
-            if (confirm("Reset all coins, custom skins, weather effects, and career statistics?")) {
-                localStorage.removeItem(STORAGE_KEY);
-                gameState.coins = 250;
-                gameState.altitude = 0;
-                gameState.maxAltitude = 0;
-                gameState.streak = 0;
-                gameState.highStreak = 0;
-                gameState.solvedCount = 0;
-                gameState.unlockedSkins = ['DEFAULT'];
-                gameState.equippedSkin = 'DEFAULT';
-                gameState.unlockedWeather = ['DEFAULT'];
-                gameState.equippedWeather = 'DEFAULT';
-                updateHUD();
-                updateMenuStats();
-                initParticles();
-                alert("Progress reset to default!");
-            }
-        }
+    /* --- Gameplay Logic --- */
+    function startLevel(idx) {
+      gameState.currentLevelIdx = idx;
+      gameState.currentQuestionIdx = 0;
+      gameState.activeEffects.doubleCoins = false;
+      gameState.activeEffects.shield = false;
+      gameState.activeEffects.timeFreeze = false;
+      
+      viewStart.classList.add('hidden');
+      viewComplete.classList.add('hidden');
+      viewQuiz.classList.remove('hidden');
 
-        /* ===================================================
-           4. MARKETPLACE MODAL CONTROLLER
-           =================================================== */
-        function openShop() {
-            document.getElementById('modal-shop').classList.add('active');
-            renderShopGrid();
-        }
+      loadQuestion();
+    }
 
-        function closeShop() {
-            document.getElementById('modal-shop').classList.remove('active');
-        }
+    function loadQuestion() {
+      clearInterval(gameState.timerInterval);
+      gameState.activeEffects.timeFreeze = false;
+      mainCard.classList.remove('frost-active');
 
-        function switchShopTab(tab) {
-            gameState.activeShopTab = tab;
-            document.getElementById('tab-skins').classList.toggle('active', tab === 'skins');
-            document.getElementById('tab-weather').classList.toggle('active', tab === 'weather');
-            renderShopGrid();
-        }
+      const currentLvl = levelData[gameState.currentLevelIdx];
+      const q = currentLvl.questions[gameState.currentQuestionIdx];
 
-        function renderShopGrid() {
-            const container = document.getElementById('market-grid-container');
-            container.innerHTML = '';
+      document.getElementById('level-title').textContent = currentLvl.title;
+      document.getElementById('question-text').textContent = q.question;
 
-            const isSkinTab = gameState.activeShopTab === 'skins';
-            const items = isSkinTab ? MARKET_SKINS : MARKET_WEATHER;
+      const grid = document.getElementById('options-grid');
+      grid.innerHTML = '';
 
-            items.forEach(item => {
-                const isUnlocked = isSkinTab ? gameState.unlockedSkins.includes(item.id) : gameState.unlockedWeather.includes(item.id);
-                const isEquipped = isSkinTab ? gameState.equippedSkin === item.id : gameState.equippedWeather === item.id;
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.id = `option-${idx}`;
+        btn.textContent = opt;
+        btn.onclick = () => selectAnswer(idx);
+        grid.appendChild(btn);
+      });
 
-                const card = document.createElement('div');
-                card.className = `market-item ${isEquipped ? 'equipped' : ''}`;
+      renderPowerUpToolbar();
+      startTimer();
+    }
 
-                let btnHTML = '';
-                if (isEquipped) {
-                    btnHTML = `<button class="btn-item-action active-equip">EQUIPPED</button>`;
-                } else if (isUnlocked) {
-                    btnHTML = `<button class="btn-item-action equip" onclick="equipItem('${isSkinTab ? 'skin' : 'weather'}', '${item.id}')">EQUIP</button>`;
-                } else {
-                    btnHTML = `<button class="btn-item-action buy" onclick="buyItem('${isSkinTab ? 'skin' : 'weather'}', '${item.id}', ${item.cost})">BUY • ${item.cost} 🪙</button>`;
-                }
+    function startTimer() {
+      gameState.timer = 15;
+      const bar = document.getElementById('timer-bar');
+      bar.style.width = '100%';
 
-                card.innerHTML = `
-                    <div class="item-icon">${item.icon}</div>
-                    <div class="item-title">${item.name}</div>
-                    <div class="item-desc">${item.desc}</div>
-                    ${btnHTML}
-                `;
-                container.appendChild(card);
-            });
-        }
+      gameState.timerInterval = setInterval(() => {
+        if (!gameState.activeEffects.timeFreeze) {
+          gameState.timer -= 1;
+          bar.style.width = `${(gameState.timer / 15) * 100}%`;
 
-        function buyItem(type, id, cost) {
-            if (gameState.coins < cost) {
-                alert("Not enough coins! Solve more questions to earn coins.");
-                return;
-            }
-
-            gameState.coins -= cost;
-            if (type === 'skin') {
-                gameState.unlockedSkins.push(id);
-                gameState.equippedSkin = id;
-            } else {
-                gameState.unlockedWeather.push(id);
-                gameState.equippedWeather = id;
-                initParticles();
-            }
-
-            updateHUD();
-            saveProgress();
-            renderShopGrid();
-        }
-
-        function equipItem(type, id) {
-            if (type === 'skin') {
-                gameState.equippedSkin = id;
-            } else {
-                gameState.equippedWeather = id;
-                initParticles();
-            }
-            saveProgress();
-            renderShopGrid();
-        }
-
-        /* ===================================================
-           5. GAME SYSTEM LOGIC
-           =================================================== */
-        let avatar = { x: 80, y: 0, targetX: 80, speed: 0.05, stepFrame: 0, isMoving: false };
-
-        function updateHUD() {
-            document.getElementById('hud-coins').innerText = gameState.coins;
-            document.getElementById('hud-altitude').innerText = gameState.altitude + 'm';
-            document.getElementById('hud-streak').innerText = gameState.streak + 'x';
-            
-            const icons = { 'MOUNTAIN': '⛰️', 'RIVER': '🚣', 'DESERT': '🏜️' };
-            document.getElementById('hud-activity-icon').innerText = icons[gameState.currentActivity];
-        }
-
-        function updateMenuStats() {
-            document.getElementById('stat-max-alt').innerText = gameState.maxAltitude + 'm';
-            document.getElementById('stat-high-streak').innerText = gameState.highStreak + 'x';
-            document.getElementById('stat-solved').innerText = gameState.solvedCount;
-        }
-
-        function setScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(screenId).classList.add('active');
-        }
-
-        function selectActivity(type) {
-            gameState.currentActivity = type;
-            document.querySelectorAll('.activity-card').forEach(card => card.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            updateHUD();
-        }
-
-        function determineCurrentTier() {
-            if (gameState.streak >= 4) return 3;
-            if (gameState.streak >= 2) return 2;
-            return 1;
-        }
-
-        function startQuiz() {
-            setScreen('screen-quiz');
-            loadNextQuestion();
-        }
-
-        function loadNextQuestion() {
-            const currentTierNum = determineCurrentTier();
-            const tierQuestions = questionDatabase.filter(q => q.tier === currentTierNum);
-            const pool = tierQuestions.length > 0 ? tierQuestions : questionDatabase;
-            gameState.currentQuestion = pool[Math.floor(Math.random() * pool.length)];
-
-            const q = gameState.currentQuestion;
-            const tierInfo = TIER_CONFIG[q.tier];
-
-            const badgeEl = document.getElementById('tier-badge');
-            badgeEl.innerText = tierInfo.name;
-            badgeEl.className = `tier-badge ${tierInfo.class}`;
-
-            document.getElementById('book-tag').innerText = q.book;
-            document.getElementById('question-text').innerText = q.question;
-
-            const grid = document.getElementById('options-grid');
-            grid.innerHTML = '';
-            q.options.forEach((opt, idx) => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.innerHTML = `<span>${opt}</span><span style="opacity:0.4;">${['A','B','C','D'][idx]}</span>`;
-                btn.onclick = () => checkAnswer(idx, btn);
-                grid.appendChild(btn);
-            });
-
-            startTimer(tierInfo.timeLimit);
-        }
-
-        function checkAnswer(selectedIdx, btnElement) {
+          if (gameState.timer <= 0) {
             clearInterval(gameState.timerInterval);
-            const q = gameState.currentQuestion;
-            const tierInfo = TIER_CONFIG[q.tier];
+            selectAnswer(-1); // Time out
+          }
+        }
+      }, 1000);
+    }
 
-            if (selectedIdx === q.correct) {
-                btnElement.classList.add('correct');
-                gameState.coins += tierInfo.reward;
-                gameState.altitude += tierInfo.altitudeGain;
-                gameState.streak += 1;
-                gameState.solvedCount += 1;
-                
-                if (gameState.altitude > gameState.maxAltitude) gameState.maxAltitude = gameState.altitude;
-                if (gameState.streak > gameState.highStreak) gameState.highStreak = gameState.streak;
-                triggerAvatarMove();
+    function selectAnswer(selectedIdx) {
+      clearInterval(gameState.timerInterval);
+      const q = levelData[gameState.currentLevelIdx].questions[gameState.currentQuestionIdx];
+      const isCorrect = selectedIdx === q.correctIndex;
 
-            } else {
-                btnElement.classList.add('wrong');
-                if (gameState.hasShield) {
-                    gameState.hasShield = false;
-                    alert("🛡️ Shield protected your coins and streak!");
-                } else {
-                    gameState.coins = Math.max(0, gameState.coins - tierInfo.penalty);
-                    gameState.streak = 0;
-                }
+      // Check Shield Power-Up
+      if (!isCorrect && gameState.activeEffects.shield) {
+        gameState.activeEffects.shield = false;
+        mainCard.classList.remove('shield-active');
+        audioManager.playPowerup();
+        alert("🛡️ Second Chance Shield absorbed the wrong answer!");
+        startTimer();
+        return;
+      }
+
+      const options = document.querySelectorAll('.option-btn');
+      options.forEach((btn, idx) => {
+        btn.disabled = true;
+        if (idx === q.correctIndex) btn.classList.add('correct');
+        if (idx === selectedIdx && !isCorrect) btn.classList.add('incorrect');
+      });
+
+      if (isCorrect) {
+        audioManager.playCorrect();
+        let earnedCoins = 20;
+        if (gameState.activeEffects.doubleCoins) earnedCoins *= 2;
+        
+        gameState.coins += earnedCoins;
+        gameState.score += 100;
+        audioManager.playCoin();
+        updateStatsUI();
+      }
+
+      setTimeout(() => {
+        gameState.currentQuestionIdx += 1;
+        const currentLvl = levelData[gameState.currentLevelIdx];
+        if (gameState.currentQuestionIdx < currentLvl.questions.length) {
+          loadQuestion();
+        } else {
+          finishLevel();
+        }
+      }, 1500);
+    }
+
+    function finishLevel() {
+      viewQuiz.classList.add('hidden');
+      viewComplete.classList.remove('hidden');
+      document.getElementById('complete-summary').textContent = 
+        `You completed ${levelData[gameState.currentLevelIdx].title}! Total Score: ${gameState.score}`;
+    }
+
+    /* --- Power-Up Activations --- */
+    function renderPowerUpToolbar() {
+      const toolbar = document.getElementById('powerup-toolbar');
+      toolbar.innerHTML = '';
+
+      powerUpStore.forEach(item => {
+        const count = gameState.inventory[item.id] || 0;
+        const btn = document.createElement('button');
+        btn.className = 'powerup-btn';
+        btn.disabled = count <= 0;
+        btn.innerHTML = `${item.icon} ${item.name} <span class="badge">${count}</span>`;
+        btn.onclick = () => activatePowerUp(item.id);
+        toolbar.appendChild(btn);
+      });
+    }
+
+    function activatePowerUp(id) {
+      if ((gameState.inventory[id] || 0) <= 0) return;
+
+      const q = levelData[gameState.currentLevelIdx].questions[gameState.currentQuestionIdx];
+
+      switch(id) {
+        case 'fiftyFifty':
+          gameState.inventory.fiftyFifty -= 1;
+          audioManager.playPowerup();
+          let removed = 0;
+          for (let i = 0; i < q.options.length; i++) {
+            if (i !== q.correctIndex && removed < 2) {
+              const optBtn = document.getElementById(`option-${i}`);
+              if (optBtn) optBtn.classList.add('option-eliminated');
+              removed++;
             }
+          }
+          break;
 
-            updateHUD();
-            updateMenuStats();
-            saveProgress();
+        case 'timeFreeze':
+          gameState.inventory.timeFreeze -= 1;
+          gameState.activeEffects.timeFreeze = true;
+          mainCard.classList.add('frost-active');
+          audioManager.playPowerup();
+          break;
 
-            setTimeout(() => { loadNextQuestion(); }, 1200);
-        }
+        case 'doubleCoins':
+          gameState.inventory.doubleCoins -= 1;
+          gameState.activeEffects.doubleCoins = true;
+          updateStatsUI();
+          audioManager.playPowerup();
+          break;
 
-        function startTimer(seconds) {
-            clearInterval(gameState.timerInterval);
-            let timeRemaining = 100;
-            const timerBar = document.getElementById('timer-bar');
-            const step = 100 / (seconds * 10);
+        case 'shield':
+          gameState.inventory.shield -= 1;
+          gameState.activeEffects.shield = true;
+          mainCard.classList.add('shield-active');
+          audioManager.playPowerup();
+          break;
 
-            gameState.timerInterval = setInterval(() => {
-                timeRemaining -= step;
-                timerBar.style.width = Math.max(0, timeRemaining) + '%';
-
-                if (timeRemaining <= 0) {
-                    clearInterval(gameState.timerInterval);
-                    const tierInfo = TIER_CONFIG[gameState.currentQuestion.tier];
-                    gameState.coins = Math.max(0, gameState.coins - tierInfo.penalty);
-                    gameState.streak = 0;
-                    updateHUD();
-                    saveProgress();
-                    loadNextQuestion();
-                }
-            }, 100);
-        }
-
-        function triggerAvatarMove() {
-            avatar.isMoving = true;
-            avatar.targetX += (window.innerWidth * 0.15);
-            
-            if (avatar.targetX > window.innerWidth * 0.85) {
-                avatar.targetX = window.innerWidth * 0.15;
-                avatar.x = window.innerWidth * 0.05;
+        case 'smartHint':
+          gameState.inventory.smartHint -= 1;
+          audioManager.playPowerup();
+          for (let i = 0; i < q.options.length; i++) {
+            if (i !== q.correctIndex) {
+              const optBtn = document.getElementById(`option-${i}`);
+              if (optBtn) {
+                optBtn.classList.add('smart-hint-highlight');
+                break;
+              }
             }
-        }
+          }
+          break;
+      }
 
-        function usePowerup(type) {
-            if (type === 'hint' && gameState.coins >= 20) {
-                gameState.coins -= 20;
-                alert(`💡 Hint: ${gameState.currentQuestion.hint}`);
-            } else if (type === 'freeze' && gameState.coins >= 15) {
-                gameState.coins -= 15;
-                clearInterval(gameState.timerInterval);
-            } else if (type === 'shield' && gameState.coins >= 35) {
-                gameState.coins -= 35;
-                gameState.hasShield = true;
-                alert("🛡️ Shield equipped for next incorrect answer!");
-            } else {
-                alert("Not enough coins!");
-            }
-            updateHUD();
-            saveProgress();
-        }
+      renderPowerUpToolbar();
+    }
 
-        /* ===================================================
-           6. p5.js RENDER ENGINE WITH CUSTOM SKINS & WEATHER
-           =================================================== */
-        let particles = [];
+    /* --- Event Listeners & Init --- */
+    document.getElementById('open-shop-btn').onclick = () => { renderShop(); shopModal.classList.add('open'); };
+    document.getElementById('close-shop-btn').onclick = () => shopModal.classList.remove('open');
+    document.getElementById('continue-btn').onclick = () => {
+      viewComplete.classList.add('hidden');
+      viewStart.classList.remove('hidden');
+    };
 
-        function setup() {
-            let canvas = createCanvas(windowWidth, windowHeight);
-            canvas.parent('p5-canvas-container');
+    document.getElementById('ambient-toggle').onchange = (e) => {
+      if (e.target.checked) audioManager.startAmbient();
+      else audioManager.stopAmbient();
+    };
 
-            avatar.x = width * 0.15;
-            avatar.targetX = width * 0.15;
+    window.addEventListener('click', () => audioManager.init(), { once: true });
 
-            loadProgress();
-            initParticles();
-        }
-
-        function initParticles() {
-            particles = [];
-            let count = gameState.equippedWeather === 'RAIN' ? 90 : 50;
-
-            for (let i = 0; i < count; i++) {
-                particles.push({
-                    x: random(width),
-                    y: random(height),
-                    size: random(2, 6),
-                    speedY: random(0.5, 3),
-                    speedX: random(-0.5, 0.5),
-                    opacity: random(80, 220),
-                    length: random(8, 18)
-                });
-            }
-        }
-
-        function draw() {
-            if (gameState.currentActivity === 'MOUNTAIN') {
-                background(12, 17, 30);
-                drawMountainTerrain();
-            } else if (gameState.currentActivity === 'RIVER') {
-                background(8, 22, 36);
-                drawRiverTerrain();
-            } else if (gameState.currentActivity === 'DESERT') {
-                background(30, 18, 12);
-                drawDesertTerrain();
-            }
-
-            updateAvatarPosition();
-            drawProceduralAvatar();
-            drawWeatherParticles();
-        }
-
-        function getTerrainY(x, type) {
-            if (type === 'MOUNTAIN') return height - 80 - noise(x * 0.008) * 90;
-            if (type === 'RIVER') return height - 110 + sin(frameCount * 0.04 + x * 0.01) * 6;
-            if (type === 'DESERT') return height - 90 - sin(x * 0.006) * 35;
-        }
-
-        function updateAvatarPosition() {
-            avatar.x = lerp(avatar.x, avatar.targetX, avatar.speed);
-            avatar.y = getTerrainY(avatar.x, gameState.currentActivity);
-
-            if (abs(avatar.x - avatar.targetX) < 1) avatar.isMoving = false;
-            if (avatar.isMoving) avatar.stepFrame += 0.2;
-        }
-
-        /* Custom Skin Visual Rendering Engine */
-        function drawProceduralAvatar() {
-            push();
-            translate(avatar.x, avatar.y);
-
-            let legOffset = sin(avatar.stepFrame * 2) * 5;
-            let skin = gameState.equippedSkin;
-
-            // Shadow Base
-            fill(0, 0, 0, 60); ellipse(0, 5, 26, 8);
-
-            if (skin === 'ANGELIC') {
-                // Radiant Halo
-                noFill(); stroke(255, 215, 0); strokeWeight(3);
-                ellipse(0, -42, 18, 6);
-                // Celestial Wings
-                fill(255, 255, 255, 180); noStroke();
-                let wingFlap = sin(frameCount * 0.1) * 8;
-                triangle(-6, -20, -28, -35 + wingFlap, -12, -10);
-                triangle(6, -20, 28, -35 + wingFlap, 12, -10);
-            }
-
-            if (skin === 'PALADIN') {
-                // Red Cape
-                fill(220, 38, 38); noStroke();
-                let capeSway = sin(frameCount * 0.08) * 4;
-                quad(-6, -22, 6, -22, 10 + capeSway, 0, -10 + capeSway, 0);
-            }
-
-            // Legs
-            stroke(255); strokeWeight(3);
-            line(-4, -5, -6 + legOffset, 4);
-            line(4, -5, 6 - legOffset, 4);
-
-            // Body Tunic / Armor
-            noStroke();
-            if (skin === 'DEFAULT') fill(0, 229, 255);
-            else if (skin === 'SCHOLAR') fill(168, 85, 247);
-            else if (skin === 'PALADIN') fill(255, 193, 7);
-            else if (skin === 'ANGELIC') fill(248, 250, 252);
-            rect(-8, -24, 16, 18, 4);
-
-            // Head & Skin Tone
-            fill(255, 205, 148); ellipse(0, -30, 14, 14);
-
-            // Accessory / Props
-            if (skin === 'SCHOLAR') {
-                // Floating Sacred Scroll
-                fill(254, 240, 138); rect(10, -24 + sin(frameCount * 0.1) * 3, 10, 14, 2);
-            } else if (skin === 'PALADIN') {
-                // Golden Sword
-                stroke(255, 215, 0); strokeWeight(2.5);
-                line(8, -28, 10 + legOffset, 6);
-            } else {
-                // Traveler Staff
-                stroke(255, 193, 7); strokeWeight(2);
-                line(8, -32, 10 + legOffset, 6);
-            }
-
-            pop();
-        }
-
-        /* Dynamic Weather Particles Engine */
-        function drawWeatherParticles() {
-            let weather = gameState.equippedWeather;
-
-            particles.forEach(p => {
-                push();
-                if (weather === 'RAIN') {
-                    stroke(0, 229, 255, p.opacity);
-                    strokeWeight(1.8);
-                    line(p.x, p.y, p.x - p.speedX * 2, p.y + p.length);
-                    p.y += p.speedY * 3;
-                    p.x += p.speedX;
-
-                } else if (weather === 'GOLD_DUST') {
-                    noStroke();
-                    fill(255, 215, 0, p.opacity);
-                    ellipse(p.x + sin(frameCount * 0.05 + p.y) * 4, p.y, p.size * 1.3);
-                    p.y -= p.speedY * 0.6;
-
-                } else if (weather === 'SNOW') {
-                    noStroke();
-                    fill(255, 255, 255, p.opacity);
-                    ellipse(p.x + sin(frameCount * 0.03 + p.y) * 6, p.y, p.size * 1.1);
-                    p.y += p.speedY * 0.8;
-
-                } else {
-                    // DEFAULT Ember Skies
-                    noStroke();
-                    fill(255, 193, 7, p.opacity);
-                    ellipse(p.x, p.y, p.size);
-                    p.y -= p.speedY * 0.5;
-                }
-
-                // Wrap-around screen bounds
-                if (p.y > height) p.y = 0;
-                if (p.y < 0) p.y = height;
-                if (p.x > width) p.x = 0;
-                if (p.x < 0) p.x = width;
-                pop();
-            });
-        }
-
-        /* Terrain Renderers */
-        function drawMountainTerrain() {
-            noStroke(); fill(22, 30, 50);
-            beginShape(); vertex(0, height);
-            for (let x = 0; x <= width; x += 40) vertex(x, height - 160 - noise(x * 0.004) * 140);
-            vertex(width, height); endShape(CLOSE);
-
-            fill(32, 44, 70);
-            beginShape(); vertex(0, height);
-            for (let x = 0; x <= width; x += 20) vertex(x, getTerrainY(x, 'MOUNTAIN') + 10);
-            vertex(width, height); endShape(CLOSE);
-        }
-
-        function drawRiverTerrain() {
-            noStroke(); fill(0, 119, 182, 90);
-            rect(0, height - 140, width, 140);
-
-            fill(0, 180, 216, 120);
-            beginShape(); vertex(0, height);
-            for (let x = 0; x <= width; x += 20) vertex(x, getTerrainY(x, 'RIVER') + 8);
-            vertex(width, height); endShape(CLOSE);
-        }
-
-        function drawDesertTerrain() {
-            noStroke(); fill(180, 100, 45);
-            beginShape(); vertex(0, height);
-            for (let x = 0; x <= width; x += 50) vertex(x, height - 130 - sin(x * 0.003) * 40);
-            vertex(width, height); endShape(CLOSE);
-
-            fill(220, 135, 55);
-            beginShape(); vertex(0, height);
-            for (let x = 0; x <= width; x += 20) vertex(x, getTerrainY(x, 'DESERT') + 12);
-            vertex(width, height); endShape(CLOSE);
-        }
-
-        function windowResized() {
-            resizeCanvas(windowWidth, windowHeight);
-        }
-    </script>
+    // Initialize UI
+    updateStatsUI();
+    renderLevelSelector();
+  </script>
 </body>
 </html>
