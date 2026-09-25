@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bible Quest: Adventure & Trivia</title>
+    <title>Bible Quest: Adventure & Tiered Trivia</title>
     <!-- p5.js Library for 2D Canvas Engine -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
     <!-- Google Fonts -->
@@ -11,7 +11,7 @@
     
     <style>
         :root {
-            --glass-bg: rgba(18, 22, 38, 0.65);
+            --glass-bg: rgba(18, 22, 38, 0.72);
             --glass-border: rgba(255, 255, 255, 0.14);
             --accent-gold: #ffc107;
             --accent-gold-glow: rgba(255, 193, 7, 0.35);
@@ -19,6 +19,9 @@
             --accent-purple: #a855f7;
             --danger-red: #ff4757;
             --success-green: #2ed573;
+            --tier-easy: #2ed573;
+            --tier-medium: #ff9f43;
+            --tier-hard: #ff4757;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
         }
@@ -69,11 +72,11 @@
         /* Reusable Glass Panel Styling */
         .glass-panel {
             background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
             border: 1px solid var(--glass-border);
             border-radius: 24px;
-            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
         }
 
         /* Header HUD */
@@ -132,7 +135,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Typography & Headers */
         .card-title {
             font-size: 1.35rem;
             font-weight: 800;
@@ -146,6 +148,23 @@
             text-align: center;
         }
 
+        /* Tier Pill Badge */
+        .tier-badge {
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            display: inline-block;
+        }
+
+        .tier-badge.tier-1 { color: var(--tier-easy); border-color: var(--tier-easy); }
+        .tier-badge.tier-2 { color: var(--tier-medium); border-color: var(--tier-medium); }
+        .tier-badge.tier-3 { color: var(--tier-hard); border-color: var(--tier-hard); }
+
         /* Quiz UI Elements */
         .timer-bar-container {
             width: 100%;
@@ -153,7 +172,7 @@
             background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
             overflow: hidden;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
         }
 
         .timer-bar {
@@ -168,7 +187,7 @@
             font-weight: 700;
             line-height: 1.5;
             text-align: center;
-            margin: 0.5rem 0 1rem 0;
+            margin: 0.25rem 0 0.75rem 0;
         }
 
         .options-grid {
@@ -182,7 +201,7 @@
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.12);
             color: var(--text-main);
-            padding: 1rem 1.25rem;
+            padding: 0.9rem 1.25rem;
             border-radius: 16px;
             font-weight: 600;
             font-size: 0.95rem;
@@ -240,7 +259,6 @@
             border-color: var(--accent-gold);
         }
 
-        /* Primary Action Buttons */
         .btn-primary {
             background: linear-gradient(135deg, #ffc107, #ff9800);
             color: #0b0f19;
@@ -261,7 +279,6 @@
             box-shadow: 0 6px 24px var(--accent-gold-glow);
         }
 
-        /* Activity Selector Grid */
         .activity-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -292,10 +309,10 @@
 </head>
 <body>
 
-    <!-- p5.js Background Render Canvas -->
+    <!-- p5.js Background & Terrain Engine Canvas -->
     <div id="p5-canvas-container"></div>
 
-    <!-- Interactive Glassmorphism UI -->
+    <!-- Glassmorphism UI Root Overlay -->
     <div class="ui-root">
         
         <!-- Header HUD -->
@@ -308,14 +325,14 @@
             </div>
             <div class="hud-stat">
                 <div class="hud-badge">
-                    <span>⛰️</span>
+                    <span id="hud-activity-icon">⛰️</span>
                     <span id="hud-altitude" class="cyan-text">120m</span>
                 </div>
             </div>
             <div class="hud-stat">
                 <div class="hud-badge">
                     <span>🔥</span>
-                    <span id="hud-streak" class="purple-text">3x</span>
+                    <span id="hud-streak" class="purple-text">0x</span>
                 </div>
             </div>
         </header>
@@ -323,10 +340,10 @@
         <!-- Main Screen Container -->
         <main>
             
-            <!-- Menu / Activity Switcher Screen -->
+            <!-- Menu / Terrain Switcher Screen -->
             <section id="screen-menu" class="screen glass-panel interactive active">
-                <h2 class="card-title">Choose Your Journey</h2>
-                <p class="card-subtitle">Select a 2D traversal terrain to begin answering biblical questions.</p>
+                <h2 class="card-title">Choose Your Expedition</h2>
+                <p class="card-subtitle">Select a 2D terrain traversal mode to challenge biblical question tiers.</p>
                 
                 <div class="activity-grid">
                     <div class="activity-card active" onclick="selectActivity('MOUNTAIN')">
@@ -343,7 +360,7 @@
                     </div>
                 </div>
 
-                <button class="btn-primary" onclick="startQuiz()">Start Expedition</button>
+                <button class="btn-primary" onclick="startQuiz()">Begin Quest</button>
             </section>
 
             <!-- Quiz Screen -->
@@ -352,11 +369,15 @@
                     <div id="timer-bar" class="timer-bar"></div>
                 </div>
                 
-                <p id="book-tag" class="card-subtitle" style="text-transform: uppercase; letter-spacing: 1px; color: var(--accent-cyan);">Genesis • Level 1</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <p id="book-tag" class="card-subtitle" style="text-transform: uppercase; font-weight:700; color: var(--accent-cyan);">Genesis</p>
+                    <span id="tier-badge" class="tier-badge tier-1">Tier 1 • Easy</span>
+                </div>
+
                 <h3 id="question-text" class="question-text">Loading question...</h3>
 
                 <div id="options-grid" class="options-grid">
-                    <!-- Dynamic Answer Options -->
+                    <!-- Dynamic Options Populated by JS -->
                 </div>
 
                 <!-- Marketplace Quick Power-Ups Bar -->
@@ -382,43 +403,61 @@
         <footer style="height: 10px;"></footer>
     </div>
 
-    <!-- Engine & Game Logic Script -->
     <script>
         /* ===================================================
-           1. GAME STATE & ECONOMY
+           1. TIERED QUESTION DATABASE & CONFIGURATION
            =================================================== */
-        let gameState = {
-            coins: 250,
-            altitude: 120,
-            streak: 0,
-            currentActivity: 'MOUNTAIN', // 'MOUNTAIN', 'RIVER', 'DESERT'
-            currentQuestionIdx: 0,
-            timer: 100,
-            timerInterval: null
+        const TIER_CONFIG = {
+            1: { name: "Tier 1 • Easy", class: "tier-1", timeLimit: 20, reward: 15, penalty: 5, altitudeGain: 25 },
+            2: { name: "Tier 2 • Medium", class: "tier-2", timeLimit: 14, reward: 30, penalty: 12, altitudeGain: 50 },
+            3: { name: "Tier 3 • Hard", class: "tier-3", timeLimit: 9, reward: 60, penalty: 25, altitudeGain: 100 }
         };
 
-        const sampleQuestions = [
-            {
-                book: "Genesis",
-                question: "On which mountain did Noah's Ark come to rest after the flood?",
-                options: ["Mount Sinai", "Mount Ararat", "Mount Carmel", "Mount Nebo"],
-                correct: 1
-            },
-            {
-                book: "Genesis",
-                question: "What was the name of Abraham's original home city?",
-                options: ["Ur", "Babylon", "Jericho", "Sodom"],
-                correct: 0
-            }
+        const questionDatabase = [
+            // Tier 1 Questions
+            { tier: 1, book: "Genesis", question: "On which mountain did Noah's Ark come to rest after the flood?", options: ["Mount Sinai", "Mount Ararat", "Mount Carmel", "Mount Nebo"], correct: 1, hint: "Located in modern-day Turkey." },
+            { tier: 1, book: "Genesis", question: "What was the name of Abraham's original home city?", options: ["Ur", "Babylon", "Jericho", "Sodom"], correct: 0, hint: "A short, 2-letter ancient Sumerian city." },
+            { tier: 1, book: "Exodus", question: "Through which body of water did Moses lead the Israelites?", options: ["Dead Sea", "Sea of Galilee", "Red Sea", "Jordan River"], correct: 2, hint: "Named after a vivid color." },
+            
+            // Tier 2 Questions
+            { tier: 2, book: "Exodus", question: "What was the first plate brought upon Egypt?", options: ["Frogs", "Water turned to Blood", "Locusts", "Darkness"], correct: 1, hint: "Affects the Nile River." },
+            { tier: 2, book: "Joshua", question: "How many days did the Israelites march around Jericho before the walls fell?", options: ["3 Days", "7 Days", "12 Days", "40 Days"], correct: 1, hint: "A biblically significant number associated with completion." },
+            
+            // Tier 3 Questions
+            { tier: 3, book: "Daniel", question: "What were the Babylonian names given to Hananiah, Mishael, and Azariah?", options: ["Abednego, Shadrach, Meshach", "Shadrach, Meshach, Abednego", "Balthazar, Belteshazzar, Darius", "Elam, Cyrus, Artaxerxes"], correct: 1, hint: "Shadrach comes first in the standard ordering." }
         ];
 
         /* ===================================================
-           2. UI CONTROLLER FUNCTIONS
+           2. GAME STATE & SYSTEM LOGIC
            =================================================== */
+        let gameState = {
+            coins: 250,
+            altitude: 0,
+            streak: 0,
+            hasShield: false,
+            currentActivity: 'MOUNTAIN', // 'MOUNTAIN', 'RIVER', 'DESERT'
+            currentQuestion: null,
+            timeRemaining: 100,
+            timerInterval: null
+        };
+
+        // 2D Avatar Procedural Motion State
+        let avatar = {
+            x: 80,
+            y: 0,
+            targetX: 80,
+            speed: 0.05,
+            stepFrame: 0,
+            isMoving: false
+        };
+
         function updateHUD() {
             document.getElementById('hud-coins').innerText = gameState.coins;
             document.getElementById('hud-altitude').innerText = gameState.altitude + 'm';
             document.getElementById('hud-streak').innerText = gameState.streak + 'x';
+            
+            const icons = { 'MOUNTAIN': '⛰️', 'RIVER': '🚣', 'DESERT': '🏜️' };
+            document.getElementById('hud-activity-icon').innerText = icons[gameState.currentActivity];
         }
 
         function setScreen(screenId) {
@@ -430,21 +469,42 @@
             gameState.currentActivity = type;
             document.querySelectorAll('.activity-card').forEach(card => card.classList.remove('active'));
             event.currentTarget.classList.add('active');
+            updateHUD();
+        }
+
+        function determineCurrentTier() {
+            if (gameState.streak >= 4) return 3;
+            if (gameState.streak >= 2) return 2;
+            return 1;
         }
 
         function startQuiz() {
             setScreen('screen-quiz');
-            loadQuestion();
+            loadNextQuestion();
         }
 
-        function loadQuestion() {
-            const q = sampleQuestions[gameState.currentQuestionIdx % sampleQuestions.length];
-            document.getElementById('book-tag').innerText = `${q.book} • Level 1`;
+        function loadNextQuestion() {
+            const currentTierNum = determineCurrentTier();
+            const tierQuestions = questionDatabase.filter(q => q.tier === currentTierNum);
+            
+            // Fallback to any question if pool is exhausted
+            const pool = tierQuestions.length > 0 ? tierQuestions : questionDatabase;
+            gameState.currentQuestion = pool[Math.floor(Math.random() * pool.length)];
+
+            const q = gameState.currentQuestion;
+            const tierInfo = TIER_CONFIG[q.tier];
+
+            // Render Tier UI
+            const badgeEl = document.getElementById('tier-badge');
+            badgeEl.innerText = tierInfo.name;
+            badgeEl.className = `tier-badge ${tierInfo.class}`;
+
+            document.getElementById('book-tag').innerText = q.book;
             document.getElementById('question-text').innerText = q.question;
 
+            // Render Options
             const grid = document.getElementById('options-grid');
             grid.innerHTML = '';
-
             q.options.forEach((opt, idx) => {
                 const btn = document.createElement('button');
                 btn.className = 'option-btn';
@@ -453,68 +513,93 @@
                 grid.appendChild(btn);
             });
 
-            resetTimer();
+            startTimer(tierInfo.timeLimit);
         }
 
         function checkAnswer(selectedIdx, btnElement) {
             clearInterval(gameState.timerInterval);
-            const q = sampleQuestions[gameState.currentQuestionIdx % sampleQuestions.length];
+            const q = gameState.currentQuestion;
+            const tierInfo = TIER_CONFIG[q.tier];
 
             if (selectedIdx === q.correct) {
                 btnElement.classList.add('correct');
-                gameState.coins += 15;
-                gameState.altitude += 25;
+                gameState.coins += tierInfo.reward;
+                gameState.altitude += tierInfo.altitudeGain;
                 gameState.streak += 1;
+                
+                // Trigger Avatar Procedural Forward Movement
+                triggerAvatarMove();
+
             } else {
                 btnElement.classList.add('wrong');
-                gameState.coins = Math.max(0, gameState.coins - 10); // Coin deduction penalty
-                gameState.streak = 0;
+                if (gameState.hasShield) {
+                    gameState.hasShield = false;
+                    alert("🛡️ Shield protected your coins and streak!");
+                } else {
+                    gameState.coins = Math.max(0, gameState.coins - tierInfo.penalty);
+                    gameState.streak = 0;
+                }
             }
 
             updateHUD();
 
             setTimeout(() => {
-                gameState.currentQuestionIdx++;
-                loadQuestion();
+                loadNextQuestion();
             }, 1200);
         }
 
-        function resetTimer() {
+        function startTimer(seconds) {
             clearInterval(gameState.timerInterval);
             let timeRemaining = 100;
             const timerBar = document.getElementById('timer-bar');
+            const step = 100 / (seconds * 10);
 
             gameState.timerInterval = setInterval(() => {
-                timeRemaining -= 1.5;
+                timeRemaining -= step;
                 timerBar.style.width = Math.max(0, timeRemaining) + '%';
 
                 if (timeRemaining <= 0) {
                     clearInterval(gameState.timerInterval);
-                    gameState.coins = Math.max(0, gameState.coins - 10);
+                    const tierInfo = TIER_CONFIG[gameState.currentQuestion.tier];
+                    gameState.coins = Math.max(0, gameState.coins - tierInfo.penalty);
                     gameState.streak = 0;
                     updateHUD();
-                    gameState.currentQuestionIdx++;
-                    loadQuestion();
+                    loadNextQuestion();
                 }
             }, 100);
+        }
+
+        function triggerAvatarMove() {
+            avatar.isMoving = true;
+            // Advance avatar across screen canvas
+            avatar.targetX += (window.innerWidth * 0.15);
+            
+            // Loop avatar back across canvas seamlessly when reaching end
+            if (avatar.targetX > window.innerWidth * 0.85) {
+                avatar.targetX = window.innerWidth * 0.15;
+                avatar.x = window.innerWidth * 0.05;
+            }
         }
 
         function usePowerup(type) {
             if (type === 'hint' && gameState.coins >= 20) {
                 gameState.coins -= 20;
-                alert("Hint: The correct answer starts with Mount!");
+                alert(`💡 Hint: ${gameState.currentQuestion.hint}`);
             } else if (type === 'freeze' && gameState.coins >= 15) {
                 gameState.coins -= 15;
                 clearInterval(gameState.timerInterval);
             } else if (type === 'shield' && gameState.coins >= 35) {
                 gameState.coins -= 35;
-                alert("Shield Active: Next wrong answer penalty waived!");
+                gameState.hasShield = true;
+                alert("🛡️ Shield equipped for next incorrect answer!");
+            } else {
+                alert("Not enough coins!");
             }
             updateHUD();
         }
 
         /* ===================================================
-           3. p5.js ENVIRONMENT & ENGINE CANVAS
+           3. p5.js CANVAS & PROCEDURAL 2D AVATAR ENGINE
            =================================================== */
         let particles = [];
 
@@ -522,53 +607,164 @@
             let canvas = createCanvas(windowWidth, windowHeight);
             canvas.parent('p5-canvas-container');
 
-            // Initialize atmospheric particle system
-            for (let i = 0; i < 60; i++) {
+            // Initialize atmospheric background particles
+            for (let i = 0; i < 50; i++) {
                 particles.push({
                     x: random(width),
                     y: random(height),
                     size: random(2, 5),
-                    speedY: random(0.2, 1),
-                    opacity: random(50, 180)
+                    speedY: random(0.2, 0.8),
+                    opacity: random(60, 180)
                 });
             }
+
+            avatar.x = width * 0.15;
+            avatar.targetX = width * 0.15;
         }
 
         function draw() {
-            // Environment render based on activity selection
+            // Render Selected Terrain
             if (gameState.currentActivity === 'MOUNTAIN') {
-                background(15, 20, 35);
+                background(12, 17, 30);
                 drawMountainTerrain();
             } else if (gameState.currentActivity === 'RIVER') {
-                background(10, 25, 40);
+                background(8, 22, 36);
                 drawRiverTerrain();
             } else if (gameState.currentActivity === 'DESERT') {
-                background(35, 20, 15);
+                background(30, 18, 12);
                 drawDesertTerrain();
             }
 
+            // Update & Render Avatar Procedural Motion
+            updateAvatarPosition();
+            drawProceduralAvatar();
+
+            // Atmospheric Particle FX
             drawParticles();
         }
 
+        /* Terrain Curve Snap Logic */
+        function getTerrainY(x, type) {
+            if (type === 'MOUNTAIN') {
+                return height - 80 - noise(x * 0.008) * 90;
+            } else if (type === 'RIVER') {
+                return height - 110 + sin(frameCount * 0.04 + x * 0.01) * 6;
+            } else if (type === 'DESERT') {
+                return height - 90 - sin(x * 0.006) * 35;
+            }
+        }
+
+        function updateAvatarPosition() {
+            // Lerp avatar X position smoothly towards target
+            avatar.x = lerp(avatar.x, avatar.targetX, avatar.speed);
+            
+            // Snap Y directly to current terrain height curve
+            avatar.y = getTerrainY(avatar.x, gameState.currentActivity);
+
+            if (abs(avatar.x - avatar.targetX) < 1) {
+                avatar.isMoving = false;
+            }
+
+            if (avatar.isMoving) {
+                avatar.stepFrame += 0.2;
+            }
+        }
+
+        /* Draw Procedural 2D Character Avatar */
+        function drawProceduralAvatar() {
+            push();
+            translate(avatar.x, avatar.y);
+
+            if (gameState.currentActivity === 'MOUNTAIN') {
+                // Mountain Climber Avatar
+                let legOffset = sin(avatar.stepFrame * 2) * 5;
+                
+                // Shadow
+                fill(0, 0, 0, 60);
+                ellipse(0, 5, 24, 8);
+
+                // Legs
+                stroke(255); strokeWeight(3);
+                line(-4, -5, -6 + legOffset, 4);
+                line(4, -5, 6 - legOffset, 4);
+
+                // Body & Cloak
+                noStroke();
+                fill(0, 229, 255); // Cyan Tunic
+                rect(-8, -24, 16, 18, 4);
+
+                // Head
+                fill(255, 205, 148);
+                ellipse(0, -30, 14, 14);
+
+                // Walking Stick / Staff
+                stroke(255, 193, 7); strokeWeight(2);
+                line(8, -32, 10 + legOffset, 6);
+
+            } else if (gameState.currentActivity === 'RIVER') {
+                // Boat & Rower Avatar
+                let waveBob = sin(frameCount * 0.08) * 3;
+                translate(0, waveBob);
+
+                // Boat Hull
+                noStroke();
+                fill(160, 82, 45);
+                arc(0, -2, 46, 22, 0, PI);
+
+                // Rower
+                fill(255, 205, 148);
+                ellipse(-4, -16, 12, 12); // Head
+                fill(168, 85, 247); // Purple Tunic
+                rect(-10, -10, 12, 12, 3);
+
+                // Oar Rowing Motion
+                stroke(255); strokeWeight(2.5);
+                let oarAngle = sin(frameCount * 0.1) * 0.5;
+                line(-2, -8, 18 * cos(oarAngle), 12 * sin(oarAngle) + 6);
+
+            } else if (gameState.currentActivity === 'DESERT') {
+                // Desert Traveler Avatar
+                let bounce = abs(sin(avatar.stepFrame)) * 3;
+                translate(0, -bounce);
+
+                // Shadow
+                fill(0, 0, 0, 50);
+                ellipse(0, 4, 28, 6);
+
+                // Cloak / Robe
+                noStroke();
+                fill(255, 193, 7);
+                triangle(-10, 2, 10, 2, 0, -28);
+
+                // Head turban
+                fill(245);
+                ellipse(0, -26, 14, 12);
+            }
+
+            pop();
+        }
+
+        /* Environment Render Functions */
         function drawMountainTerrain() {
             noStroke();
-            // Parallax Mountain Silhouettes
-            fill(25, 32, 55);
+            // Background Mountains
+            fill(22, 30, 50);
             beginShape();
             vertex(0, height);
-            for (let x = 0; x <= width; x += 50) {
-                let y = height - 150 - noise(x * 0.005, frameCount * 0.001) * 120;
+            for (let x = 0; x <= width; x += 40) {
+                let y = height - 160 - noise(x * 0.004) * 140;
                 vertex(x, y);
             }
             vertex(width, height);
             endShape(CLOSE);
 
-            fill(35, 45, 75);
+            // Foreground Path Mountain Ridge
+            fill(32, 44, 70);
             beginShape();
             vertex(0, height);
-            for (let x = 0; x <= width; x += 30) {
-                let y = height - 80 - noise(x * 0.01) * 80;
-                vertex(x, y);
+            for (let x = 0; x <= width; x += 20) {
+                let y = getTerrainY(x, 'MOUNTAIN');
+                vertex(x, y + 10);
             }
             vertex(width, height);
             endShape(CLOSE);
@@ -576,21 +772,41 @@
 
         function drawRiverTerrain() {
             noStroke();
-            fill(0, 180, 216, 50);
-            rect(0, height - 180, width, 180);
-            fill(0, 119, 182, 80);
-            for (let i = 0; i < 5; i++) {
-                rect(0, height - 150 + i * 30, width, 15);
+            // River Water Base
+            fill(0, 119, 182, 90);
+            rect(0, height - 140, width, 140);
+
+            // Animated Waves
+            fill(0, 180, 216, 120);
+            beginShape();
+            vertex(0, height);
+            for (let x = 0; x <= width; x += 20) {
+                let y = getTerrainY(x, 'RIVER') + 8;
+                vertex(x, y);
             }
+            vertex(width, height);
+            endShape(CLOSE);
         }
 
         function drawDesertTerrain() {
             noStroke();
-            fill(212, 140, 70);
+            // Background Dunes
+            fill(180, 100, 45);
             beginShape();
             vertex(0, height);
-            for (let x = 0; x <= width; x += 40) {
-                let y = height - 100 - sin(x * 0.01 + frameCount * 0.02) * 30;
+            for (let x = 0; x <= width; x += 50) {
+                let y = height - 130 - sin(x * 0.003) * 40;
+                vertex(x, y);
+            }
+            vertex(width, height);
+            endShape(CLOSE);
+
+            // Foreground Dunes
+            fill(220, 135, 55);
+            beginShape();
+            vertex(0, height);
+            for (let x = 0; x <= width; x += 20) {
+                let y = getTerrainY(x, 'DESERT') + 12;
                 vertex(x, y);
             }
             vertex(width, height);
