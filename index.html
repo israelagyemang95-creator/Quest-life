@@ -1,31 +1,615 @@
-Act as a senior frontend game developer and UI/UX designer. We are building a mobile-first, Bible-themed 2D adventure and trivia game from scratch. Help me architect and build the clean codebase step-by-step based on the specifications below.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bible Quest: Adventure & Trivia</title>
+    <!-- p5.js Library for 2D Canvas Engine -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --glass-bg: rgba(18, 22, 38, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.14);
+            --accent-gold: #ffc107;
+            --accent-gold-glow: rgba(255, 193, 7, 0.35);
+            --accent-cyan: #00e5ff;
+            --accent-purple: #a855f7;
+            --danger-red: #ff4757;
+            --success-green: #2ed573;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
 
-### 1. Visual Style & UI/UX Design
-* **Aesthetic:** Modern, arcade-inspired look with a clean glassmorphism UI overlay.
-* **Atmosphere:** Dynamic particle background effects and responsive environmental themes (weather transitions, sunlight, ambient rain/fog).
-* **Target Device:** Mobile-first layout, fully responsive with clean touch controls and smooth visual feedback.
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
 
-### 2. Core Game Loop & 2D Environment Engine
-* **Progression Systems:** Progressive altitude and distance tracking system tied to correct answers and stage advancement.
-* **Environment Activities:** Diverse 2D traversal modes including:
-  * Mountain Climbing (altitude progression)
-  * River Rowing (water currents and motion dynamics)
-  * Desert Marathons (endurance and heat mechanics)
-* **Procedural Activity Engine:** A procedural activity-set system to generate dynamic challenges and ensure long-term replayability.
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #090c15;
+            color: var(--text-main);
+        }
 
-### 3. Quiz & Database Mechanics
-* **Content Structure:** 50-question database structured per biblical book.
-* **Difficulty & Timers:** Tiered difficulty curve that automatically scales based on player performance and streak.
-* **Consequences:** Coin deduction penalties for incorrect answers.
+        /* p5.js Canvas Container */
+        #p5-canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
 
-### 4. Economy & Marketplace
-* **In-Game Currency:** Earned through correct answers, distance covered, and achievements.
-* **Power-Up Marketplace:** Coin-based store allowing players to buy hints, time boosts, mistake shields, and visual upgrades.
+        /* Glassmorphism UI Root Overlay */
+        .ui-root {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 1rem;
+            pointer-events: none;
+        }
 
-### 5. Technical Requirements
-* Deliver clean, well-commented code using HTML5, CSS3, and JavaScript (p5.js / Canvas API for 2D rendering).
-* Structure data objects cleanly so new books, questions, and environment themes can easily be plugged in.
+        .interactive {
+            pointer-events: auto;
+        }
 
----
+        /* Reusable Glass Panel Styling */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+        }
 
-Start by providing the structural HTML5/CSS framework with glassmorphism UI elements, particle canvas setup, and core state management before we build out individual mini-game environments.
+        /* Header HUD */
+        header.hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            width: 100%;
+            max-width: 650px;
+            margin: 0 auto;
+        }
+
+        .hud-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .hud-badge {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 0.4rem 0.85rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .gold-text { color: var(--accent-gold); }
+        .cyan-text { color: var(--accent-cyan); }
+        .purple-text { color: var(--accent-purple); }
+
+        /* Game Screens Switcher */
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 520px;
+            margin: auto;
+            padding: 1.75rem;
+            gap: 1.25rem;
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Typography & Headers */
+        .card-title {
+            font-size: 1.35rem;
+            font-weight: 800;
+            text-align: center;
+            letter-spacing: -0.3px;
+        }
+
+        .card-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        /* Quiz UI Elements */
+        .timer-bar-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .timer-bar {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-gold));
+            transition: width 0.1s linear;
+        }
+
+        .question-text {
+            font-size: 1.15rem;
+            font-weight: 700;
+            line-height: 1.5;
+            text-align: center;
+            margin: 0.5rem 0 1rem 0;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            width: 100%;
+        }
+
+        .option-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--text-main);
+            padding: 1rem 1.25rem;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .option-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: var(--accent-cyan);
+            transform: translateY(-2px);
+        }
+
+        .option-btn.correct {
+            background: rgba(46, 213, 115, 0.25) !important;
+            border-color: var(--success-green) !important;
+        }
+
+        .option-btn.wrong {
+            background: rgba(255, 71, 87, 0.25) !important;
+            border-color: var(--danger-red) !important;
+        }
+
+        /* Power-Up Quick Marketplace Bar */
+        .powerup-bar {
+            display: flex;
+            gap: 0.5rem;
+            width: 100%;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+        }
+
+        .powerup-item {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            padding: 0.6rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.2rem;
+            transition: all 0.2s;
+        }
+
+        .powerup-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: var(--accent-gold);
+        }
+
+        /* Primary Action Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, #ffc107, #ff9800);
+            color: #0b0f19;
+            border: none;
+            padding: 1rem 1.75rem;
+            border-radius: 16px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px var(--accent-gold-glow);
+            transition: all 0.2s;
+            width: 100%;
+            text-align: center;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px var(--accent-gold-glow);
+        }
+
+        /* Activity Selector Grid */
+        .activity-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            width: 100%;
+        }
+
+        .activity-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1rem 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .activity-card.active, .activity-card:hover {
+            background: rgba(0, 229, 255, 0.15);
+            border-color: var(--accent-cyan);
+        }
+
+        .activity-card h4 {
+            font-size: 0.85rem;
+            margin-top: 0.4rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- p5.js Background Render Canvas -->
+    <div id="p5-canvas-container"></div>
+
+    <!-- Interactive Glassmorphism UI -->
+    <div class="ui-root">
+        
+        <!-- Header HUD -->
+        <header class="hud glass-panel interactive">
+            <div class="hud-stat">
+                <div class="hud-badge">
+                    <span>🪙</span>
+                    <span id="hud-coins" class="gold-text">250</span>
+                </div>
+            </div>
+            <div class="hud-stat">
+                <div class="hud-badge">
+                    <span>⛰️</span>
+                    <span id="hud-altitude" class="cyan-text">120m</span>
+                </div>
+            </div>
+            <div class="hud-stat">
+                <div class="hud-badge">
+                    <span>🔥</span>
+                    <span id="hud-streak" class="purple-text">3x</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Screen Container -->
+        <main>
+            
+            <!-- Menu / Activity Switcher Screen -->
+            <section id="screen-menu" class="screen glass-panel interactive active">
+                <h2 class="card-title">Choose Your Journey</h2>
+                <p class="card-subtitle">Select a 2D traversal terrain to begin answering biblical questions.</p>
+                
+                <div class="activity-grid">
+                    <div class="activity-card active" onclick="selectActivity('MOUNTAIN')">
+                        <span style="font-size: 1.5rem;">⛰️</span>
+                        <h4>Mountain</h4>
+                    </div>
+                    <div class="activity-card" onclick="selectActivity('RIVER')">
+                        <span style="font-size: 1.5rem;">🚣</span>
+                        <h4>River</h4>
+                    </div>
+                    <div class="activity-card" onclick="selectActivity('DESERT')">
+                        <span style="font-size: 1.5rem;">🏜️</span>
+                        <h4>Desert</h4>
+                    </div>
+                </div>
+
+                <button class="btn-primary" onclick="startQuiz()">Start Expedition</button>
+            </section>
+
+            <!-- Quiz Screen -->
+            <section id="screen-quiz" class="screen glass-panel interactive">
+                <div class="timer-bar-container">
+                    <div id="timer-bar" class="timer-bar"></div>
+                </div>
+                
+                <p id="book-tag" class="card-subtitle" style="text-transform: uppercase; letter-spacing: 1px; color: var(--accent-cyan);">Genesis • Level 1</p>
+                <h3 id="question-text" class="question-text">Loading question...</h3>
+
+                <div id="options-grid" class="options-grid">
+                    <!-- Dynamic Answer Options -->
+                </div>
+
+                <!-- Marketplace Quick Power-Ups Bar -->
+                <div class="powerup-bar">
+                    <div class="powerup-item" onclick="usePowerup('hint')">
+                        <span>💡 Hint</span>
+                        <span class="gold-text">20 🪙</span>
+                    </div>
+                    <div class="powerup-item" onclick="usePowerup('shield')">
+                        <span>🛡️ Shield</span>
+                        <span class="gold-text">35 🪙</span>
+                    </div>
+                    <div class="powerup-item" onclick="usePowerup('freeze')">
+                        <span>❄️ Freeze</span>
+                        <span class="gold-text">15 🪙</span>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Footer Spacer -->
+        <footer style="height: 10px;"></footer>
+    </div>
+
+    <!-- Engine & Game Logic Script -->
+    <script>
+        /* ===================================================
+           1. GAME STATE & ECONOMY
+           =================================================== */
+        let gameState = {
+            coins: 250,
+            altitude: 120,
+            streak: 0,
+            currentActivity: 'MOUNTAIN', // 'MOUNTAIN', 'RIVER', 'DESERT'
+            currentQuestionIdx: 0,
+            timer: 100,
+            timerInterval: null
+        };
+
+        const sampleQuestions = [
+            {
+                book: "Genesis",
+                question: "On which mountain did Noah's Ark come to rest after the flood?",
+                options: ["Mount Sinai", "Mount Ararat", "Mount Carmel", "Mount Nebo"],
+                correct: 1
+            },
+            {
+                book: "Genesis",
+                question: "What was the name of Abraham's original home city?",
+                options: ["Ur", "Babylon", "Jericho", "Sodom"],
+                correct: 0
+            }
+        ];
+
+        /* ===================================================
+           2. UI CONTROLLER FUNCTIONS
+           =================================================== */
+        function updateHUD() {
+            document.getElementById('hud-coins').innerText = gameState.coins;
+            document.getElementById('hud-altitude').innerText = gameState.altitude + 'm';
+            document.getElementById('hud-streak').innerText = gameState.streak + 'x';
+        }
+
+        function setScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function selectActivity(type) {
+            gameState.currentActivity = type;
+            document.querySelectorAll('.activity-card').forEach(card => card.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+
+        function startQuiz() {
+            setScreen('screen-quiz');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const q = sampleQuestions[gameState.currentQuestionIdx % sampleQuestions.length];
+            document.getElementById('book-tag').innerText = `${q.book} • Level 1`;
+            document.getElementById('question-text').innerText = q.question;
+
+            const grid = document.getElementById('options-grid');
+            grid.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<span>${opt}</span><span style="opacity:0.4;">${['A','B','C','D'][idx]}</span>`;
+                btn.onclick = () => checkAnswer(idx, btn);
+                grid.appendChild(btn);
+            });
+
+            resetTimer();
+        }
+
+        function checkAnswer(selectedIdx, btnElement) {
+            clearInterval(gameState.timerInterval);
+            const q = sampleQuestions[gameState.currentQuestionIdx % sampleQuestions.length];
+
+            if (selectedIdx === q.correct) {
+                btnElement.classList.add('correct');
+                gameState.coins += 15;
+                gameState.altitude += 25;
+                gameState.streak += 1;
+            } else {
+                btnElement.classList.add('wrong');
+                gameState.coins = Math.max(0, gameState.coins - 10); // Coin deduction penalty
+                gameState.streak = 0;
+            }
+
+            updateHUD();
+
+            setTimeout(() => {
+                gameState.currentQuestionIdx++;
+                loadQuestion();
+            }, 1200);
+        }
+
+        function resetTimer() {
+            clearInterval(gameState.timerInterval);
+            let timeRemaining = 100;
+            const timerBar = document.getElementById('timer-bar');
+
+            gameState.timerInterval = setInterval(() => {
+                timeRemaining -= 1.5;
+                timerBar.style.width = Math.max(0, timeRemaining) + '%';
+
+                if (timeRemaining <= 0) {
+                    clearInterval(gameState.timerInterval);
+                    gameState.coins = Math.max(0, gameState.coins - 10);
+                    gameState.streak = 0;
+                    updateHUD();
+                    gameState.currentQuestionIdx++;
+                    loadQuestion();
+                }
+            }, 100);
+        }
+
+        function usePowerup(type) {
+            if (type === 'hint' && gameState.coins >= 20) {
+                gameState.coins -= 20;
+                alert("Hint: The correct answer starts with Mount!");
+            } else if (type === 'freeze' && gameState.coins >= 15) {
+                gameState.coins -= 15;
+                clearInterval(gameState.timerInterval);
+            } else if (type === 'shield' && gameState.coins >= 35) {
+                gameState.coins -= 35;
+                alert("Shield Active: Next wrong answer penalty waived!");
+            }
+            updateHUD();
+        }
+
+        /* ===================================================
+           3. p5.js ENVIRONMENT & ENGINE CANVAS
+           =================================================== */
+        let particles = [];
+
+        function setup() {
+            let canvas = createCanvas(windowWidth, windowHeight);
+            canvas.parent('p5-canvas-container');
+
+            // Initialize atmospheric particle system
+            for (let i = 0; i < 60; i++) {
+                particles.push({
+                    x: random(width),
+                    y: random(height),
+                    size: random(2, 5),
+                    speedY: random(0.2, 1),
+                    opacity: random(50, 180)
+                });
+            }
+        }
+
+        function draw() {
+            // Environment render based on activity selection
+            if (gameState.currentActivity === 'MOUNTAIN') {
+                background(15, 20, 35);
+                drawMountainTerrain();
+            } else if (gameState.currentActivity === 'RIVER') {
+                background(10, 25, 40);
+                drawRiverTerrain();
+            } else if (gameState.currentActivity === 'DESERT') {
+                background(35, 20, 15);
+                drawDesertTerrain();
+            }
+
+            drawParticles();
+        }
+
+        function drawMountainTerrain() {
+            noStroke();
+            // Parallax Mountain Silhouettes
+            fill(25, 32, 55);
+            beginShape();
+            vertex(0, height);
+            for (let x = 0; x <= width; x += 50) {
+                let y = height - 150 - noise(x * 0.005, frameCount * 0.001) * 120;
+                vertex(x, y);
+            }
+            vertex(width, height);
+            endShape(CLOSE);
+
+            fill(35, 45, 75);
+            beginShape();
+            vertex(0, height);
+            for (let x = 0; x <= width; x += 30) {
+                let y = height - 80 - noise(x * 0.01) * 80;
+                vertex(x, y);
+            }
+            vertex(width, height);
+            endShape(CLOSE);
+        }
+
+        function drawRiverTerrain() {
+            noStroke();
+            fill(0, 180, 216, 50);
+            rect(0, height - 180, width, 180);
+            fill(0, 119, 182, 80);
+            for (let i = 0; i < 5; i++) {
+                rect(0, height - 150 + i * 30, width, 15);
+            }
+        }
+
+        function drawDesertTerrain() {
+            noStroke();
+            fill(212, 140, 70);
+            beginShape();
+            vertex(0, height);
+            for (let x = 0; x <= width; x += 40) {
+                let y = height - 100 - sin(x * 0.01 + frameCount * 0.02) * 30;
+                vertex(x, y);
+            }
+            vertex(width, height);
+            endShape(CLOSE);
+        }
+
+        function drawParticles() {
+            noStroke();
+            particles.forEach(p => {
+                fill(255, 215, 0, p.opacity);
+                ellipse(p.x, p.y, p.size);
+                p.y -= p.speedY;
+                if (p.y < 0) p.y = height;
+            });
+        }
+
+        function windowResized() {
+            resizeCanvas(windowWidth, windowHeight);
+        }
+    </script>
+</body>
+</html>
