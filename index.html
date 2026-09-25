@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bible Quest: Adventure & Tiered Trivia</title>
+    <title>Bible Quest: Adventure & Marketplace</title>
     <!-- p5.js Library for 2D Canvas Engine -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
     <!-- Google Fonts -->
@@ -11,7 +11,7 @@
     
     <style>
         :root {
-            --glass-bg: rgba(18, 22, 38, 0.75);
+            --glass-bg: rgba(18, 22, 38, 0.82);
             --glass-border: rgba(255, 255, 255, 0.14);
             --accent-gold: #ffc107;
             --accent-gold-glow: rgba(255, 193, 7, 0.35);
@@ -72,11 +72,11 @@
         /* Reusable Glass Panel Styling */
         .glass-panel {
             background: var(--glass-bg);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: 24px;
-            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.6);
         }
 
         /* Header HUD */
@@ -86,7 +86,7 @@
             align-items: center;
             padding: 0.75rem 1.25rem;
             width: 100%;
-            max-width: 650px;
+            max-width: 680px;
             margin: 0 auto;
             position: relative;
         }
@@ -135,7 +135,27 @@
             top: -20px;
         }
 
-        /* Game Screens Switcher */
+        .btn-icon-shop {
+            background: linear-gradient(135deg, var(--accent-gold), #ff9800);
+            color: #090c15;
+            border: none;
+            padding: 0.45rem 0.9rem;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            box-shadow: 0 4px 15px var(--accent-gold-glow);
+            transition: all 0.2s;
+        }
+
+        .btn-icon-shop:hover {
+            transform: scale(1.05);
+        }
+
+        /* Screens Switcher */
         .screen {
             display: none;
             flex-direction: column;
@@ -171,7 +191,7 @@
             text-align: center;
         }
 
-        /* Stats Row */
+        /* Stats Summary */
         .stats-summary {
             display: flex;
             justify-content: space-around;
@@ -370,6 +390,184 @@
             font-size: 0.85rem;
             margin-top: 0.4rem;
         }
+
+        /* ===================================================
+           MARKETPLACE GLASS CLINICAL MODAL
+           =================================================== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(12px);
+            z-index: 100;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            pointer-events: auto;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            animation: fadeIn 0.25 ease-out;
+        }
+
+        .modal-card {
+            width: 100%;
+            max-width: 580px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            padding: 1.75rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .modal-close-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--text-main);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 1.1rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .modal-close-btn:hover {
+            background: var(--danger-red);
+        }
+
+        /* Shop Tabs */
+        .market-tabs {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.3rem;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 0.6rem;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 700;
+            font-size: 0.85rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--glass-bg);
+            color: var(--accent-cyan);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .market-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.85rem;
+            overflow-y: auto;
+            padding-right: 0.2rem;
+            max-height: 52vh;
+        }
+
+        .market-grid::-webkit-scrollbar {
+            width: 6px;
+        }
+        .market-grid::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        .market-item {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 18px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 0.5rem;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .market-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .market-item.equipped {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 229, 255, 0.08);
+        }
+
+        .item-icon {
+            font-size: 2.2rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .item-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        .item-desc {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            line-height: 1.3;
+        }
+
+        .btn-item-action {
+            margin-top: 0.4rem;
+            width: 100%;
+            padding: 0.55rem;
+            border-radius: 12px;
+            border: none;
+            font-weight: 800;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-item-action.buy {
+            background: var(--accent-gold);
+            color: #0b0f19;
+        }
+
+        .btn-item-action.equip {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-item-action.active-equip {
+            background: var(--accent-cyan);
+            color: #0b0f19;
+            cursor: default;
+        }
     </style>
 </head>
 <body>
@@ -402,12 +600,17 @@
                     <span id="hud-streak" class="purple-text">0x</span>
                 </div>
             </div>
+
+            <!-- Market Trigger Button -->
+            <button class="btn-icon-shop" onclick="openShop()">
+                <span>🛒</span> Shop
+            </button>
         </header>
 
         <!-- Main Screen Container -->
         <main>
             
-            <!-- Menu / Terrain Switcher Screen -->
+            <!-- Menu Screen -->
             <section id="screen-menu" class="screen glass-panel interactive active">
                 <h2 class="card-title">Choose Your Expedition</h2>
                 <p class="card-subtitle">Select a 2D terrain traversal mode to challenge biblical question tiers.</p>
@@ -460,11 +663,9 @@
 
                 <h3 id="question-text" class="question-text">Loading question...</h3>
 
-                <div id="options-grid" class="options-grid">
-                    <!-- Dynamic Options Populated by JS -->
-                </div>
+                <div id="options-grid" class="options-grid"></div>
 
-                <!-- Marketplace Quick Power-Ups Bar -->
+                <!-- Power-Ups Quick Marketplace Bar -->
                 <div class="powerup-bar">
                     <div class="powerup-item" onclick="usePowerup('hint')">
                         <span>💡 Hint</span>
@@ -487,9 +688,33 @@
         <footer style="height: 10px;"></footer>
     </div>
 
+    <!-- Dedicated Glassmorphism Marketplace Modal -->
+    <div id="modal-shop" class="modal-overlay">
+        <div class="modal-card glass-panel">
+            <div class="modal-header">
+                <div>
+                    <h2 class="card-title" style="text-align: left;">Celestial Marketplace</h2>
+                    <p class="card-subtitle" style="text-align: left;">Customize your traveler & ambient world</p>
+                </div>
+                <button class="modal-close-btn" onclick="closeShop()">✕</button>
+            </div>
+
+            <!-- Shop Category Tabs -->
+            <div class="market-tabs">
+                <button id="tab-skins" class="tab-btn active" onclick="switchShopTab('skins')">Avatar Skins</button>
+                <button id="tab-weather" class="tab-btn" onclick="switchShopTab('weather')">Weather Effects</button>
+            </div>
+
+            <!-- Grid Container -->
+            <div id="market-grid-container" class="market-grid">
+                <!-- Items populated dynamically via JS -->
+            </div>
+        </div>
+    </div>
+
     <script>
         /* ===================================================
-           1. TIERED QUESTION DATABASE & CONFIGURATION
+           1. QUESTION DATABASE & CONFIG
            =================================================== */
         const TIER_CONFIG = {
             1: { name: "Tier 1 • Easy", class: "tier-1", timeLimit: 20, reward: 15, penalty: 5, altitudeGain: 25 },
@@ -498,29 +723,41 @@
         };
 
         const questionDatabase = [
-            // --- TIER 1 QUESTIONS ---
             { tier: 1, book: "Genesis", question: "On which mountain did Noah's Ark come to rest after the flood?", options: ["Mount Sinai", "Mount Ararat", "Mount Carmel", "Mount Nebo"], correct: 1, hint: "Located in modern-day Turkey." },
             { tier: 1, book: "Genesis", question: "What was the name of Abraham's original home city?", options: ["Ur", "Babylon", "Jericho", "Sodom"], correct: 0, hint: "A short, 2-letter ancient Sumerian city." },
             { tier: 1, book: "Exodus", question: "Through which body of water did Moses lead the Israelites?", options: ["Dead Sea", "Sea of Galilee", "Red Sea", "Jordan River"], correct: 2, hint: "Named after a vivid color." },
             { tier: 1, book: "Matthew", question: "In which city was Jesus born?", options: ["Nazareth", "Jerusalem", "Bethlehem", "Capernaum"], correct: 2, hint: "Known as the City of David." },
             { tier: 1, book: "Psalms", question: "'The Lord is my shepherd; I shall not want' is the first line of which Psalm?", options: ["Psalm 1", "Psalm 23", "Psalm 91", "Psalm 119"], correct: 1, hint: "A famous Psalm numbered in the low twenties." },
-
-            // --- TIER 2 QUESTIONS ---
             { tier: 2, book: "Exodus", question: "What was the first plague brought upon Egypt?", options: ["Frogs", "Water turned to Blood", "Locusts", "Darkness"], correct: 1, hint: "Affects the Nile River." },
             { tier: 2, book: "Joshua", question: "How many days did the Israelites march around Jericho before the walls fell?", options: ["3 Days", "7 Days", "12 Days", "40 Days"], correct: 1, hint: "A biblically significant number associated with completion." },
             { tier: 2, book: "Luke", question: "What was the occupation of Zacchaeus before he met Jesus?", options: ["Fisherman", "Tax Collector", "Tentmaker", "Pharisee"], correct: 1, hint: "He climbed a sycamore tree to see Jesus." },
             { tier: 2, book: "Acts", question: "On the road to which city was Saul converted?", options: ["Antioch", "Damascus", "Rome", "Ephesus"], correct: 1, hint: "Capital city of modern Syria." },
-
-            // --- TIER 3 QUESTIONS ---
             { tier: 3, book: "Daniel", question: "What were the Babylonian names given to Hananiah, Mishael, and Azariah?", options: ["Abednego, Shadrach, Meshach", "Shadrach, Meshach, Abednego", "Balthazar, Belteshazzar, Darius", "Elam, Cyrus, Artaxerxes"], correct: 1, hint: "Shadrach comes first in the standard ordering." },
             { tier: 3, book: "Revelation", question: "Which of the Seven Churches of Asia was called 'lukewarm'?", options: ["Ephesus", "Smyrna", "Laodicea", "Philadelphia"], correct: 2, hint: "Neither hot nor cold." },
             { tier: 3, book: "Acts", question: "Who was the first Christian martyr recorded in the Book of Acts?", options: ["James", "Stephen", "Philip", "Barnabas"], correct: 1, hint: "One of the original seven deacons, stoned to death." }
         ];
 
         /* ===================================================
-           2. LOCAL STORAGE PERSISTENCE ENGINE
+           2. MARKETPLACE CATALOG CONFIGURATION
            =================================================== */
-        const STORAGE_KEY = "BIBLE_QUEST_GAME_SAVE_V1";
+        const MARKET_SKINS = [
+            { id: 'DEFAULT', name: 'Desert Nomad', icon: '🚶', cost: 0, desc: 'A resilient traveler equipped with cyan robes and wooden staff.' },
+            { id: 'SCHOLAR', name: 'Wise Scholar', icon: '📜', cost: 100, desc: 'Clad in royal purple with a floating scroll of scripture.' },
+            { id: 'PALADIN', name: 'Holy Paladin', icon: '⚔️', cost: 250, desc: 'Encased in polished golden armor with a flowing red cape.' },
+            { id: 'ANGELIC', name: 'Celestial Herald', icon: '🪽', cost: 500, desc: 'Blessed with glowing wings and an ethereal halo aura.' }
+        ];
+
+        const MARKET_WEATHER = [
+            { id: 'DEFAULT', name: 'Calm Ember Skies', icon: '✨', cost: 0, desc: 'Gentle golden embers rising softly through the air.' },
+            { id: 'RAIN', name: 'Blessing Rainstorm', icon: '🌧️', cost: 150, desc: 'Cool revitalizing rain with ground splash physics.' },
+            { id: 'GOLD_DUST', name: 'Golden Manna', icon: '🌟', cost: 300, desc: 'Swirling luminous heavenly particles that shimmer brightly.' },
+            { id: 'SNOW', name: 'Mount Sinai Snow', icon: '❄️', cost: 450, desc: 'Serene white snow drifts dancing softly on mountain winds.' }
+        ];
+
+        /* ===================================================
+           3. GAME STATE & LOCAL STORAGE PERSISTENCE
+           =================================================== */
+        const STORAGE_KEY = "BIBLE_QUEST_GAME_SAVE_V2";
 
         let gameState = {
             coins: 250,
@@ -530,9 +767,14 @@
             highStreak: 0,
             solvedCount: 0,
             hasShield: false,
-            currentActivity: 'MOUNTAIN', // 'MOUNTAIN', 'RIVER', 'DESERT'
+            unlockedSkins: ['DEFAULT'],
+            equippedSkin: 'DEFAULT',
+            unlockedWeather: ['DEFAULT'],
+            equippedWeather: 'DEFAULT',
+            currentActivity: 'MOUNTAIN',
             currentQuestion: null,
-            timerInterval: null
+            timerInterval: null,
+            activeShopTab: 'skins'
         };
 
         function saveProgress() {
@@ -542,11 +784,14 @@
                 maxAltitude: gameState.maxAltitude,
                 streak: gameState.streak,
                 highStreak: gameState.highStreak,
-                solvedCount: gameState.solvedCount
+                solvedCount: gameState.solvedCount,
+                unlockedSkins: gameState.unlockedSkins,
+                equippedSkin: gameState.equippedSkin,
+                unlockedWeather: gameState.unlockedWeather,
+                equippedWeather: gameState.equippedWeather
             };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
             
-            // Trigger visual save toast
             const toast = document.getElementById('save-toast');
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 1200);
@@ -563,6 +808,10 @@
                     gameState.streak = parsed.streak ?? 0;
                     gameState.highStreak = parsed.highStreak ?? 0;
                     gameState.solvedCount = parsed.solvedCount ?? 0;
+                    gameState.unlockedSkins = parsed.unlockedSkins ?? ['DEFAULT'];
+                    gameState.equippedSkin = parsed.equippedSkin ?? 'DEFAULT';
+                    gameState.unlockedWeather = parsed.unlockedWeather ?? ['DEFAULT'];
+                    gameState.equippedWeather = parsed.equippedWeather ?? 'DEFAULT';
                 } catch(e) {
                     console.error("Error loading save data", e);
                 }
@@ -572,7 +821,7 @@
         }
 
         function resetProgress() {
-            if (confirm("Are you sure you want to reset all coins, altitude, and high score progress?")) {
+            if (confirm("Reset all coins, custom skins, weather effects, and career statistics?")) {
                 localStorage.removeItem(STORAGE_KEY);
                 gameState.coins = 250;
                 gameState.altitude = 0;
@@ -580,24 +829,105 @@
                 gameState.streak = 0;
                 gameState.highStreak = 0;
                 gameState.solvedCount = 0;
+                gameState.unlockedSkins = ['DEFAULT'];
+                gameState.equippedSkin = 'DEFAULT';
+                gameState.unlockedWeather = ['DEFAULT'];
+                gameState.equippedWeather = 'DEFAULT';
                 updateHUD();
                 updateMenuStats();
+                initParticles();
                 alert("Progress reset to default!");
             }
         }
 
         /* ===================================================
-           3. SYSTEM & UI LOGIC
+           4. MARKETPLACE MODAL CONTROLLER
            =================================================== */
-        // 2D Avatar Procedural Motion State
-        let avatar = {
-            x: 80,
-            y: 0,
-            targetX: 80,
-            speed: 0.05,
-            stepFrame: 0,
-            isMoving: false
-        };
+        function openShop() {
+            document.getElementById('modal-shop').classList.add('active');
+            renderShopGrid();
+        }
+
+        function closeShop() {
+            document.getElementById('modal-shop').classList.remove('active');
+        }
+
+        function switchShopTab(tab) {
+            gameState.activeShopTab = tab;
+            document.getElementById('tab-skins').classList.toggle('active', tab === 'skins');
+            document.getElementById('tab-weather').classList.toggle('active', tab === 'weather');
+            renderShopGrid();
+        }
+
+        function renderShopGrid() {
+            const container = document.getElementById('market-grid-container');
+            container.innerHTML = '';
+
+            const isSkinTab = gameState.activeShopTab === 'skins';
+            const items = isSkinTab ? MARKET_SKINS : MARKET_WEATHER;
+
+            items.forEach(item => {
+                const isUnlocked = isSkinTab ? gameState.unlockedSkins.includes(item.id) : gameState.unlockedWeather.includes(item.id);
+                const isEquipped = isSkinTab ? gameState.equippedSkin === item.id : gameState.equippedWeather === item.id;
+
+                const card = document.createElement('div');
+                card.className = `market-item ${isEquipped ? 'equipped' : ''}`;
+
+                let btnHTML = '';
+                if (isEquipped) {
+                    btnHTML = `<button class="btn-item-action active-equip">EQUIPPED</button>`;
+                } else if (isUnlocked) {
+                    btnHTML = `<button class="btn-item-action equip" onclick="equipItem('${isSkinTab ? 'skin' : 'weather'}', '${item.id}')">EQUIP</button>`;
+                } else {
+                    btnHTML = `<button class="btn-item-action buy" onclick="buyItem('${isSkinTab ? 'skin' : 'weather'}', '${item.id}', ${item.cost})">BUY • ${item.cost} 🪙</button>`;
+                }
+
+                card.innerHTML = `
+                    <div class="item-icon">${item.icon}</div>
+                    <div class="item-title">${item.name}</div>
+                    <div class="item-desc">${item.desc}</div>
+                    ${btnHTML}
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function buyItem(type, id, cost) {
+            if (gameState.coins < cost) {
+                alert("Not enough coins! Solve more questions to earn coins.");
+                return;
+            }
+
+            gameState.coins -= cost;
+            if (type === 'skin') {
+                gameState.unlockedSkins.push(id);
+                gameState.equippedSkin = id;
+            } else {
+                gameState.unlockedWeather.push(id);
+                gameState.equippedWeather = id;
+                initParticles();
+            }
+
+            updateHUD();
+            saveProgress();
+            renderShopGrid();
+        }
+
+        function equipItem(type, id) {
+            if (type === 'skin') {
+                gameState.equippedSkin = id;
+            } else {
+                gameState.equippedWeather = id;
+                initParticles();
+            }
+            saveProgress();
+            renderShopGrid();
+        }
+
+        /* ===================================================
+           5. GAME SYSTEM LOGIC
+           =================================================== */
+        let avatar = { x: 80, y: 0, targetX: 80, speed: 0.05, stepFrame: 0, isMoving: false };
 
         function updateHUD() {
             document.getElementById('hud-coins').innerText = gameState.coins;
@@ -640,14 +970,12 @@
         function loadNextQuestion() {
             const currentTierNum = determineCurrentTier();
             const tierQuestions = questionDatabase.filter(q => q.tier === currentTierNum);
-            
             const pool = tierQuestions.length > 0 ? tierQuestions : questionDatabase;
             gameState.currentQuestion = pool[Math.floor(Math.random() * pool.length)];
 
             const q = gameState.currentQuestion;
             const tierInfo = TIER_CONFIG[q.tier];
 
-            // Render Tier UI
             const badgeEl = document.getElementById('tier-badge');
             badgeEl.innerText = tierInfo.name;
             badgeEl.className = `tier-badge ${tierInfo.class}`;
@@ -655,7 +983,6 @@
             document.getElementById('book-tag').innerText = q.book;
             document.getElementById('question-text').innerText = q.question;
 
-            // Render Options
             const grid = document.getElementById('options-grid');
             grid.innerHTML = '';
             q.options.forEach((opt, idx) => {
@@ -681,13 +1008,8 @@
                 gameState.streak += 1;
                 gameState.solvedCount += 1;
                 
-                if (gameState.altitude > gameState.maxAltitude) {
-                    gameState.maxAltitude = gameState.altitude;
-                }
-                if (gameState.streak > gameState.highStreak) {
-                    gameState.highStreak = gameState.streak;
-                }
-                
+                if (gameState.altitude > gameState.maxAltitude) gameState.maxAltitude = gameState.altitude;
+                if (gameState.streak > gameState.highStreak) gameState.highStreak = gameState.streak;
                 triggerAvatarMove();
 
             } else {
@@ -703,11 +1025,9 @@
 
             updateHUD();
             updateMenuStats();
-            saveProgress(); // Persist changes
+            saveProgress();
 
-            setTimeout(() => {
-                loadNextQuestion();
-            }, 1200);
+            setTimeout(() => { loadNextQuestion(); }, 1200);
         }
 
         function startTimer(seconds) {
@@ -761,7 +1081,7 @@
         }
 
         /* ===================================================
-           4. p5.js CANVAS & PROCEDURAL 2D AVATAR ENGINE
+           6. p5.js RENDER ENGINE WITH CUSTOM SKINS & WEATHER
            =================================================== */
         let particles = [];
 
@@ -769,21 +1089,28 @@
             let canvas = createCanvas(windowWidth, windowHeight);
             canvas.parent('p5-canvas-container');
 
-            for (let i = 0; i < 50; i++) {
-                particles.push({
-                    x: random(width),
-                    y: random(height),
-                    size: random(2, 5),
-                    speedY: random(0.2, 0.8),
-                    opacity: random(60, 180)
-                });
-            }
-
             avatar.x = width * 0.15;
             avatar.targetX = width * 0.15;
 
-            // Load saved local storage progress on initial boot
             loadProgress();
+            initParticles();
+        }
+
+        function initParticles() {
+            particles = [];
+            let count = gameState.equippedWeather === 'RAIN' ? 90 : 50;
+
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: random(width),
+                    y: random(height),
+                    size: random(2, 6),
+                    speedY: random(0.5, 3),
+                    speedX: random(-0.5, 0.5),
+                    opacity: random(80, 220),
+                    length: random(8, 18)
+                });
+            }
         }
 
         function draw() {
@@ -800,141 +1127,160 @@
 
             updateAvatarPosition();
             drawProceduralAvatar();
-            drawParticles();
+            drawWeatherParticles();
         }
 
         function getTerrainY(x, type) {
-            if (type === 'MOUNTAIN') {
-                return height - 80 - noise(x * 0.008) * 90;
-            } else if (type === 'RIVER') {
-                return height - 110 + sin(frameCount * 0.04 + x * 0.01) * 6;
-            } else if (type === 'DESERT') {
-                return height - 90 - sin(x * 0.006) * 35;
-            }
+            if (type === 'MOUNTAIN') return height - 80 - noise(x * 0.008) * 90;
+            if (type === 'RIVER') return height - 110 + sin(frameCount * 0.04 + x * 0.01) * 6;
+            if (type === 'DESERT') return height - 90 - sin(x * 0.006) * 35;
         }
 
         function updateAvatarPosition() {
             avatar.x = lerp(avatar.x, avatar.targetX, avatar.speed);
             avatar.y = getTerrainY(avatar.x, gameState.currentActivity);
 
-            if (abs(avatar.x - avatar.targetX) < 1) {
-                avatar.isMoving = false;
-            }
-
-            if (avatar.isMoving) {
-                avatar.stepFrame += 0.2;
-            }
+            if (abs(avatar.x - avatar.targetX) < 1) avatar.isMoving = false;
+            if (avatar.isMoving) avatar.stepFrame += 0.2;
         }
 
+        /* Custom Skin Visual Rendering Engine */
         function drawProceduralAvatar() {
             push();
             translate(avatar.x, avatar.y);
 
-            if (gameState.currentActivity === 'MOUNTAIN') {
-                let legOffset = sin(avatar.stepFrame * 2) * 5;
-                fill(0, 0, 0, 60); ellipse(0, 5, 24, 8);
-                stroke(255); strokeWeight(3);
-                line(-4, -5, -6 + legOffset, 4);
-                line(4, -5, 6 - legOffset, 4);
-                noStroke(); fill(0, 229, 255);
-                rect(-8, -24, 16, 18, 4);
-                fill(255, 205, 148); ellipse(0, -30, 14, 14);
+            let legOffset = sin(avatar.stepFrame * 2) * 5;
+            let skin = gameState.equippedSkin;
+
+            // Shadow Base
+            fill(0, 0, 0, 60); ellipse(0, 5, 26, 8);
+
+            if (skin === 'ANGELIC') {
+                // Radiant Halo
+                noFill(); stroke(255, 215, 0); strokeWeight(3);
+                ellipse(0, -42, 18, 6);
+                // Celestial Wings
+                fill(255, 255, 255, 180); noStroke();
+                let wingFlap = sin(frameCount * 0.1) * 8;
+                triangle(-6, -20, -28, -35 + wingFlap, -12, -10);
+                triangle(6, -20, 28, -35 + wingFlap, 12, -10);
+            }
+
+            if (skin === 'PALADIN') {
+                // Red Cape
+                fill(220, 38, 38); noStroke();
+                let capeSway = sin(frameCount * 0.08) * 4;
+                quad(-6, -22, 6, -22, 10 + capeSway, 0, -10 + capeSway, 0);
+            }
+
+            // Legs
+            stroke(255); strokeWeight(3);
+            line(-4, -5, -6 + legOffset, 4);
+            line(4, -5, 6 - legOffset, 4);
+
+            // Body Tunic / Armor
+            noStroke();
+            if (skin === 'DEFAULT') fill(0, 229, 255);
+            else if (skin === 'SCHOLAR') fill(168, 85, 247);
+            else if (skin === 'PALADIN') fill(255, 193, 7);
+            else if (skin === 'ANGELIC') fill(248, 250, 252);
+            rect(-8, -24, 16, 18, 4);
+
+            // Head & Skin Tone
+            fill(255, 205, 148); ellipse(0, -30, 14, 14);
+
+            // Accessory / Props
+            if (skin === 'SCHOLAR') {
+                // Floating Sacred Scroll
+                fill(254, 240, 138); rect(10, -24 + sin(frameCount * 0.1) * 3, 10, 14, 2);
+            } else if (skin === 'PALADIN') {
+                // Golden Sword
+                stroke(255, 215, 0); strokeWeight(2.5);
+                line(8, -28, 10 + legOffset, 6);
+            } else {
+                // Traveler Staff
                 stroke(255, 193, 7); strokeWeight(2);
                 line(8, -32, 10 + legOffset, 6);
-
-            } else if (gameState.currentActivity === 'RIVER') {
-                let waveBob = sin(frameCount * 0.08) * 3;
-                translate(0, waveBob);
-                noStroke(); fill(160, 82, 45);
-                arc(0, -2, 46, 22, 0, PI);
-                fill(255, 205, 148); ellipse(-4, -16, 12, 12);
-                fill(168, 85, 247); rect(-10, -10, 12, 12, 3);
-                stroke(255); strokeWeight(2.5);
-                let oarAngle = sin(frameCount * 0.1) * 0.5;
-                line(-2, -8, 18 * cos(oarAngle), 12 * sin(oarAngle) + 6);
-
-            } else if (gameState.currentActivity === 'DESERT') {
-                let bounce = abs(sin(avatar.stepFrame)) * 3;
-                translate(0, -bounce);
-                fill(0, 0, 0, 50); ellipse(0, 4, 28, 6);
-                noStroke(); fill(255, 193, 7);
-                triangle(-10, 2, 10, 2, 0, -28);
-                fill(245); ellipse(0, -26, 14, 12);
             }
 
             pop();
         }
 
+        /* Dynamic Weather Particles Engine */
+        function drawWeatherParticles() {
+            let weather = gameState.equippedWeather;
+
+            particles.forEach(p => {
+                push();
+                if (weather === 'RAIN') {
+                    stroke(0, 229, 255, p.opacity);
+                    strokeWeight(1.8);
+                    line(p.x, p.y, p.x - p.speedX * 2, p.y + p.length);
+                    p.y += p.speedY * 3;
+                    p.x += p.speedX;
+
+                } else if (weather === 'GOLD_DUST') {
+                    noStroke();
+                    fill(255, 215, 0, p.opacity);
+                    ellipse(p.x + sin(frameCount * 0.05 + p.y) * 4, p.y, p.size * 1.3);
+                    p.y -= p.speedY * 0.6;
+
+                } else if (weather === 'SNOW') {
+                    noStroke();
+                    fill(255, 255, 255, p.opacity);
+                    ellipse(p.x + sin(frameCount * 0.03 + p.y) * 6, p.y, p.size * 1.1);
+                    p.y += p.speedY * 0.8;
+
+                } else {
+                    // DEFAULT Ember Skies
+                    noStroke();
+                    fill(255, 193, 7, p.opacity);
+                    ellipse(p.x, p.y, p.size);
+                    p.y -= p.speedY * 0.5;
+                }
+
+                // Wrap-around screen bounds
+                if (p.y > height) p.y = 0;
+                if (p.y < 0) p.y = height;
+                if (p.x > width) p.x = 0;
+                if (p.x < 0) p.x = width;
+                pop();
+            });
+        }
+
+        /* Terrain Renderers */
         function drawMountainTerrain() {
-            noStroke();
-            fill(22, 30, 50);
-            beginShape();
-            vertex(0, height);
-            for (let x = 0; x <= width; x += 40) {
-                let y = height - 160 - noise(x * 0.004) * 140;
-                vertex(x, y);
-            }
-            vertex(width, height);
-            endShape(CLOSE);
+            noStroke(); fill(22, 30, 50);
+            beginShape(); vertex(0, height);
+            for (let x = 0; x <= width; x += 40) vertex(x, height - 160 - noise(x * 0.004) * 140);
+            vertex(width, height); endShape(CLOSE);
 
             fill(32, 44, 70);
-            beginShape();
-            vertex(0, height);
-            for (let x = 0; x <= width; x += 20) {
-                let y = getTerrainY(x, 'MOUNTAIN');
-                vertex(x, y + 10);
-            }
-            vertex(width, height);
-            endShape(CLOSE);
+            beginShape(); vertex(0, height);
+            for (let x = 0; x <= width; x += 20) vertex(x, getTerrainY(x, 'MOUNTAIN') + 10);
+            vertex(width, height); endShape(CLOSE);
         }
 
         function drawRiverTerrain() {
-            noStroke();
-            fill(0, 119, 182, 90);
+            noStroke(); fill(0, 119, 182, 90);
             rect(0, height - 140, width, 140);
 
             fill(0, 180, 216, 120);
-            beginShape();
-            vertex(0, height);
-            for (let x = 0; x <= width; x += 20) {
-                let y = getTerrainY(x, 'RIVER') + 8;
-                vertex(x, y);
-            }
-            vertex(width, height);
-            endShape(CLOSE);
+            beginShape(); vertex(0, height);
+            for (let x = 0; x <= width; x += 20) vertex(x, getTerrainY(x, 'RIVER') + 8);
+            vertex(width, height); endShape(CLOSE);
         }
 
         function drawDesertTerrain() {
-            noStroke();
-            fill(180, 100, 45);
-            beginShape();
-            vertex(0, height);
-            for (let x = 0; x <= width; x += 50) {
-                let y = height - 130 - sin(x * 0.003) * 40;
-                vertex(x, y);
-            }
-            vertex(width, height);
-            endShape(CLOSE);
+            noStroke(); fill(180, 100, 45);
+            beginShape(); vertex(0, height);
+            for (let x = 0; x <= width; x += 50) vertex(x, height - 130 - sin(x * 0.003) * 40);
+            vertex(width, height); endShape(CLOSE);
 
             fill(220, 135, 55);
-            beginShape();
-            vertex(0, height);
-            for (let x = 0; x <= width; x += 20) {
-                let y = getTerrainY(x, 'DESERT') + 12;
-                vertex(x, y);
-            }
-            vertex(width, height);
-            endShape(CLOSE);
-        }
-
-        function drawParticles() {
-            noStroke();
-            particles.forEach(p => {
-                fill(255, 215, 0, p.opacity);
-                ellipse(p.x, p.y, p.size);
-                p.y -= p.speedY;
-                if (p.y < 0) p.y = height;
-            });
+            beginShape(); vertex(0, height);
+            for (let x = 0; x <= width; x += 20) vertex(x, getTerrainY(x, 'DESERT') + 12);
+            vertex(width, height); endShape(CLOSE);
         }
 
         function windowResized() {
